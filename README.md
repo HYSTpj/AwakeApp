@@ -1,4 +1,4 @@
-# HYST_application_1
+# HYST_application
 
 以下はセットアップ手順です．
 VS Codeのターミナルで以下を実行してください．
