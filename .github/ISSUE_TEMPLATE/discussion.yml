@@ -1,0 +1,15 @@
+name: "💬 相談・議論"
+description: "設計や仕様についてチームに相談したい場合"
+labels: ["question"]
+body:
+  - type: textarea
+    id: topic
+    attributes:
+      label: 相談したい内容
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: 検討している案
+      description: 自分なりに考えている解決策をいくつか挙げてください
