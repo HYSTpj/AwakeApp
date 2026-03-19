@@ -1,0 +1,28 @@
+name: "📋 タスク・調査"
+description: "作業内容の定義や、技術的な調査が必要な場合に使用します"
+labels: ["todo"]
+body:
+  - type: textarea
+    id: task-description
+    attributes:
+      label: 📝 作業・調査の内容
+      placeholder: 何をするのか具体的に記述してください
+    validations:
+      required: true
+      
+  - type: textarea
+    id: goal
+    attributes:
+      label: 🎯 ゴール（完了条件）
+      placeholder: 何ができたらこのIssueを完了（Close）としますか？
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: todo-list
+    attributes:
+      label: やることリスト
+      options:
+        - label: 調査・実装
+        - label: 動作確認
+        - label: PRの作成
