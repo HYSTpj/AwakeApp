@@ -57,6 +57,9 @@ dependencies:
   # GPSを使うためのパッケージ追加
   geolocator: ^14.0.2
 
+  # Google Map を使うためのパッケージ追加
+  google_maps_flutter: ^2.16.0
+
 # 開発用ツール
 dev_dependencies:
 
