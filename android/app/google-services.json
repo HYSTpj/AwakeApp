@@ -14,7 +14,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "27292719597-e22ohcjdh83lehvq7qkmdcejdboc9519.apps.googleusercontent.com",
+          "client_id": "27292719597-srs3tnqali9d5d0pnjql2sq7onpf10ah.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -29,6 +29,13 @@
             {
               "client_id": "27292719597-e22ohcjdh83lehvq7qkmdcejdboc9519.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "27292719597-l73fo99l8g4k2qhnm44p14e0kqdoqmlb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplication1"
+              }
             }
           ]
         }

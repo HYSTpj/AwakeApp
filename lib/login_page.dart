@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatelessWidget {
     const LoginPage({super.key});
@@ -32,14 +33,21 @@ class LoginPage extends StatelessWidget {
                         const SizedBox(height: 30),
                         // ログインボタン
                         ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async{
                                 // ログイン処理をここに実装
-                                String email = emailController.text;
-                                String password = passwordController.text;
-                                print(email);
-                                print(password);
-                            },
-                            child: const Text("ログイン"))
+                                try {
+                                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                                    email: emailController.text,
+                                    password: passwordController.text
+                                );
+
+                                print("ログイン成功");
+                            } catch (e) {
+                                print("ログイン失敗: $e");
+                            }
+                        },
+                        child: const Text("ログイン"),
+                        )
                     ],
                 ),
                 )
