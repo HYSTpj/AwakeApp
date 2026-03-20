@@ -60,9 +60,6 @@ dependencies:
   # Google Map を使うためのパッケージ追加
   google_maps_flutter: ^2.16.0
 
-  # 位置情報取得のためのパッケージ追加
-  location: ^8.0.1
-
 # 開発用ツール
 dev_dependencies:
 
