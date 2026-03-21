@@ -60,6 +60,10 @@ dependencies:
   # Google Map を使うためのパッケージ追加
   google_maps_flutter: ^2.16.0
 
+  # 住所を緯度経度に変換するためのパッケージ追加
+  geocoding: ^4.0.0
+  http: ^1.6.0
+
 # 開発用ツール
 dev_dependencies:
 
