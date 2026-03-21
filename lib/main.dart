@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+// Firestoreを利用するためのパッケージ
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 // Supabaseを利用するためのパッケージ
 import 'package:supabase_flutter/supabase_flutter.dart';
 
