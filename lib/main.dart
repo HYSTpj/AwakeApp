@@ -4,6 +4,7 @@ import 'login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 // Firestoreを利用するためのパッケージ
