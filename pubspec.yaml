@@ -59,6 +59,7 @@ dependencies:
 
   # GPSを使うためのパッケージ追加
   geolocator: ^14.0.2
+  firebase_auth: ^6.2.0
 
   # Google Map を使うためのパッケージ追加
   google_maps_flutter: ^2.16.0
