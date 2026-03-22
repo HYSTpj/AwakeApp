@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:firebase_core/firebase_core.dart'; // 追加
 import 'firebase_options.dart'; // 追加（flutterfire configureで生成されたファイル）
 import 'package:supabase_flutter/supabase_flutter.dart';  // Supabase用に追加
@@ -18,6 +19,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // Google Mapを利用するためのパッケージ
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+
+// 地図表示画面
+import 'map_screen.dart';
 
 void main() async {
   // Flutterを初期化
@@ -60,8 +64,11 @@ class MyApp extends StatelessWidget {
         // アプリケーションの状態は，再読み込み中に失われない
         // 状態をリセットするには，代わりに"hot restart"を使用
         //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        // これは値だけでなくコードにも適用できる．ほとんどのコード変更は，"hot reload"だけでテストできる
+
+        // デザインタイプの有効設定
+        useMaterial3:true,
+        //アプリ全体の基本色設定
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 最初に表示する画面
