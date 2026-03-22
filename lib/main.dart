@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:firebase_core/firebase_core.dart'; // 追加
-import 'firebase_options.dart'; // 追加（flutterfire configureで生成されたファイル）
-import 'package:supabase_flutter/supabase_flutter.dart';  // Supabase用に追加
 import 'login_page.dart'; // ログインページのインポート
-
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
