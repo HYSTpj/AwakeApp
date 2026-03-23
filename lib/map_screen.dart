@@ -7,9 +7,6 @@ import 'package:geolocator/geolocator.dart';
 // 緯度経度を取得するためのパッケージ
 import 'package:geocoding/geocoding.dart';
 
-// Firestoreを使うためのパッケージ
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class MapSample extends StatefulWidget {
   const MapSample({super.key});
 
@@ -196,13 +193,13 @@ class MapSampleState extends State<MapSample> {
           if (_markers.isNotEmpty) {
             // マーカーがある時
             // 検索窓に入力された地名を取得
-            final destination_name = _markers.first.infoWindow.title ?? "不明な場所";
+            final destinationName = _markers.first.infoWindow.title ?? "不明な場所";
             // 座標を取り出す
             final location = _markers.first.position;
 
             // データ保持
             Navigator.pop(context, {
-              'destination_name': destination_name,
+              'destination_name': destinationName,
               'location': location,
             });
           } else {
