@@ -4,21 +4,10 @@ import 'login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
-
-// Firestoreを利用するためのパッケージ
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Supabaseを利用するためのパッケージ
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-// Google Mapを利用するためのパッケージ
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-
-// 地図表示画面
-import 'map_screen.dart';
 
 void main() async {
   // Flutterを初期化
