@@ -12,7 +12,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> { 
 
     @override
-    Widget build(BuildContext context) {
+class _LoginPageState extends State<LoginPage> {
 
         // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
         final emailController = TextEditingController();
