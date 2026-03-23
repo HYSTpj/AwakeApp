@@ -17,7 +17,17 @@ class _LoginPageState extends State<LoginPage> {
         // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
         final emailController = TextEditingController();
         final passwordController = TextEditingController();
-        
+@override
+void dispose() {
+// メールアドレス用のコントローラー破棄
+  emailController.dispose();
+
+//パスワード用のコントローラー破棄
+  passwordController.dispose();
+
+//親クラスの破棄処理
+  super.dispose();
+}
         // 画面のベース（アプリの見た目の骨組み）作成
         return Scaffold(
             // 画面上部のバー（タイトルなどを表示する部分）作成
