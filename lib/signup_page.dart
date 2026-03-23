@@ -53,7 +53,16 @@ appBar: AppBar(title: const Text('Create Account')),
 
             // アカウント作成ボタン
             ElevatedButton(
-              onPressed: () async {
+  onPressed: () async {
+    
+    // ここに追加 ↓ （tryより前）
+    if (emailController.text.trim().isEmpty || 
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
+      );
+      return;
+    }
                 // アカウント作成の処理をここに実装
                 try {
                   await FirebaseAuth.instance.createUserWithEmailAndPassword(
