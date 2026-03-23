@@ -61,10 +61,9 @@ class LoginPage extends StatelessWidget {
                                 print("ログイン成功");
                             } catch (e) {
                                 print("ログイン失敗: $e");
-                            }
-                        },
-                        child: const Text("ログイン"),
-                        ),
+    },
+    child: const Text("ログイン"),
+),
 
                          Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 均等に
