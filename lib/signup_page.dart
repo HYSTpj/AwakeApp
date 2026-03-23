@@ -66,9 +66,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   print("アカウント作成成功");
                   // 作成したアカウントで自動的にログインする場合
                   Navigator.pop(context); // 画面を閉じて前の画面に戻る
-                } catch (e) {
-                  print(e);
-                }
+} on FirebaseAuthException catch (e) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(e.message ?? 'アカウント作成に失敗しました')),
+  );
+}
               },
               child: const Text('REGISTER')
              ),
