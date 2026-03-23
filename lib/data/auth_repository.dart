@@ -5,11 +5,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> login(String email, String password) async {
-    await _auth.signInWithEmailAndPassword(email: email, password: password);
+  // アカウント作成
+  Future<void> createUser(String email, String password) async {
+    // 2.リクエスト
+      await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password
+      );
   }
+  // 3.成功 (成功 => 戻り値void, 失敗 => error)
 
-  Future<void> signUp(String email, String password) async {
-    await _auth.createUserWithEmailAndPassword(email: email, password: password);
+  // ログイン
+  Future<void> signIn(String email, String password) async {
+    // 2.リクエスト
+    await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password
+    );
   }
+  // 3.成功 (成功 => 戻り値void, 失敗 => error)
 }
