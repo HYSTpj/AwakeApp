@@ -1,5 +1,7 @@
+// Firebaseからuser情報取得するためのパッケージ
 import 'package:firebase_auth/firebase_auth.dart';
-// data/auth_repository.dart のイメージ
+
+// auth_users ドキュメント
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
