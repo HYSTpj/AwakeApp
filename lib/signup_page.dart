@@ -14,7 +14,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     
+
     // 画面のベース（アプリの見た目の骨組み）作成
+@override
+  Widget build(BuildContext context) {
     return Scaffold(
 
       // 画面上部のバー（タイトルなどを表示する部分）作成
