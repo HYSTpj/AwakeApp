@@ -84,9 +84,32 @@ void dispose() {
                           children: [
                             // FOREGOT PASSWORD? ボタン
                             ElevatedButton(
-                              onPressed: (){
-                                // パスワード忘れたときの処理をここに実装
-
+                              onPressed: () async {
+                                // 入力されたメールアドレス宛にパスワード再設定メールを送信
+                                final email = emailController.text.trim();
+                                if (email.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('パスワード再設定用のメールアドレスを入力してください。'),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  await FirebaseAuth.instance
+                                      .sendPasswordResetEmail(email: email);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('パスワード再設定用のメールを送信しました。'),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('パスワード再設定に失敗しました: $e'),
+                                    ),
+                                  );
+                                }
                               },
                               child: const Text('FORGOT PASSWORD?')
                             ),
