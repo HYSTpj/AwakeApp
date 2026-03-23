@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
 
 // アカウント作成画面
-class CreateAccountPage extends StatelessWidget {
+class CreateAccountPage extends StatefulWidget { 
+  const CreateAccountPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<CreateAccountPage> createState() => _CreateAccountPageState();
+}
 
+class _CreateAccountPageState extends State<CreateAccountPage> {
     // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
