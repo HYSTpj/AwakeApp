@@ -17,8 +17,8 @@ class ProfilesRepository {
       "avatar_url": avatarUrl,
       "sleep_past_count": 0,
       "late_count": 0,
-      "created_at": Timestamp.now(),
-      "updated_at": Timestamp.now(),
+      "created_at": FieldValue.serverTimestamp(),
+      "updated_at": FieldValue.serverTimestamp(),
     };
     await _db
       .collection("profiles")

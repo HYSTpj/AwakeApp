@@ -4,7 +4,7 @@ import 'login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import '../data/firebase_options.dart';
 
 // Supabaseを利用するためのパッケージ
 import 'package:supabase_flutter/supabase_flutter.dart';
