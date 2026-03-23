@@ -24,4 +24,11 @@ class AuthRepository {
     );
   }
   // 3.成功 (成功 => 戻り値void, 失敗 => error)
+
+  // パスワード再設定
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(
+      email: email
+    );
+  }
 }
