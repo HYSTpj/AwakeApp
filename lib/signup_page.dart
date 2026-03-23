@@ -21,9 +21,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     return Scaffold(
 
       // 画面上部のバー（タイトルなどを表示する部分）作成
-      appBar: AppBar(
-        title: Text('Create Account'),
-      ),
+appBar: AppBar(title: const Text('Create Account')),
 
       // 画面の内容部分作成
       body: Padding (
