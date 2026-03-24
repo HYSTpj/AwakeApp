@@ -9,7 +9,6 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState(); 
 }
-class _LoginPageState extends State<LoginPage> { 
 
     @override
 class _LoginPageState extends State<LoginPage> {
@@ -17,17 +16,21 @@ class _LoginPageState extends State<LoginPage> {
         // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
         final emailController = TextEditingController();
         final passwordController = TextEditingController();
-@override
-void dispose() {
-// メールアドレス用のコントローラー破棄
-  emailController.dispose();
 
-//パスワード用のコントローラー破棄
-  passwordController.dispose();
+        @override
+        void dispose() {
+        // メールアドレス用のコントローラー破棄
+          emailController.dispose();
 
-//親クラスの破棄処理
-  super.dispose();
-}
+        //パスワード用のコントローラー破棄
+          passwordController.dispose();
+
+        //親クラスの破棄処理
+          super.dispose();
+        }
+
+        @override
+        Widget build(BuildContext context) {
         // 画面のベース（アプリの見た目の骨組み）作成
         return Scaffold(
             // 画面上部のバー（タイトルなどを表示する部分）作成
@@ -72,12 +75,13 @@ void dispose() {
                                     password: passwordController.text
                                 );
 
-                                print("ログイン成功");
-                            } catch (e) {
-                                print("ログイン失敗: $e");
-    },
-    child: const Text("ログイン"),
-),
+                                    print("ログイン成功");
+                                } catch (e) {
+                                    print("ログイン失敗: $e");
+                                };
+                            },
+                            child: const Text("ログイン"),
+                        ),
 
                          Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 均等に

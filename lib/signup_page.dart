@@ -21,7 +21,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     return Scaffold(
 
       // 画面上部のバー（タイトルなどを表示する部分）作成
-appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: const Text('Create Account')),
 
       // 画面の内容部分作成
       body: Padding (
@@ -53,16 +53,16 @@ appBar: AppBar(title: const Text('Create Account')),
 
             // アカウント作成ボタン
             ElevatedButton(
-  onPressed: () async {
+              onPressed: () async {
     
-    // ここに追加 ↓ （tryより前）
-    if (emailController.text.trim().isEmpty || 
-        passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
-      );
-      return;
-    }
+                // ここに追加 ↓ （tryより前）
+                if (emailController.text.trim().isEmpty || 
+                    passwordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
+                  );
+                  return;
+                }
                 // アカウント作成の処理をここに実装
                 try {
                   await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -73,11 +73,11 @@ appBar: AppBar(title: const Text('Create Account')),
                   print("アカウント作成成功");
                   // 作成したアカウントで自動的にログインする場合
                   Navigator.pop(context); // 画面を閉じて前の画面に戻る
-} on FirebaseAuthException catch (e) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(e.message ?? 'アカウント作成に失敗しました')),
-  );
-}
+                  } on FirebaseAuthException catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(e.message ?? 'アカウント作成に失敗しました')),
+                    );
+                  }
               },
               child: const Text('REGISTER')
              ),
