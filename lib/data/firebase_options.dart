@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     authDomain: 'trying-firebase-5d0f8.firebaseapp.com',
     storageBucket: 'trying-firebase-5d0f8.firebasestorage.app',
   );
-
 }

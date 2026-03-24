@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
-import 'signup_page.dart'; // アカウント作成画面への遷移のためにインポート
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 // ログイン機能
@@ -11,9 +10,7 @@ class LoginPage extends StatefulWidget {
 }
 
     @override
-class _LoginPageState extends State<LoginPage> {
-
-        // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
+    Widget build(BuildContext context) {
         final emailController = TextEditingController();
         final passwordController = TextEditingController();
 
@@ -33,38 +30,28 @@ class _LoginPageState extends State<LoginPage> {
         Widget build(BuildContext context) {
         // 画面のベース（アプリの見た目の骨組み）作成
         return Scaffold(
-            // 画面上部のバー（タイトルなどを表示する部分）作成
             appBar: AppBar(
                 title: const Text('Login'),
             ),
-            // 画面の内容部分作成
             body: Padding(
-                padding: const EdgeInsets.all(20), // 周りの余白
+                padding: const EdgeInsets.all(20),
                 child: Column(
                     children: [
                         // メールアドレス
                         TextField(
                             controller:emailController,
-                            decoration: const InputDecoration(
-                              labelText: "メールアドレス",
-                              border:OutlineInputBorder(),
-                            ),
+                            decoration: const InputDecoration(labelText: "メールアドレス", border:OutlineInputBorder(),)
                         ),
 
                         const SizedBox(height: 20),
-
                         // パスワード
                         TextField(
                             controller:passwordController,
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: "パスワード",
-                              border:OutlineInputBorder(),
-                            ),
+                            decoration: const InputDecoration(labelText: "パスワード", border:OutlineInputBorder(),)
                         ),
 
                         const SizedBox(height: 30),
-
                         // ログインボタン
                         ElevatedButton(
                             onPressed: () async{
