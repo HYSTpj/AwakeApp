@@ -76,6 +76,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   );
 
                   print("アカウント作成成功");
+
+                  // 今画面に表示されているか確認
+                  if (!context.mounted) return;
+                  
                   // 作成したアカウントで自動的にログインする場合
                   Navigator.pop(context); // 画面を閉じて前の画面に戻る
                 } on FirebaseAuthException catch (e) {
