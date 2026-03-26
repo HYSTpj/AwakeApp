@@ -75,7 +75,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     password: passwordController.text
                   );
 
-                  print("アカウント作成成功");
+                  debugPrint("アカウント作成成功");
 
                   // 今画面に表示されているか確認
                   if (!context.mounted) return;

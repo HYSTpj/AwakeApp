@@ -35,7 +35,7 @@ class CommonLayoutState extends State<CommonLayout> {
             IconButton(
               icon: const Icon(Icons.flag),
               onPressed: () {
-                print('flagボタンが押されました');
+                debugPrint('flagボタンが押されました');
               },
             ),
 
@@ -43,7 +43,7 @@ class CommonLayoutState extends State<CommonLayout> {
             IconButton(
               icon: const Icon(Icons.schedule),
               onPressed: () {
-                print('scheduleボタンが押されました');
+                debugPrint('scheduleボタンが押されました');
               },
             )
           ],
@@ -61,7 +61,7 @@ class CommonLayoutState extends State<CommonLayout> {
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              print('profileボタンが押されました');
+              debugPrint('profileボタンが押されました');
             }),
         ],
         
@@ -120,7 +120,7 @@ class CommonLayoutState extends State<CommonLayout> {
             ),
           ],
           onTap: (index) {
-            print('$index番目のボタンが押されました');
+            debugPrint('$index番目のボタンが押されました');
           },
         ),
       ),
