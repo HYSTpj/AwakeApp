@@ -42,7 +42,7 @@ class MapSampleState extends State<MapSample> {
     // 位置情報サービスが有効かチェック
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print('位置情報サービスが無効です');
+      debugPrint('位置情報サービスが無効です');
       return;
     }
 
@@ -51,7 +51,7 @@ class MapSampleState extends State<MapSample> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print('位置情報の権限が拒否されました');
+        debugPrint('位置情報の権限が拒否されました');
         return;
       }
     }
@@ -106,7 +106,7 @@ class MapSampleState extends State<MapSample> {
       }
     } catch (e) {
       // 見つからなかった場合
-      print("見つかりません： $e");
+      debugPrint("見つかりません： $e");
     }
   }
 
