@@ -25,7 +25,7 @@ class DeleteGroupPageState extends State<DeleteGroupPage> {
     super.dispose();  // 親クラスでも掃除
   }
 
-  Future<void> _invitation() async {
+  Future<void> _deleteGroup() async {
     final invitationCode = _controller.text.trim(); // コピーした最後のスペースを削除
     final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
@@ -133,7 +133,7 @@ class DeleteGroupPageState extends State<DeleteGroupPage> {
               width: 400,
               height: 80,
               child: ElevatedButton(
-                onPressed: _invitation,
+                onPressed: _deleteGroup,
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
