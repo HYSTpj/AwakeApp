@@ -138,4 +138,21 @@ class GroupRepository {
         .delete();
     }
   }
+
+
+  // 自分のroleを調べる
+  Future<int?> getRole({
+    required String id,
+    required String group_id
+  }) async {
+    final myRole = await _db
+      .collection("groups_memberships")
+      .where("group_id", isEqualTo: group_id)
+      .where("user_id", isEqualTo: id)
+      .get();
+    
+    if (myRole.docs.isNotEmpty) {
+      return myRole.docs.first.data()['role'] as int?;
+    }
+  }
 }
