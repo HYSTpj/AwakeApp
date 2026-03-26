@@ -57,23 +57,31 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () async{
 
                 // ログイン処理をここに実装
-                Navigator.push(
-                  context,
-                  // グループリストページへ移動
-                  MaterialPageRoute(
-                    builder: (context) => GroupList(),
-                  ),
-                );
-
                 try {
                   await FirebaseAuth.instance.signInWithEmailAndPassword(
                     email: emailController.text,
                     password: passwordController.text
                   );
 
-                  print("ログイン成功");
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      // グループリストページへ移動
+                      MaterialPageRoute(
+                        builder: (context) => const GroupListPage(),
+                      ),
+                    );
+                    debugPrint("ログイン成功");
+                  }
                 } catch (e) {
-                  print("ログイン失敗: $e");
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('ログインに失敗しました：$e'),
+                      ),
+                    );
+                    debugPrint("ログイン失敗: $e");
+                  }
                 }
               },
               child: const Text("ログイン"),
@@ -127,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                       context,
                       // グループリストページへ移動
                       MaterialPageRoute(
-                        builder: (context) => GroupList(),
+                        builder: (context) => const GroupListPage(),
                       ),
                     );
 

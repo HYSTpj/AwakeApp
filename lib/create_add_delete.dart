@@ -5,14 +5,14 @@ import 'create_group_page.dart';
 import 'add_group_page.dart';
 import 'delete_group_page.dart';
 
-class CreateOrAdd extends StatefulWidget {
-  const CreateOrAdd({super.key});
+class CreateOrAddOrDeletePage extends StatefulWidget {
+  const CreateOrAddOrDeletePage({super.key});
   
   @override
-  State<CreateOrAdd> createState() => CreateOrAddState();
+  State<CreateOrAddOrDeletePage> createState() => CreateOrAddOrDeletePageState();
 }
 
-class CreateOrAddState extends State<CreateOrAdd> {
+class CreateOrAddOrDeletePageState extends State<CreateOrAddOrDeletePage> {
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class CreateOrAddState extends State<CreateOrAdd> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white, size: 25),
                   onPressed: () {
                     Navigator.pop(context); // grouplist_pageに戻る
-                    print('1画面戻る');
+                    debugPrint('1画面戻る');
                   },
                 )
               )
@@ -55,10 +55,10 @@ class CreateOrAddState extends State<CreateOrAdd> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CreateGroup(),
+                      builder: (context) => const CreateGroupPage(),
                     ),
                   );
-                  print('グループ作成画面へ移動');
+                  debugPrint('グループ作成画面へ移動');
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.black,
@@ -84,10 +84,10 @@ class CreateOrAddState extends State<CreateOrAdd> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AddGroup(),
+                      builder: (context) => const AddGroupPage(),
                     ),
                   );
-                  print('グループ参加画面へ移動');
+                  debugPrint('グループ参加画面へ移動');
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.black,
@@ -113,10 +113,10 @@ class CreateOrAddState extends State<CreateOrAdd> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DeleteGroup(),
+                      builder: (context) => const DeleteGroupPage(),
                     ),
                   );
-                  print('グループ脱退画面へ移動');
+                  debugPrint('グループ脱退画面へ移動');
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.black,

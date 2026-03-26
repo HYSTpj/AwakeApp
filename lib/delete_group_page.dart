@@ -6,17 +6,17 @@ import 'common_layout.dart';
 import 'grouplist_page.dart';
 
 
-class DeleteGroup extends StatefulWidget {
-  const DeleteGroup({super.key});
+class DeleteGroupPage extends StatefulWidget {
+  const DeleteGroupPage({super.key});
   
   @override
-  State<DeleteGroup> createState() => DeleteGroupState();
+  State<DeleteGroupPage> createState() => DeleteGroupPageState();
 }
 
-class DeleteGroupState extends State<DeleteGroup> {
+class DeleteGroupPageState extends State<DeleteGroupPage> {
 
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
-  final User? user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
   @override
   // メモリを解放するための関数
@@ -29,6 +29,15 @@ class DeleteGroupState extends State<DeleteGroup> {
     final invitationCode = _controller.text.trim(); // コピーした最後のスペースを削除
     final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
+    // ログインチェック
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
+        const SnackBar(content: Text('Please log in.')),
+      );
+      return;
+    }
+
     if (invitationCode.isNotEmpty && uid.isNotEmpty) {  // 招待コードとユーザーidが空でないとき
       try {
         await GroupRepository().deleteGroup(
@@ -39,7 +48,7 @@ class DeleteGroupState extends State<DeleteGroup> {
         if (!mounted) return; // もし画面が閉じられていればここで終了
 
         Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
-          builder: (context) => GroupList()
+          builder: (context) => const GroupListPage()
         ),);
 
         ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
@@ -55,9 +64,12 @@ class DeleteGroupState extends State<DeleteGroup> {
         );
       }
     } else {
+
+      if (!mounted) return; // もし画面が閉じられていればここで終了
+
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
         const SnackBar(
-          content: Text('Please enter invitation code.')
+          content: Text('Please enter group ID.')
         ),
       );
     }
@@ -79,7 +91,7 @@ class DeleteGroupState extends State<DeleteGroup> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pop(context); // createOrAddOrDeleteに戻る
-                  print('1画面戻る');
+                  debugPrint('1画面戻る');
                 },
                 child: Container(
                   width: 60,
@@ -107,7 +119,7 @@ class DeleteGroupState extends State<DeleteGroup> {
               child: TextField(
                 controller: _controller,
                 decoration: const InputDecoration(
-                  hintText: 'Enter invitation code', // うっすら文字
+                  hintText: 'Enter group ID to leave', // うっすら文字
                   border: InputBorder.none, // 枠線
                   contentPadding: EdgeInsets.only(left: 15, top: 15),  // 余白
                 ),

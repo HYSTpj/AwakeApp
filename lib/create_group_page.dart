@@ -7,18 +7,18 @@ import '../data/group_repository.dart';
 import 'common_layout.dart';
 import 'grouplist_page.dart';
 
-class CreateGroup extends StatefulWidget {
-  const CreateGroup({super.key});
+class CreateGroupPage extends StatefulWidget {
+  const CreateGroupPage({super.key});
   
   @override
-  State<CreateGroup> createState() => CreateGroupState();
+  State<CreateGroupPage> createState() => CreateGroupPageState();
 }
 
 
-class CreateGroupState extends State<CreateGroup> {
+class CreateGroupPageState extends State<CreateGroupPage> {
 
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
-  final User? user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
   @override
   // メモリを解放するための関数
@@ -30,6 +30,15 @@ class CreateGroupState extends State<CreateGroup> {
   Future<void> _newName() async {
     final newGroup = _controller.text;
     final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
+
+    // ログインチェック
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
+        const SnackBar(content: Text('Please log in.')),
+      );
+      return;
+    }
 
     if (newGroup.isNotEmpty) { // 入力されている時
       final String? newGroupId = await GroupRepository().setGroup(
@@ -48,6 +57,9 @@ class CreateGroupState extends State<CreateGroup> {
         ),);
       }
     } else {  // 入力されていない時
+
+      if (!mounted) return; // もし画面が閉じられていればここで終了
+
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
         const SnackBar(
           content: Text('Please enter a new group name.')
@@ -72,7 +84,7 @@ class CreateGroupState extends State<CreateGroup> {
               child: GestureDetector(
                 onTap: () {
                   Navigator.pop(context); // createOrAddOrDeleteに戻る
-                  print('1画面戻る');
+                  debugPrint('1画面戻る');
                 },
                 child: Container(
                   width: 60,
@@ -179,7 +191,7 @@ class IdPage extends StatelessWidget {  // 前のページから引数groupId, g
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Copied the invitation code')),
                       );
-                      print('招待コードをコピー');
+                      debugPrint('招待コードをコピー');
                     },
                     child: const Icon(Icons.content_copy, color: Colors.black),
                   ),
@@ -195,9 +207,9 @@ class IdPage extends StatelessWidget {  // 前のページから引数groupId, g
               onPressed: () {
                 // 今までの画面を全部消して戻る
                 Navigator.pushReplacement(context, MaterialPageRoute(  // 新しい画面へ進む
-                  builder: (context) => const GroupList(),
+                  builder: (context) => const GroupListPage(),
                 ),);
-                print('grouplistへ戻る');
+                debugPrint('grouplistへ戻る');
               },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
