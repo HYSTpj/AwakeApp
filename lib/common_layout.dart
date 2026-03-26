@@ -75,7 +75,7 @@ class CommonLayoutState extends State<CommonLayout> {
 
       // それぞれのページで使うボタン追加
       floatingActionButton: widget.floatingActionButton, 
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       // 下のボタン表示
       bottomNavigationBar: Container(
