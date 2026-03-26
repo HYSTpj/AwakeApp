@@ -116,4 +116,26 @@ class GroupRepository {
     }
     return myGroups;
   }
+
+
+  // グループ脱退
+  Future<void> deleteGroup({
+    required String id,
+    required String group_id
+  }) async {
+    final membership = await _db
+      .collection("groups_memberships")
+      .where("group_id", isEqualTo: group_id)
+      .where("user_id", isEqualTo: id)
+      .get();
+
+    if (membership.docs.isNotEmpty) {
+      final docId = membership.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
+    
+      await _db
+        .collection("groups_memberships")
+        .doc(docId)
+        .delete();
+    }
+  }
 }
