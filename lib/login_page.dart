@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'signup_page.dart';
+import 'grouplist_page.dart'; // グループリストページへ移動
 
 // ログイン機能
 class LoginPage extends StatefulWidget {      
@@ -55,7 +55,16 @@ class _LoginPageState extends State<LoginPage> {
             // ログインボタン
             ElevatedButton(
               onPressed: () async{
+
                 // ログイン処理をここに実装
+                Navigator.push(
+                  context,
+                  // グループリストページへ移動
+                  MaterialPageRoute(
+                    builder: (context) => GroupList(),
+                  ),
+                );
+
                 try {
                   await FirebaseAuth.instance.signInWithEmailAndPassword(
                     email: emailController.text,
@@ -112,14 +121,16 @@ class _LoginPageState extends State<LoginPage> {
                 // アカウント作成ボタン
                 ElevatedButton(
                   onPressed: () {
-                    // アカウント作成の処理をここに実装
+
+                    // アカウント作成の処理をここに実装                   
                     Navigator.push(
                       context,
-                      // アカウント作成画面に遷移
+                      // グループリストページへ移動
                       MaterialPageRoute(
-                        builder: (context) => CreateAccountPage(),
+                        builder: (context) => GroupList(),
                       ),
                     );
+
                   },
                   child: const Text('CREATE ACCOUNT')
                 ),
