@@ -27,9 +27,9 @@ class AddGroupPageState extends State<AddGroupPage> {
 
   Future<void> _invitation() async {
     final invitationCode = _controller.text.trim(); // コピーした最後のスペースを削除
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
     // ログインチェック
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
@@ -38,10 +38,10 @@ class AddGroupPageState extends State<AddGroupPage> {
       return;
     }
 
-    if (invitationCode.isNotEmpty && uid.isNotEmpty) {  // 招待コードとユーザーidが空でないとき
+    if (invitationCode.isNotEmpty && user.uid.isNotEmpty) {  // 招待コードとユーザーidが空でないとき
       try {
         await GroupRepository().addGroup(
-          id: uid,
+          id: user.uid,
           group_id: invitationCode
         );
 

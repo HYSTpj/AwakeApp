@@ -27,9 +27,9 @@ class DeleteGroupPageState extends State<DeleteGroupPage> {
 
   Future<void> _deleteGroup() async {
     final invitationCode = _controller.text.trim(); // コピーした最後のスペースを削除
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
     // ログインチェック
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
@@ -38,10 +38,10 @@ class DeleteGroupPageState extends State<DeleteGroupPage> {
       return;
     }
 
-    if (invitationCode.isNotEmpty && uid.isNotEmpty) {  // 招待コードとユーザーidが空でないとき
+    if (invitationCode.isNotEmpty && user.uid.isNotEmpty) {  // 招待コードとユーザーidが空でないとき
       try {
         await GroupRepository().deleteGroup(
-          id: uid,
+          id: user.uid,
           group_id: invitationCode
         );
 

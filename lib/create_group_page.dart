@@ -28,10 +28,10 @@ class CreateGroupPageState extends State<CreateGroupPage> {
   }
 
   Future<void> _newName() async {
-    final newGroup = _controller.text;
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
+    final newGroup = _controller.text.trim();
 
     // ログインチェック
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
@@ -42,7 +42,7 @@ class CreateGroupPageState extends State<CreateGroupPage> {
 
     if (newGroup.isNotEmpty) { // 入力されている時
       final String? newGroupId = await GroupRepository().setGroup(
-        id: uid,
+        id: user.uid,
         group_name: newGroup
       );
 
