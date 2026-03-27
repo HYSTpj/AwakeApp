@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'signup_page.dart';
+import 'grouplist_page.dart'; // グループリストページへ移動
 
 // ログイン機能
 class LoginPage extends StatefulWidget {      
@@ -55,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
             // ログインボタン
             ElevatedButton(
               onPressed: () async{
+
                 // ログイン処理をここに実装
                 try {
                   await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -62,9 +64,25 @@ class _LoginPageState extends State<LoginPage> {
                     password: passwordController.text
                   );
 
-                  print("ログイン成功");
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      // グループリストページへ移動
+                      MaterialPageRoute(
+                        builder: (context) => const GroupListPage(),
+                      ),
+                    );
+                    debugPrint("ログイン成功");
+                  }
                 } catch (e) {
-                  print("ログイン失敗: $e");
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('ログインに失敗しました：$e'),
+                      ),
+                    );
+                    debugPrint("ログイン失敗: $e");
+                  }
                 }
               },
               child: const Text("ログイン"),
@@ -112,14 +130,15 @@ class _LoginPageState extends State<LoginPage> {
                 // アカウント作成ボタン
                 ElevatedButton(
                   onPressed: () {
-                    // アカウント作成の処理をここに実装
+
+                    // アカウント作成の処理をここに実装                   
                     Navigator.push(
                       context,
-                      // アカウント作成画面に遷移
                       MaterialPageRoute(
-                        builder: (context) => CreateAccountPage(),
+                        builder: (context) => const CreateAccountPage(),
                       ),
                     );
+
                   },
                   child: const Text('CREATE ACCOUNT')
                 ),
