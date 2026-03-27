@@ -153,6 +153,8 @@ class GroupRepository {
     
     if (myRole.docs.isNotEmpty) {
       return myRole.docs.first.data()['role'] as int?;
+    } else {
+      return null;
     }
   }
 }
