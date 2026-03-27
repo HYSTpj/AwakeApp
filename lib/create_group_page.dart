@@ -43,7 +43,7 @@ class CreateGroupPageState extends State<CreateGroupPage> {
     if (newGroup.isNotEmpty) { // 入力されている時
       final String? newGroupId = await GroupRepository().setGroup(
         id: user.uid,
-        group_name: newGroup
+        groupName: newGroup
       );
 
       if (!mounted) return; // もし画面が閉じられていればここで終了

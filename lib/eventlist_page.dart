@@ -9,11 +9,11 @@ import 'package:intl/intl.dart';  //DateFormatを使用するために追加
 
 class EventListPage extends StatefulWidget {
 
-  final String group_id;  // grouplist_pageのドロップダウンで指定されたgroup_id
+  final String groupId;  // grouplist_pageのドロップダウンで指定されたgroup_id
 
   const EventListPage({
     super.key,
-    required this.group_id
+    required this.groupId
   });
 
   @override
@@ -31,8 +31,8 @@ class EventListPageState extends State<EventListPage> {
 
     return  FutureBuilder<List<dynamic>> ( // 作業終わるまで置き換えておく画面作成
       future: Future.wait([
-        GroupRepository().getRole(id: uid, group_id: widget.group_id),  // 自分の役割を取得する予約 snapshot.data[0]
-        EventRepository().getEvents(widget.group_id),  // イベントリストを作る予約 snapshot.data[1]
+        GroupRepository().getRole(id: uid, groupId: widget.groupId),  // 自分の役割を取得する予約 snapshot.data[0]
+        EventRepository().getEvents(widget.groupId),  // イベントリストを作る予約 snapshot.data[1]
       ]),
       builder: (context, snapshot) {  // 状況(snapshot)に合わせて作る画面作成
 
