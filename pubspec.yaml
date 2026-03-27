@@ -68,6 +68,7 @@ dependencies:
   geocoding: ^4.0.0
 
   http: ^1.6.0
+  intl: ^0.20.2
 
 # 開発用ツール
 dev_dependencies:
