@@ -76,7 +76,7 @@ class GroupRepository {
   Future<void> changeRole({
     required String id,
     required String group_id,
-    required int role
+    required int newRole
   }) async {
     final role = await _db
       .collection("groups_memberships")
@@ -91,7 +91,7 @@ class GroupRepository {
         .collection("groups_memberships")
         .doc(docId)
         .update({
-          "role": role,
+          "role": newRole,
         });
     }
   }
@@ -111,6 +111,7 @@ class GroupRepository {
 
       if (groupDoc.exists) {
         final data = groupDoc.data()!;  // 中身が絶対あるgroupのデータ取得
+        data['group_id'] = groupDoc.id;
         myGroups.add(data);
       }
     }
@@ -153,6 +154,8 @@ class GroupRepository {
     
     if (myRole.docs.isNotEmpty) {
       return myRole.docs.first.data()['role'] as int?;
+    } else {
+      return null;
     }
   }
 }
