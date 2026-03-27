@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'signup_page.dart';
 import 'grouplist_page.dart'; // グループリストページへ移動
 
 // ログイン機能
@@ -133,9 +134,8 @@ class _LoginPageState extends State<LoginPage> {
                     // アカウント作成の処理をここに実装                   
                     Navigator.push(
                       context,
-                      // グループリストページへ移動
                       MaterialPageRoute(
-                        builder: (context) => const GroupListPage(),
+                        builder: (context) => const CreateAccountPage(),
                       ),
                     );
 
