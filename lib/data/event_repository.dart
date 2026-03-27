@@ -45,7 +45,11 @@ class EventRepository {
       .where("group_id", isEqualTo: group_id)
       .get();
 
-    return events.docs.map((doc) => doc.data()).toList(); // イベントドキュメントをリスト化する
+    return events.docs.map ((doc) {
+      final data = doc.data();
+      data['event_id'] = doc.id;  // ドキュメントIDをデータに含める
+      return data;
+    }).toList();
   }
 
 
