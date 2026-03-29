@@ -73,4 +73,47 @@ class EventRepository {
         .delete();
     }
   }
+
+
+  // メンバーリストの取得
+  Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {
+    final eventMembers = await _db // event_reportsから指定されたeventIdと同じものの中身を調べる
+      .collection("event_reports")
+      .where("event_id", isEqualTo: eventId)
+      .get();
+    
+    List<Map<String, dynamic>> ourEventMembers = [];
+    for (var doc in eventMembers.docs) {
+
+      final reportData = doc.data();  // statusなどを取得
+
+      final userId = reportData['user_id'];
+      final userDoc = await _db.collection('profiles').doc(userId).get(); // prifiles内のuser_idが一致するものの中身を調べる
+
+      if (userDoc.exists) {
+        final profileData = userDoc.data()!;  // 中身が絶対あるprofilesのデータ取得
+
+        profileData['user_id'] = userId;
+        profileData['status'] = reportData['status']; // statusとreports_idも取得
+        profileData['report_id'] = doc.id;
+
+        ourEventMembers.add(profileData);
+      }
+    }
+    return ourEventMembers;
+  }
+
+  // 遅刻者理由，写真取得
+  Future<Map<String, dynamic>?> getMemberReport(String eventId, String userId) async {
+    final snapshot = await _db  // event_reports内のevent_idとuser_idが一致するものの中身を調べる
+        .collection("event_reports")
+        .where("event_id", isEqualTo: eventId)
+        .where("user_id", isEqualTo: userId)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first.data(); // 一番新しいレポートを1件返す
+    }
+    return null;
+  }
 }

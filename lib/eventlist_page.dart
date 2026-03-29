@@ -6,6 +6,7 @@ import '../data/group_repository.dart';
 import '../data/event_repository.dart';
 
 import 'package:intl/intl.dart';  //DateFormatを使用するために追加
+import 'memberstatus_page.dart';
 
 class EventListPage extends StatefulWidget {
 
@@ -23,6 +24,17 @@ class EventListPage extends StatefulWidget {
 class EventListPageState extends State<EventListPage> {
 
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+
+  String? selectedEventId;  // 今どのイベントの詳細を見ているか
+  String? selectedEventTitle; // 選ばれていない時はnull
+
+  // 時間変換処理
+  String _time(dynamic timestamp) {
+    if (timestamp != null && timestamp is Timestamp) {
+      return DateFormat("M/dd HH:mm").format(timestamp.toDate());
+    }
+    return 'No decided yet';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +60,27 @@ class EventListPageState extends State<EventListPage> {
         final myRole = snapshot.data![0] as int;  // int型だと教えてあげる
         final myEvents = snapshot.data![1] as List;
 
+        if (selectedEventId != null) {  // イベント管理者ページへ飛ぶ時
+          final selectedEvent = myEvents.firstWhere((e) => e['event_id'] == selectedEventId); // 選択したイベントid保存
+
+          // 時間変換処理
+          String displayTime = _time(selectedEvent['arrival_time']);
+
+          return MemberStatusPage(
+            eventId: selectedEventId!,
+            eventTitle: selectedEventTitle!,
+            arrivalTime: displayTime,
+            password: selectedEvent['password'] ?? ''
+          );
+        }
+
         return Column(
           children: [
 
             // イベント作成ボタン
             if (myRole == 0)  // 管理者にだけ表示 
               Padding(
-                padding: const EdgeInsetsGeometry.all(15),
+                padding: const EdgeInsets.all(15),
                 child: SizedBox(
                   height: 50,
                   width: double.infinity,
@@ -103,29 +129,19 @@ class EventListPageState extends State<EventListPage> {
                   final event = myEvents[index];
 
                   // 時間変換処理
-                  final dynamic arrivalTime = event['arrival_time']; // データ取り出し
-                  String displayString = 'No decided yet';  // 表示用文字の初期値設定
-
-                  if (arrivalTime != null && arrivalTime is Timestamp) {  // 空でないかつタイムスタンプ型の時
-                    displayString = DateFormat("M/dd HH:mm").format(arrivalTime.toDate());  // 形式変更
-                  }
+                  String arrivalTime = _time(event['arrival_time']);
 
                   return GestureDetector(
                     onTap: () async { // それぞれのイベント押したとき
                       if (!mounted) return;
 
                       if (myRole == 0) {  // 管理者の時
-                        /*
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (contet) => MemberStatusPage(
-                              eventId: event['id'],
-                              eventTitle: event['title'],
-                            ),
-                          ),
-                        );
-                        */
+
+                        setState(() { // ビルドやり直してイベント管理者ページへ移動
+                          selectedEventId = event['event_id'];
+                          selectedEventTitle = event['title'];
+                        });
+
                         debugPrint('${event['title']}の管理者ページへ移動');
                       } else {  // 利用者の時
                         /*
@@ -167,7 +183,7 @@ class EventListPageState extends State<EventListPage> {
                               const Icon(Icons.schedule, color: Colors.deepOrangeAccent),
                               const SizedBox(width: 5),
                               Text(
-                                displayString,
+                                arrivalTime,
                                 style: const TextStyle(fontWeight: FontWeight.bold)
                               )
                             ]
