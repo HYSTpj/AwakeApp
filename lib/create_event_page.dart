@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'style/app_colors.dart';
-import 'package:flutter_application_1/common_layout.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_application_1/eventlist_page.dart';
+import 'common_layout.dart';
+import 'eventlist_page.dart';
 
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -26,7 +26,7 @@ const _kValueStyle = TextStyle(
 
 class _LabelText extends StatelessWidget {
   final String text;
-  const _LabelText(this.text);
+  const _LabelText(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +47,7 @@ class _InputBox extends StatelessWidget {
     required this.child,
     this.height = 48,
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
+    super.key,
   });
 
   @override
@@ -71,7 +72,7 @@ class _PickerButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _PickerButton({required this.label, required this.onTap});
+  const _PickerButton({required this.label, required this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +196,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
