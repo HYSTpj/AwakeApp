@@ -81,6 +81,43 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   }
 }
 
+class GroupNameDropdown extends StatelessWidget {
+  const GroupNameDropdown({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const borderColor = Color(0xFF1A1C1C);
+    
+    return Container(
+      width: 362,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: borderColor, width: 4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: const [
+          Text(
+            'GROUP NAME',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: borderColor,
+              letterSpacing: 0.5,
+            ),
+          ),
+          Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
+        ],
+      ),
+    );
+  }
+}
+
+
+
 class CurrentStatusPanel extends StatelessWidget {
   const CurrentStatusPanel({super.key, required this.status});
 
