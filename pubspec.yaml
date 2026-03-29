@@ -69,6 +69,7 @@ dependencies:
 
   http: ^1.6.0
   intl: ^0.20.2
+  qr_flutter: ^4.1.0
 
 # 開発用ツール
 dev_dependencies:
