@@ -45,7 +45,7 @@ class EventListPageState extends State<EventListPage> {
         }
         
         // 取得し終わったとき
-        final myRole = snapshot.data![0] as int;  // int型だと教えてあげる
+        final myRole = (snapshot.data![0] ?? 1) as int;  // int型だと教えてあげる
         final myEvents = snapshot.data![1] as List;
 
         return Column(
