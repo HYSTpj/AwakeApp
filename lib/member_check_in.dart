@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'common_layout.dart';
+import 'widgets/statusbutton.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   const MemberCheckInPage({super.key});
@@ -13,6 +14,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   bool isDeparturePressed = false;
   bool isCheckInPressed = false;
   bool isWakeUpPressed = false;
+  StatusButtonType selectedStatus = StatusButtonType.awake;
 
   void _toggleDeparture() {
     setState(() {
@@ -35,6 +37,12 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     // TODO: 送信するデータをここで実装する
   }
 
+  void _selectStatus(StatusButtonType type) {
+    setState(() {
+      selectedStatus = type;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
@@ -49,14 +57,38 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
               onTap: _toggleDeparture,
             ),
             const SizedBox(height: 16),
-            CheckInButton(
-              isPressed: isCheckInPressed,
-              onTap: _toggleCheckIn,
+            CheckInButton(isPressed: isCheckInPressed, onTap: _toggleCheckIn),
+            const SizedBox(height: 16),
+            WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
+            const SizedBox(height: 16),
+            StatusButton(
+              type: StatusButtonType.arrived,
+              isSelected: selectedStatus == StatusButtonType.arrived,
+              onTap: () => _selectStatus(StatusButtonType.arrived),
             ),
             const SizedBox(height: 16),
-            WakeUpButton(
-              isPressed: isWakeUpPressed,
-              onTap: _toggleWakeUp,
+            StatusButton(
+              type: StatusButtonType.sleeping,
+              isSelected: selectedStatus == StatusButtonType.sleeping,
+              onTap: () => _selectStatus(StatusButtonType.sleeping),
+            ),
+            const SizedBox(height: 16),
+            StatusButton(
+              type: StatusButtonType.awake,
+              isSelected: selectedStatus == StatusButtonType.awake,
+              onTap: () => _selectStatus(StatusButtonType.awake),
+            ),
+            const SizedBox(height: 16),
+            StatusButton(
+              type: StatusButtonType.moving,
+              isSelected: selectedStatus == StatusButtonType.moving,
+              onTap: () => _selectStatus(StatusButtonType.moving),
+            ),
+            const SizedBox(height: 16),
+            StatusButton(
+              type: StatusButtonType.overslept,
+              isSelected: selectedStatus == StatusButtonType.overslept,
+              onTap: () => _selectStatus(StatusButtonType.overslept),
             ),
             const SizedBox(height: 16),
             ReportLateButton(
@@ -97,9 +129,7 @@ class DepartureButton extends StatelessWidget {
       height: buttonHeight,
       child: Material(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -159,11 +189,7 @@ class DepartureButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(
-                      rightIcon,
-                      color: Colors.black,
-                      size: 18,
-                    ),
+                    child: Icon(rightIcon, color: Colors.black, size: 18),
                   ),
                 ),
               ],
@@ -192,7 +218,9 @@ class CheckInButton extends StatelessWidget {
     const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
-    final backgroundColor = isPressed ? const Color(0xFFE2E2E2) : const Color(0xFFFF5C00);
+    final backgroundColor = isPressed
+        ? const Color(0xFFE2E2E2)
+        : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
     final rightIcon = isPressed ? Icons.check : Icons.arrow_forward;
 
@@ -201,9 +229,7 @@ class CheckInButton extends StatelessWidget {
       height: buttonHeight,
       child: Material(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -263,11 +289,7 @@ class CheckInButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(
-                      rightIcon,
-                      color: iconColor,
-                      size: 18,
-                    ),
+                    child: Icon(rightIcon, color: iconColor, size: 18),
                   ),
                 ),
               ],
@@ -306,9 +328,7 @@ class WakeUpButton extends StatelessWidget {
       height: buttonHeight,
       child: Material(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -340,11 +360,7 @@ class WakeUpButton extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
-                        child: Icon(
-                          Icons.alarm,
-                          color: iconColor,
-                          size: 28,
-                        ),
+                        child: Icon(Icons.alarm, color: iconColor, size: 28),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -368,11 +384,7 @@ class WakeUpButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(
-                      rightIcon,
-                      color: iconColor,
-                      size: 18,
-                    ),
+                    child: Icon(rightIcon, color: iconColor, size: 18),
                   ),
                 ),
               ],
@@ -388,11 +400,7 @@ class ReportLateButton extends StatelessWidget {
   final VoidCallback? onTap;
   final String label;
 
-  const ReportLateButton({
-    super.key,
-    this.onTap,
-    this.label = 'REPORT LATE',
-  });
+  const ReportLateButton({super.key, this.onTap, this.label = 'REPORT LATE'});
 
   @override
   Widget build(BuildContext context) {
@@ -408,9 +416,7 @@ class ReportLateButton extends StatelessWidget {
       height: buttonHeight,
       child: Material(
         color: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -442,11 +448,7 @@ class ReportLateButton extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Center(
-                        child: Icon(
-                          Icons.alarm,
-                          color: iconColor,
-                          size: 28,
-                        ),
+                        child: Icon(Icons.alarm, color: iconColor, size: 28),
                       ),
                     ),
                     const SizedBox(width: 16),
