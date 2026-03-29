@@ -6,6 +6,7 @@ import '../data/group_repository.dart';
 import '../data/event_repository.dart';
 
 import 'package:intl/intl.dart';  //DateFormatを使用するために追加
+import 'create_event_page.dart';
 
 class EventListPage extends StatefulWidget {
 
@@ -60,15 +61,13 @@ class EventListPageState extends State<EventListPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      /*
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (contet) => CreateEventPage(),
+                          builder: (contet) => CreateEventPage(groupId: widget.group_id)  // group_idも渡す,
                           ),
-                        ),
                       );
-                      */
+                           
                       debugPrint('イベント作成ページへ移動');
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
