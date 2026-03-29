@@ -61,35 +61,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             const SizedBox(height: 16),
             WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
             const SizedBox(height: 16),
-            StatusButton(
-              type: StatusButtonType.arrived,
-              isSelected: selectedStatus == StatusButtonType.arrived,
-              onTap: () => _selectStatus(StatusButtonType.arrived),
-            ),
-            const SizedBox(height: 16),
-            StatusButton(
-              type: StatusButtonType.sleeping,
-              isSelected: selectedStatus == StatusButtonType.sleeping,
-              onTap: () => _selectStatus(StatusButtonType.sleeping),
-            ),
-            const SizedBox(height: 16),
-            StatusButton(
-              type: StatusButtonType.awake,
-              isSelected: selectedStatus == StatusButtonType.awake,
-              onTap: () => _selectStatus(StatusButtonType.awake),
-            ),
-            const SizedBox(height: 16),
-            StatusButton(
-              type: StatusButtonType.moving,
-              isSelected: selectedStatus == StatusButtonType.moving,
-              onTap: () => _selectStatus(StatusButtonType.moving),
-            ),
-            const SizedBox(height: 16),
-            StatusButton(
-              type: StatusButtonType.overslept,
-              isSelected: selectedStatus == StatusButtonType.overslept,
-              onTap: () => _selectStatus(StatusButtonType.overslept),
-            ),
+            CurrentStatusPanel(status: selectedStatus),
             const SizedBox(height: 16),
             ReportLateButton(
               onTap: () {
@@ -97,6 +69,80 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CurrentStatusPanel extends StatelessWidget {
+  const CurrentStatusPanel({super.key, required this.status});
+
+  final StatusButtonType status;
+
+  @override
+  Widget build(BuildContext context) {
+    const borderColor = Color(0xFF1A1C1C);
+
+    return SizedBox(
+      width: 362,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9F9F9),
+          border: Border.all(color: borderColor, width: 4),
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: borderColor, width: 4)),
+          ),
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'CURRENT\nSTATUS',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                  color: borderColor,
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: borderColor, width: 2),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10.5,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: statusColorOf(status),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${statusOrderOf(status)}: ${statusLabelOf(status)}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: borderColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

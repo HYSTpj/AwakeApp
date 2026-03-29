@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-enum StatusButtonType {
-  awake,
-  sleeping,
-  moving,
-  overslept,
-  arrived,
-}
+enum StatusButtonType { awake, sleeping, moving, overslept, arrived }
+
+int statusOrderOf(StatusButtonType type) => type.order;
+String statusLabelOf(StatusButtonType type) => type.label;
+Color statusColorOf(StatusButtonType type) => type.color;
 
 extension _StatusButtonTypeData on StatusButtonType {
   int get order {
