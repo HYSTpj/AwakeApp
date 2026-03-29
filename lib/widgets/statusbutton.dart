@@ -11,6 +11,8 @@ enum StatusButtonType {
 extension _StatusButtonTypeData on StatusButtonType {
   int get order {
     switch (this) {
+      case StatusButtonType.sleeping:
+        return 0;
       case StatusButtonType.awake:
         return 1;
       case StatusButtonType.moving:
@@ -24,6 +26,8 @@ extension _StatusButtonTypeData on StatusButtonType {
 
   String get label {
     switch (this) {
+        case StatusButtonType.sleeping:
+          return 'SLEEPING';
       case StatusButtonType.awake:
         return 'AWAKE';
       case StatusButtonType.moving:
@@ -37,6 +41,8 @@ extension _StatusButtonTypeData on StatusButtonType {
 
   Color get color {
     switch (this) {
+      case StatusButtonType.sleeping:
+        return const Color(0xFFA1A1AA);
       case StatusButtonType.awake:
         return const Color(0xFF53D96E);
       case StatusButtonType.moving:
