@@ -52,17 +52,17 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            CurrentStatusPanel(status: selectedStatus),
+            const SizedBox(height: 10),
+            WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
+            const SizedBox(height: 10),
             DepartureButton(
               isSelected: isDeparturePressed,
               onTap: _toggleDeparture,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             CheckInButton(isPressed: isCheckInPressed, onTap: _toggleCheckIn),
-            const SizedBox(height: 16),
-            WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
-            const SizedBox(height: 16),
-            CurrentStatusPanel(status: selectedStatus),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             ReportLateButton(
               onTap: () {
                 // TODO: REPORT LATEボタンがタップされたときの処理を実装する
