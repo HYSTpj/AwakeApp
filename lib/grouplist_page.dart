@@ -116,7 +116,7 @@ class GroupListPageState extends State<GroupListPage> {
               Expanded(
                 child: selectedGroupId == null
                   ? const Center(child: Text('Select group')) // グループが選ばれていない時
-                  : EventListPage(group_id: selectedGroupId!), // グループが選ばれている時
+                  : EventListPage(groupId: selectedGroupId!), // グループが選ばれている時
               ),
             ],
           );      
