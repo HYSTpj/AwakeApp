@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math' as math;
+import 'package:crypto/crypto.dart';
+
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,6 +23,10 @@ class EventRepository {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
 
+    // パスワードのハッシュ化（ソルト生成とSHA-256計算）
+    final salt = _generateSalt();
+    final hashedPassword = _hashPassword(password, salt);
+
     // 2.イベント作成
     await eventDoc.set({
       'group_id': groupId,
@@ -26,7 +34,8 @@ class EventRepository {
       'destination_name': destinationName,
       'location': location,
       'qrcode_id': qrcodeId,
-      'password': password,
+      'password_hash': hashedPassword, // ハッシュ化されたパスワードを保存
+      'password_salt': salt,           // 生成したソルトも一緒に保存
       'arrival_time': arrivalTime,
       'status': status,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
@@ -158,10 +167,40 @@ class EventRepository {
     final eventDoc = await _db.collection('events').doc(eventId).get();
     if (eventDoc.exists) {
       final data = eventDoc.data();
-      if (data != null && data['password'] == inputPassword) {
-        return true;
+      if (data != null) {
+        // 新しい仕様: ハッシュ化パスワードの照合
+        if (data.containsKey('password_hash') && data.containsKey('password_salt')) {
+          final savedHash = data['password_hash'] as String;
+          final savedSalt = data['password_salt'] as String;
+          final inputHash = _hashPassword(inputPassword, savedSalt);
+          
+          if (inputHash == savedHash) {
+            return true;
+          }
+        } else {
+          // 古い仕様 (後方互換性): 以前の平文テストデータのためのフォールバック
+          if (data['password'] == inputPassword) {
+            return true;
+          }
+        }
       }
     }
     return false;
+  }
+
+  // ==== プライベートヘルパーメソッド ====
+
+  // パスワードのハッシュ化（SHA-256）
+  String _hashPassword(String password, String salt) {
+    final bytes = utf8.encode(password + salt);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  // ランダムなソルトの生成
+  String _generateSalt([int length = 16]) {
+    final rand = math.Random.secure();
+    final saltBytes = List<int>.generate(length, (_) => rand.nextInt(256));
+    return base64UrlEncode(saltBytes);
   }
 }
