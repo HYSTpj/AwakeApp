@@ -14,7 +14,7 @@ class EventRepository {
     required String qrcodeId,
     required String password,
     required String arrivalTime,
-    required String status
+    required String status,
   }) async {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
@@ -30,86 +30,91 @@ class EventRepository {
       'arrival_time': arrivalTime,
       'status': status,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
-      'update_at': FieldValue.serverTimestamp()
+      'update_at': FieldValue.serverTimestamp(),
     });
 
     return eventId;
   }
   // 3.イベント作成完了
 
-
   // 所属イベント一覧
   Future<List<Map<String, dynamic>>> getEvents(String groupId) async {
-    final events = await _db // eventsから指定されたgroup_idと同じものの中身を調べる
-      .collection("events")
-      .where("group_id", isEqualTo: groupId)
-      .get();
+    final events =
+        await _db // eventsから指定されたgroup_idと同じものの中身を調べる
+            .collection("events")
+            .where("group_id", isEqualTo: groupId)
+            .get();
 
-    return events.docs.map ((doc) {
+    return events.docs.map((doc) {
       final data = doc.data();
-      data['event_id'] = doc.id;  // ドキュメントIDをデータに含める
+      data['event_id'] = doc.id; // ドキュメントIDをデータに含める
       return data;
     }).toList();
   }
 
-
   // イベント削除
   Future<void> deleteEvent({
     required String groupId,
-    required String title
+    required String title,
   }) async {
     final event = await _db
-      .collection("events")
-      .where("group_id", isEqualTo: groupId)
-      .where("title", isEqualTo: title)
-      .get();
+        .collection("events")
+        .where("group_id", isEqualTo: groupId)
+        .where("title", isEqualTo: title)
+        .get();
 
     if (event.docs.isNotEmpty) {
       final docId = event.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
-    
-      await _db
-        .collection("events")
-        .doc(docId)
-        .delete();
+
+      await _db.collection("events").doc(docId).delete();
     }
   }
-
 
   // メンバーリストの取得
   Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {
-    final eventMembers = await _db // event_reportsから指定されたeventIdと同じものの中身を調べる
-      .collection("event_reports")
-      .where("event_id", isEqualTo: eventId)
-      .get();
-    
-    List<Map<String, dynamic>> ourEventMembers = [];
-    for (var doc in eventMembers.docs) {
+    final eventMembersSnapshot =
+        await _db // event_reportsから指定されたeventIdと同じものの中身を調べる
+            .collection("event_reports")
+            .where("event_id", isEqualTo: eventId)
+            .get();
 
-      final reportData = doc.data();  // statusなどを取得
-
+    final profileFutures = eventMembersSnapshot.docs.map((doc) async {
+      // 全員分のprofile取得を予約リストにする
+      final reportData = doc.data();
       final userId = reportData['user_id'];
-      final userDoc = await _db.collection('profiles').doc(userId).get(); // prifiles内のuser_idが一致するものの中身を調べる
-
+      final userDoc = await _db
+          .collection('profiles')
+          .doc(userId)
+          .get(); // 一人一人のprofile取得を予約
       if (userDoc.exists) {
-        final profileData = userDoc.data()!;  // 中身が絶対あるprofilesのデータ取得
-
+        final profileData = userDoc.data()!;
         profileData['user_id'] = userId;
-        profileData['status'] = reportData['status']; // statusとreports_idも取得
+        profileData['status'] = reportData['status'];
         profileData['report_id'] = doc.id;
-
-        ourEventMembers.add(profileData);
+        return profileData;
       }
-    }
-    return ourEventMembers;
+      return null;
+    }).toList();
+    final results = await Future.wait(profileFutures); // 全員分終わるまで待つ
+    return results
+        .whereType<Map<String, dynamic>>()
+        .toList(); // nullの人は除去してリスト化
   }
 
   // 遅刻者理由，写真取得
-  Future<Map<String, dynamic>?> getMemberReport(String eventId, String userId) async {
-    final snapshot = await _db  // event_reports内のevent_idとuser_idが一致するものの中身を調べる
-        .collection("event_reports")
-        .where("event_id", isEqualTo: eventId)
-        .where("user_id", isEqualTo: userId)
-        .get();
+  Future<Map<String, dynamic>?> getMemberReport(
+    String eventId,
+    String userId,
+  ) async {
+    final snapshot =
+        await _db // event_reports内のevent_idとuser_idが一致するものの中身を調べる
+            .collection("event_reports")
+            .where("event_id", isEqualTo: eventId)
+            .where("user_id", isEqualTo: userId)
+            .orderBy("updated_at", descending: true) // 更新日時順
+            //データベース見る限りcreated_atないけど新しく作る？or updated_atで並べ替えするか
+            .limit(1) // 1件だけ
+            .get();
 
     if (snapshot.docs.isNotEmpty) {
       return snapshot.docs.first.data(); // 一番新しいレポートを1件返す
