@@ -56,11 +56,10 @@ class EventRepository {
   Future<void> deleteEvent({
     required String eventId // 同じイベント名でも削除されないように
   }) async {
-    final event = await _db
+    await _db
         .collection("events")
         .doc(eventId).delete();
     }
-  }
 
   // メンバーリストの取得
   Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {
