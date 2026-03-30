@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'common_layout.dart';
-// import 'eventlist_page.dart';  // イベント一覧に移動するならインポート
+import 'grouplist_page.dart';
 
 class SaveChangesPage extends StatefulWidget {
   final String eventId;
@@ -300,17 +300,13 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
               decoration: BoxDecoration(color: Colors.deepOrangeAccent),
               child: ElevatedButton(
                 onPressed: () {
-                  /*
-                  Navigator.of(context).pop(); // 前の画面set-time-pageに戻る
-                  final eventListState =
-                      context // イベント一覧に戻るためにご先祖探し(ここよくわかんないけどAIくんが言ってた)
-                          .findAncestorStateOfType<EventListPageState>();
-                  if (eventListState != null) {
-                    eventListState.setState(() {
-                      eventListState.selectedEventId = null; // これで一覧に戻る
-                    });
-                  }
-                  */
+                  Navigator.push(
+                    context,
+                    // グループリストページへ移動
+                    MaterialPageRoute(
+                      builder: (context) => const GroupListPage(),
+                    ),
+                  );
                   debugPrint('イベント一覧画面へ移動');
                 },
                 style: ElevatedButton.styleFrom(
