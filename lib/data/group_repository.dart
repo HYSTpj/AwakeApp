@@ -8,14 +8,14 @@ class GroupRepository {
   // グループ作成
   Future<String?> setGroup({
     required String id,
-    required String group_name
+    required String groupName
   }) async {
     final group = _db.collection('groups').doc();
     final String invitationCode = group.id; // 自動生成されたドキュメントid
 
     // 2.グループ作成
     await group.set({
-      'group_name': group_name,
+      'group_name': groupName,
       'invitation_code': invitationCode,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
     });
@@ -36,9 +36,9 @@ class GroupRepository {
   // 6.グループID存在するかチェック
   Future<void> addGroup({
     required String id,
-    required String group_id
+    required String groupId
   }) async {
-    final group = await _db.collection("groups").doc(group_id).get();
+    final group = await _db.collection("groups").doc(groupId).get();
     if (group.exists) {
       await _db.collection("groups_memberships").add({
         'group_id': group.id,
@@ -53,10 +53,10 @@ class GroupRepository {
 
   // 管理者に招待
   // 11.メンバーリストの取得
-  Future<List<Map<String, dynamic>>> getMembers(String group_id) async {
+  Future<List<Map<String, dynamic>>> getMembers(String groupId) async {
     final members = await _db // membershipsから指定されたgroup_idと同じものの中身を調べる
       .collection("groups_memberships")
-      .where("group_id", isEqualTo: group_id)
+      .where("group_id", isEqualTo: groupId)
       .get();
     
     List<Map<String, dynamic>> ourMembers = [];
@@ -75,12 +75,12 @@ class GroupRepository {
   // 14.管理者リストに追加
   Future<void> changeRole({
     required String id,
-    required String group_id,
+    required String groupId,
     required int newRole
   }) async {
     final role = await _db
       .collection("groups_memberships")
-      .where("group_id", isEqualTo: group_id)
+      .where("group_id", isEqualTo: groupId)
       .where("user_id", isEqualTo: id)
       .get();
 
@@ -98,10 +98,10 @@ class GroupRepository {
 
 
   // 所属グループ一覧
-  Future<List<Map<String, dynamic>>> getGroups(String user_id) async {
+  Future<List<Map<String, dynamic>>> getGroups(String userId) async {
     final groups = await _db // membershipsから指定されたuidと同じものの中身を調べる
       .collection("groups_memberships")
-      .where("user_id", isEqualTo: user_id)
+      .where("user_id", isEqualTo: userId)
       .get();
 
     List<Map<String, dynamic>> myGroups = [];
@@ -122,11 +122,11 @@ class GroupRepository {
   // グループ脱退
   Future<void> deleteGroup({
     required String id,
-    required String group_id
+    required String groupId
   }) async {
     final membership = await _db
       .collection("groups_memberships")
-      .where("group_id", isEqualTo: group_id)
+      .where("group_id", isEqualTo: groupId)
       .where("user_id", isEqualTo: id)
       .get();
 
@@ -144,11 +144,11 @@ class GroupRepository {
   // 自分のroleを調べる
   Future<int?> getRole({
     required String id,
-    required String group_id
+    required String groupId
   }) async {
     final myRole = await _db
       .collection("groups_memberships")
-      .where("group_id", isEqualTo: group_id)
+      .where("group_id", isEqualTo: groupId)
       .where("user_id", isEqualTo: id)
       .get();
     

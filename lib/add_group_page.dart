@@ -42,7 +42,7 @@ class AddGroupPageState extends State<AddGroupPage> {
       try {
         await GroupRepository().addGroup(
           id: user.uid,
-          group_id: invitationCode
+          groupId: invitationCode
         );
 
         if (!mounted) return; // もし画面が閉じられていればここで終了
