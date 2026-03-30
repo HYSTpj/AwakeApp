@@ -54,19 +54,11 @@ class EventRepository {
 
   // イベント削除
   Future<void> deleteEvent({
-    required String groupId,
-    required String title,
+    required String eventId // 同じイベント名でも削除されないように
   }) async {
     final event = await _db
         .collection("events")
-        .where("group_id", isEqualTo: groupId)
-        .where("title", isEqualTo: title)
-        .get();
-
-    if (event.docs.isNotEmpty) {
-      final docId = event.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
-
-      await _db.collection("events").doc(docId).delete();
+        .doc(eventId).delete();
     }
   }
 
