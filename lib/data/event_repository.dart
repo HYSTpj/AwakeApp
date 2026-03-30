@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math' as math;
+import 'package:crypto/crypto.dart';
+
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -19,6 +23,10 @@ class EventRepository {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
 
+    // パスワードのハッシュ化（ソルト生成とSHA-256計算）
+    final salt = _generateSalt();
+    final hashedPassword = _hashPassword(password, salt);
+
     // 2.イベント作成
     await eventDoc.set({
       'group_id': groupId,
@@ -26,7 +34,8 @@ class EventRepository {
       'destination_name': destinationName,
       'location': location,
       'qrcode_id': qrcodeId,
-      'password': password,
+      'password_hash': hashedPassword, // ハッシュ化されたパスワードを保存
+      'password_salt': salt,           // 生成したソルトも一緒に保存
       'arrival_time': arrivalTime,
       'status': status,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
@@ -72,5 +81,126 @@ class EventRepository {
         .doc(docId)
         .delete();
     }
+  }
+
+  // --- event_reports 関連 ---
+
+  // レポートの取得
+  Future<Map<String, dynamic>?> getEventReport(String eventId, String userId) async {
+    final report = await _db
+      .collection("event_reports")
+      .where("event_id", isEqualTo: eventId)
+      .where("user_id", isEqualTo: userId)
+      .get();
+    
+    if (report.docs.isNotEmpty) {
+      final data = report.docs.first.data();
+      data['report_id'] = report.docs.first.id;
+      return data;
+    }
+    return null;
+  }
+
+  // レポートが存在しない場合に空のレポートを作成する
+  Future<String> createReportIfNotExist(String eventId, String userId) async {
+    final report = await getEventReport(eventId, userId);
+    if (report != null) return report['report_id'];
+
+    final docRef = await _db.collection("event_reports").add({
+      "event_id": eventId,
+      "user_id": userId,
+      "status": 0, // sleeping
+      "created_at": FieldValue.serverTimestamp(),
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+    return docRef.id;
+  }
+
+  // 起床時間の更新
+  Future<void> updateWakeupTime(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "actual_wakeup_time": FieldValue.serverTimestamp(),
+      "status": 1, // awake
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 出発時間の更新
+  Future<void> updateDepartureTime(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "actual_departure_time": FieldValue.serverTimestamp(),
+      "status": 3, // moving
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // チェックイン(到着)ステータスの更新
+  Future<void> updateCheckInStatus(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 4, // arrived
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 寝坊ステータスの更新
+  Future<void> updateOversleptStatus(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 2, // overslept
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
+  Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
+    final eventDoc = await _db.collection('events').doc(eventId).get();
+    if (eventDoc.exists) {
+      final data = eventDoc.data();
+      if (data != null && data['qrcode_id'] == scannedQr) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 手動パスワード検証: 読み取った値が該当イベントのpasswordと一致するか確認
+  Future<bool> verifyEventPassword(String eventId, String inputPassword) async {
+    final eventDoc = await _db.collection('events').doc(eventId).get();
+    if (eventDoc.exists) {
+      final data = eventDoc.data();
+      if (data != null) {
+        // 新しい仕様: ハッシュ化パスワードの照合
+        if (data.containsKey('password_hash') && data.containsKey('password_salt')) {
+          final savedHash = data['password_hash'] as String;
+          final savedSalt = data['password_salt'] as String;
+          final inputHash = _hashPassword(inputPassword, savedSalt);
+          
+          if (inputHash == savedHash) {
+            return true;
+          }
+        } else {
+          // 古い仕様 (後方互換性): 以前の平文テストデータのためのフォールバック
+          if (data['password'] == inputPassword) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // ==== プライベートヘルパーメソッド ====
+
+  // パスワードのハッシュ化（SHA-256）
+  String _hashPassword(String password, String salt) {
+    final bytes = utf8.encode(password + salt);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  // ランダムなソルトの生成
+  String _generateSalt([int length = 16]) {
+    final rand = math.Random.secure();
+    final saltBytes = List<int>.generate(length, (_) => rand.nextInt(256));
+    return base64UrlEncode(saltBytes);
   }
 }
