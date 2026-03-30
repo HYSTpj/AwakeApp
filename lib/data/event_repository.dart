@@ -73,4 +73,75 @@ class EventRepository {
         .delete();
     }
   }
+
+  // --- event_reports 関連 ---
+
+  // レポートの取得
+  Future<Map<String, dynamic>?> getEventReport(String eventId, String userId) async {
+    final report = await _db
+      .collection("event_reports")
+      .where("event_id", isEqualTo: eventId)
+      .where("user_id", isEqualTo: userId)
+      .get();
+    
+    if (report.docs.isNotEmpty) {
+      final data = report.docs.first.data();
+      data['report_id'] = report.docs.first.id;
+      return data;
+    }
+    return null;
+  }
+
+  // テスト用：レポートが存在しない場合に空のレポートを作成する
+  Future<String> createDummyReportIfNotExist(String eventId, String userId) async {
+    final report = await getEventReport(eventId, userId);
+    if (report != null) return report['report_id'];
+
+    final docRef = await _db.collection("event_reports").add({
+      "event_id": eventId,
+      "user_id": userId,
+      "status": 0, // sleeping
+      "created_at": FieldValue.serverTimestamp(),
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+    return docRef.id;
+  }
+
+  // 起床時間の更新
+  Future<void> updateWakeupTime(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "actual_wakeup_time": FieldValue.serverTimestamp(),
+      "status": 1, // awake
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 出発時間の更新
+  Future<void> updateDepartureTime(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "actual_departure_time": FieldValue.serverTimestamp(),
+      "status": 3, // moving
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // チェックイン(到着)ステータスの更新
+  Future<void> updateCheckInStatus(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 4, // arrived
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
+  Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
+    final eventDoc = await _db.collection('events').doc(eventId).get();
+    if (eventDoc.exists) {
+      final data = eventDoc.data();
+      if (data != null && data['qrcode_id'] == scannedQr) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

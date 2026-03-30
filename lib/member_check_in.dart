@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
+import 'data/event_repository.dart';
+import 'qr_scanner_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   const MemberCheckInPage({super.key});
@@ -11,30 +14,109 @@ class MemberCheckInPage extends StatefulWidget {
 }
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
+  final String _dummyEventId = "DUMMY_EVENT_ID_123";
+  final EventRepository _eventRepository = EventRepository();
+  String? _userId;
+  String? _reportId;
+
   bool isDeparturePressed = false;
   bool isCheckInPressed = false;
   bool isWakeUpPressed = false;
-  StatusButtonType selectedStatus = StatusButtonType.awake;
+  StatusButtonType selectedStatus = StatusButtonType.sleeping;
 
-  void _toggleDeparture() {
-    setState(() {
-      isDeparturePressed = !isDeparturePressed;
-    });
-    // TODO: 送信するデータをここで実装する
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
   }
 
-  void _toggleCheckIn() {
-    setState(() {
-      isCheckInPressed = !isCheckInPressed;
-    });
-    // TODO: 送信するデータをここで実装する
+  Future<void> _loadData() async {
+    _userId = FirebaseAuth.instance.currentUser?.uid ?? "DUMMY_USER_ID_123";
+
+    var report = await _eventRepository.getEventReport(_dummyEventId, _userId!);
+    
+    if (report == null) {
+      _reportId = await _eventRepository.createDummyReportIfNotExist(_dummyEventId, _userId!);
+      report = await _eventRepository.getEventReport(_dummyEventId, _userId!);
+    } else {
+      _reportId = report['report_id'];
+    }
+
+    if (report != null && mounted) {
+      setState(() {
+        isWakeUpPressed = report['actual_wakeup_time'] != null;
+        isDeparturePressed = report['actual_departure_time'] != null;
+        
+        final statusInt = report['status'] as int? ?? 0;
+        isCheckInPressed = (statusInt >= 4);
+
+        if (statusInt == 1) selectedStatus = StatusButtonType.awake;
+        else if (statusInt == 0) selectedStatus = StatusButtonType.sleeping;
+        else if (statusInt == 2) selectedStatus = StatusButtonType.overslept;
+        else if (statusInt == 3) selectedStatus = StatusButtonType.moving;
+        else if (statusInt >= 4) selectedStatus = StatusButtonType.arrived;
+      });
+    }
   }
 
-  void _toggleWakeUp() {
+  Future<void> _toggleDeparture() async {
+    if (_reportId == null || isDeparturePressed) return;
     setState(() {
-      isWakeUpPressed = !isWakeUpPressed;
+      isDeparturePressed = true;
     });
-    // TODO: 送信するデータをここで実装する
+    await _eventRepository.updateDepartureTime(_reportId!);
+    _loadData();
+  }
+
+  Future<void> _toggleCheckIn() async {
+    if (_reportId == null || isCheckInPressed) return;
+
+    // QRスキャナー画面へ遷移して結果を受け取る
+    final scannedResult = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const QRScannerPage(),
+      ),
+    );
+
+    if (scannedResult != null) {
+      // データベースのeventsのqrcode_idと照合
+      final isValid = await _eventRepository.verifyEventQRCode(_dummyEventId, scannedResult);
+      if (isValid) {
+        setState(() {
+          isCheckInPressed = true;
+        });
+        await _eventRepository.updateCheckInStatus(_reportId!);
+        _loadData();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('無効なQRコードです。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _toggleWakeUp() async {
+    if (_reportId == null || isWakeUpPressed) return;
+    setState(() {
+      isWakeUpPressed = true;
+    });
+    await _eventRepository.updateWakeupTime(_reportId!);
+    _loadData();
   }
 
   void _selectStatus(StatusButtonType type) {
@@ -115,7 +197,6 @@ class GroupNameDropdown extends StatelessWidget {
     );
   }
 }
-
 
 
 class CurrentStatusPanel extends StatelessWidget {
