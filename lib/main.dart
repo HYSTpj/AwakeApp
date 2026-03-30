@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'login_page.dart'; // ログインページのインポート
+import 'login/login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
