@@ -78,8 +78,8 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   Future<void> _toggleCheckIn() async {
     if (_reportId == null || isCheckInPressed) return;
 
-    // QRスキャナー画面へ遷移して結果を受け取る
-    final scannedResult = await Navigator.push<String>(
+    // QRスキャナーまたはパスコード画面へ遷移して結果を受け取る
+    final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
         builder: (context) => const QRScannerPage(),
@@ -87,8 +87,20 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     );
 
     if (scannedResult != null) {
-      // データベースのeventsのqrcode_idと照合
-      final isValid = await _eventRepository.verifyEventQRCode(_dummyEventId, scannedResult);
+      final type = scannedResult['type'];
+      final value = scannedResult['value'];
+      
+      if (type == null || value == null) return;
+
+      bool isValid = false;
+      if (type == 'qrcode') {
+        // データベースのeventsのqrcode_idと照合
+        isValid = await _eventRepository.verifyEventQRCode(_dummyEventId, value);
+      } else if (type == 'passcode') {
+        // データベースのeventsのpasswordと照合
+        isValid = await _eventRepository.verifyEventPassword(_dummyEventId, value);
+      }
+
       if (isValid) {
         setState(() {
           isCheckInPressed = true;
@@ -106,9 +118,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         }
       } else {
         if (mounted) {
+          final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('無効なQRコードです。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            SnackBar(
+              content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               backgroundColor: Colors.red,
             ),
           );
@@ -129,35 +142,33 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const GroupNameDropdown(),
-            const SizedBox(height: 24),
-            CurrentStatusPanel(status: selectedStatus),
-            const SizedBox(height: 10),
-            WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
-            const SizedBox(height: 10),
-            DepartureButton(
-              isSelected: isDeparturePressed,
-              onTap: _toggleDeparture,
-            ),
-            const SizedBox(height: 16),
-            CheckInButton(isPressed: isCheckInPressed, onTap: _toggleCheckIn),
-            const SizedBox(height: 16),
-            WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
-            const SizedBox(height: 16),
-            CurrentStatusPanel(status: selectedStatus),
-            const SizedBox(height: 16),
-            ReportLateButton(
-              onTap: () {
-                // TODO: REPORT LATEボタンがタップされたときの処理を実装する
-              },
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const GroupNameDropdown(),
+              const SizedBox(height: 24),
+              CurrentStatusPanel(status: selectedStatus),
+              const SizedBox(height: 16),
+              WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
+              const SizedBox(height: 16),
+              DepartureButton(
+                isSelected: isDeparturePressed,
+                onTap: _toggleDeparture,
+              ),
+              const SizedBox(height: 16),
+              CheckInButton(isPressed: isCheckInPressed, onTap: _toggleCheckIn),
+              const SizedBox(height: 16),
+              ReportLateButton(
+                onTap: () {
+                  // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

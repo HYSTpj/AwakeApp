@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'common_layout.dart';
+import 'passcode_entry_page.dart';
 
 class QRScannerPage extends StatefulWidget {
   const QRScannerPage({super.key});
@@ -80,7 +81,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                               setState(() {
                                 _isScanned = true;
                               });
-                              Navigator.pop(context, code);
+                              Navigator.pop(context, {'type': 'qrcode', 'value': code});
                             }
                           }
                         },
@@ -138,7 +139,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   ),
                 ),
                 onPressed: () {
-                  // TODO: Implement Passcode
+                  // QRスキャナーを閉じてパスコード入力画面に遷移する（pushReplacement）
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PasscodeEntryPage()),
+                  );
                 },
                 icon: const Icon(Icons.apps, color: Colors.black),
                 label: const Text(

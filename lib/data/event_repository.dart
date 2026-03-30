@@ -144,4 +144,16 @@ class EventRepository {
     }
     return false;
   }
+
+  // 手動パスワード検証: 読み取った値が該当イベントのpasswordと一致するか確認
+  Future<bool> verifyEventPassword(String eventId, String inputPassword) async {
+    final eventDoc = await _db.collection('events').doc(eventId).get();
+    if (eventDoc.exists) {
+      final data = eventDoc.data();
+      if (data != null && data['password'] == inputPassword) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
