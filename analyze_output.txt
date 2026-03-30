@@ -1,0 +1,5 @@
+﻿Analyzing 2 items...                                            
+
+warning - Unused import: 'package:firebase_auth/firebase_auth.dart' - lib\member_check_in.dart:2:8 - unused_import
+warning - Unused import: 'package:cloud_firestore/cloud_firestore.dart' - lib\member_check_in.dart:3:8 - unused_import
+

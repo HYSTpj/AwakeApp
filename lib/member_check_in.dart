@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
-import '../data/event_repository.dart';
 import 'qr_scanner_page.dart';
+import 'viewmodels/member_check_in_viewmodel.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
@@ -24,104 +22,26 @@ class MemberCheckInPage extends StatefulWidget {
 }
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
-  final EventRepository _eventRepository = EventRepository();
-  String? _userId;
-  String? _reportId;
-  String _groupName = "Loading...";
-
-  bool isDeparturePressed = false;
-  bool isCheckInPressed = false;
-  bool isWakeUpPressed = false;
-  StatusButtonType selectedStatus = StatusButtonType.sleeping;
+  late final MemberCheckInViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _viewModel = MemberCheckInViewModel(
+      eventId: widget.eventId,
+      groupId: widget.groupId,
+    );
+    _viewModel.loadData();
   }
 
-  Future<void> _loadData() async {
-    _userId = FirebaseAuth.instance.currentUser?.uid;
-    if (_userId == null) {
-      // ユーザーがログインしていない場合のエラーハンドリング
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ログイン情報が見つかりません。再度ログインしてください。')),
-        );
-      }
-      return;
-    }
-
-    // groupsコレクションからgroupNameを取得
-    try {
-      final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(widget.groupId).get();
-      if (groupDoc.exists && mounted) {
-        setState(() {
-          _groupName = groupDoc.data()?['group_name'] ?? 'Unknown Group';
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching group name: $e');
-      if (mounted) setState(() => _groupName = 'Error');
-    }
-
-    var report = await _eventRepository.getEventReport(widget.eventId, _userId!);
-    
-    if (report == null) {
-      _reportId = await _eventRepository.createReportIfNotExist(widget.eventId, _userId!);
-      report = await _eventRepository.getEventReport(widget.eventId, _userId!);
-    } else {
-      _reportId = report['report_id'];
-    }
-
-    if (report != null && mounted) {
-      final repoData = report;
-      setState(() {
-        isWakeUpPressed = repoData['actual_wakeup_time'] != null;
-        isDeparturePressed = repoData['actual_departure_time'] != null;
-        
-        final statusInt = repoData['status'] as int? ?? 0;
-        isCheckInPressed = (statusInt >= 4);
-
-        int currentStatus = statusInt;
-
-        // 起床予定時間を過ぎているのにSleepingのままだったら、Oversleptに変更する
-        if (currentStatus == 0) {
-          final plannedWakeup = repoData['planned_wakeup_time'];
-          if (plannedWakeup != null && plannedWakeup is Timestamp) {
-            if (DateTime.now().isAfter(plannedWakeup.toDate())) {
-              currentStatus = 2; // Overslept
-              _eventRepository.updateOversleptStatus(_reportId!); // バックグラウンドで更新
-            }
-          }
-        }
-
-        if (currentStatus == 1) {
-          selectedStatus = StatusButtonType.awake;
-        } else if (currentStatus == 0) {
-          selectedStatus = StatusButtonType.sleeping;
-        } else if (currentStatus == 2) {
-          selectedStatus = StatusButtonType.overslept;
-        } else if (currentStatus == 3) {
-          selectedStatus = StatusButtonType.moving;
-        } else if (currentStatus >= 4) {
-          selectedStatus = StatusButtonType.arrived;
-        }
-      });
-    }
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
-  Future<void> _toggleDeparture() async {
-    if (_reportId == null || isDeparturePressed) return;
-    setState(() {
-      isDeparturePressed = true;
-    });
-    await _eventRepository.updateDepartureTime(_reportId!);
-    _loadData();
-  }
-
-  Future<void> _toggleCheckIn() async {
-    if (_reportId == null || isCheckInPressed) return;
+  Future<void> _handleCheckIn() async {
+    if (_viewModel.isCheckInPressed) return;
 
     // QRスキャナーまたはパスコード画面へ遷移して結果を受け取る
     final scannedResult = await Navigator.push<Map<String, String>>(
@@ -137,32 +57,17 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       
       if (type == null || value == null) return;
 
-      bool isValid = false;
-      if (type == 'qrcode') {
-        // データベースのeventsのqrcode_idと照合
-        isValid = await _eventRepository.verifyEventQRCode(widget.eventId, value);
-      } else if (type == 'passcode') {
-        // データベースのeventsのpasswordと照合
-        isValid = await _eventRepository.verifyEventPassword(widget.eventId, value);
-      }
+      final isValid = await _viewModel.verifyAndCheckIn(type, value);
 
-      if (isValid) {
-        setState(() {
-          isCheckInPressed = true;
-        });
-        await _eventRepository.updateCheckInStatus(_reportId!);
-        _loadData();
-
-        if (mounted) {
+      if (mounted) {
+        if (isValid) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               backgroundColor: Colors.green,
             ),
           );
-        }
-      } else {
-        if (mounted) {
+        } else {
           final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -175,47 +80,44 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
-  Future<void> _toggleWakeUp() async {
-    if (_reportId == null || isWakeUpPressed) return;
-    setState(() {
-      isWakeUpPressed = true;
-    });
-    await _eventRepository.updateWakeupTime(_reportId!);
-    _loadData();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return CommonLayout(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              GroupNameDropdown(groupName: _groupName),
-              const SizedBox(height: 24),
-              CurrentStatusPanel(status: selectedStatus),
-              const SizedBox(height: 16),
-              WakeUpButton(isPressed: isWakeUpPressed, onTap: _toggleWakeUp),
-              const SizedBox(height: 16),
-              DepartureButton(
-                isSelected: isDeparturePressed,
-                onTap: _toggleDeparture,
+    // ViewModelの変更を監視してUIを自動再描画
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        return CommonLayout(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GroupNameDropdown(groupName: _viewModel.groupName),
+                  const SizedBox(height: 24),
+                  CurrentStatusPanel(status: _viewModel.selectedStatus),
+                  const SizedBox(height: 16),
+                  WakeUpButton(isPressed: _viewModel.isWakeUpPressed, onTap: _viewModel.toggleWakeUp),
+                  const SizedBox(height: 16),
+                  DepartureButton(
+                    isSelected: _viewModel.isDeparturePressed,
+                    onTap: _viewModel.toggleDeparture,
+                  ),
+                  const SizedBox(height: 16),
+                  CheckInButton(isPressed: _viewModel.isCheckInPressed, onTap: _handleCheckIn),
+                  const SizedBox(height: 16),
+                  ReportLateButton(
+                    onTap: () {
+                      // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              CheckInButton(isPressed: isCheckInPressed, onTap: _toggleCheckIn),
-              const SizedBox(height: 16),
-              ReportLateButton(
-                onTap: () {
-                  // TODO: REPORT LATEボタンがタップされたときの処理を実装する
-                },
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
