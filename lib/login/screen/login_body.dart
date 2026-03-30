@@ -10,7 +10,7 @@ Widget loginBody({
     return Scaffold(
         backgroundColor: Color(0xFFf8f6f6),
 
-        body: Center(
+        body: SingleChildScrollView(
             child: Column(
                 children: [
 
@@ -138,36 +138,33 @@ Widget loginBody({
                                 // Login Button
                                 Padding(
                                     padding: const EdgeInsets.only(top: 25, bottom: 24),
-                                    child: InkWell(
-                                     onTap: onLoginPressed, 
                                     child: Container(
                                         width: 320,
                                         height: 56,
-                                        padding: const EdgeInsets.only(top: 0, bottom: 0), // ボタン自体が中央に寄るので0でOK
                                         decoration: BoxDecoration(
-                                            color: const Color(0xFFEC5B13), // オレンジ色
-                                            border: Border.all(color: Colors.black, width: 1), // 枠線
+                                            color: const Color(0xFFEC5B13),
+                                            border: Border.all(color: Colors.black, width: 1),
                                             boxShadow: const [
-                                            BoxShadow(
-                                                color: Colors.black,
-                                                offset: Offset(4, 4), // あの影！
-                                            ),
+                                                BoxShadow(
+                                                    color: Colors.black,
+                                                    offset: Offset(4, 4),
+                                                ),
                                             ],
                                         ),
                                         child: ElevatedButton(
-                                            onPressed: onLoginPressed, // 引数で受け取ったonLoginPressedをここで呼び出す
+                                            onPressed: onLoginPressed,
                                             style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.transparent, // 背景を透明にしてContainerの色を出す
-                                            shadowColor: Colors.transparent,     // ボタン自体の影を消す
-                                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero), // 四角いボタンにする
+                                                backgroundColor: Colors.transparent, // 背景はContainerに任せる
+                                                shadowColor: Colors.transparent,
+                                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                             ),
                                             child: const Text(
-                                            'LOGIN',
-                                            style: TextStyle(
-                                                color: Colors.white, // 文字色
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                            ),
+                                                'LOGIN',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                ),
                                             ),
                                         ),
                                     ),
@@ -175,41 +172,41 @@ Widget loginBody({
 
                                 // CREATE ACCOUNT
                                 Container(
-                                width: 320,
-                                height: 48,
-                                // 💡 ポイント：paddingをEdgeInsets.zeroにしてズレを防ぐ
-                                padding: EdgeInsets.zero, 
-                                decoration: BoxDecoration(
-                                    // ✅ 解決策：ここを不透明な「白」にする
-                                    color: Colors.white, 
-                                    border: Border.all(color: Colors.black, width: 1), // 枠線
-                                    boxShadow: const [
-                                    BoxShadow(
-                                        color: Colors.black,
-                                        offset: Offset(4, 4), // 影
+                                    width: 320,
+                                    height: 48,
+                                    // 💡 ポイント：paddingをEdgeInsets.zeroにしてズレを防ぐ
+                                    padding: EdgeInsets.zero, 
+                                    decoration: BoxDecoration(
+                                        // ✅ 解決策：ここを不透明な「白」にする
+                                        color: Colors.white, 
+                                        border: Border.all(color: Colors.black, width: 1), // 枠線
+                                        boxShadow: const [
+                                            BoxShadow(
+                                                color: Colors.black,
+                                                offset: Offset(4, 4), // 影
+                                            ),
+                                        ],
                                     ),
-                                    ],
-                                ),
-                                child: ElevatedButton(
-                                    onPressed: onCreateAccountPressed,
-                                    style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent, // ここは透明のままでOK（Containerの白が見える）
-                                    shadowColor: Colors.transparent,     // ボタン自体の影を消す
-                                    // 💡 ポイント：ボタンの最小サイズをContainerに合わせる
-                                    minimumSize: const Size(320, 48), 
-                                    padding: EdgeInsets.zero,
-                                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                    child: ElevatedButton(
+                                        onPressed: onCreateAccountPressed,
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent, // ここは透明のままでOK（Containerの白が見える）
+                                            shadowColor: Colors.transparent,     // ボタン自体の影を消す
+                                            // 💡 ポイント：ボタンの最小サイズをContainerに合わせる
+                                            minimumSize: const Size(320, 48), 
+                                            padding: EdgeInsets.zero,
+                                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                        ),
+                                        child: const Text(
+                                            'CREATE ACCOUNT',
+                                            style: TextStyle(
+                                                color: Colors.black, // 文字色
+                                                fontFamily: 'Noto Sans JP',
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 10,
+                                            ),  
+                                        ),
                                     ),
-                                    child: const Text(
-                                    'CREATE ACCOUNT',
-                                    style: TextStyle(
-                                        color: Colors.black, // 文字色
-                                        fontFamily: 'Noto Sans JP',
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 10,
-                                    ),
-                                    ),
-                                ),
                                 ),
                             ],
                         ),

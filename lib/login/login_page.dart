@@ -28,35 +28,30 @@ class _LoginPageState extends State<LoginPage> {
 
         @override
         Widget build(BuildContext context) {
-        // 画面のベース（アプリの見た目の骨組み）作成
-          return Scaffold(
+          // Scaffoldを消して直接loginBodyを呼び出す
+          return loginBody(
+            emailController: emailController,
+            passwordController: passwordController,
             
-            body: loginBody(
-              emailController: emailController,
-              passwordController: passwordController,
-              
-              // ログインボタンが押された時の処理
-              onLoginPressed: () async {
-                try {
-                  await FirebaseAuth.instance.signInWithEmailAndPassword(
-                    email: emailController.text,
-                    password: passwordController.text,
-                  );
-                  print("ログイン成功");
-                  // ここにログイン後の画面遷移を書くと完璧です！
-                } catch (e) {
-                  print("ログイン失敗: $e");
-                }
-              },
-
-              // アカウント作成ボタンが押された時の処理
-              onCreateAccountPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CreateAccountPage()), // signup_page.dart へ
+            onLoginPressed: () async {
+              try {
+                // ★ここを確実に controller.text で取得するようにします
+                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                  email: emailController.text.trim(),
+                  password: passwordController.text.trim(),
                 );
-              },
-            ),
+                debugPrint("ログイン成功");
+              } catch (e) {
+                debugPrint("ログイン失敗: $e");
+              }
+            },
+
+            onCreateAccountPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateAccountPage()),
+              );
+            },
           );
-    }
+        }
 }

@@ -15,12 +15,14 @@ class CreateAccountPage extends StatefulWidget {
 class _CreateAccountPageState extends State<CreateAccountPage> {
     // テキスト（メール・パスワード）入力を取得・操作するためのコントローラー作成
     final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
     @override
-void dispose() {
-  emailController.dispose();
-  passwordController.dispose();
-  super.dispose();
-}
+    void dispose() {
+      emailController.dispose();
+      passwordController.dispose();
+      super.dispose();
+    }
     
 
     // 画面のベース（アプリの見た目の骨組み）作成

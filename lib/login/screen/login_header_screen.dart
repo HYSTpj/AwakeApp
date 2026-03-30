@@ -12,7 +12,7 @@ Widget myHeader() {
       ),
     ),
     child: const Text(
-      'APPNAME',
+      'AWAKE',
       textAlign: TextAlign.center,
       style: TextStyle(
         color: Color(0xFF0F172A),
