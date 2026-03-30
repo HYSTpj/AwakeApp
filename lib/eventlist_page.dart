@@ -64,7 +64,7 @@ class EventListPageState extends State<EventListPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (contet) => CreateEventPage(groupId: widget.group_id)  // group_idも渡す,
+                          builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
                           ),
                       );
                            
