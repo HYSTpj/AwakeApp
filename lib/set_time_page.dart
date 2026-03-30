@@ -92,7 +92,7 @@ class _SetTimePageState extends State<SetTimePage> {
           ),
           const SizedBox(width: 15),
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const Spacer(),
+          const SizedBox(height: 10),
           TextButton(
             onPressed: () {
               DatePicker.showTimePicker(
@@ -118,182 +118,193 @@ class _SetTimePageState extends State<SetTimePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
-        children: [
-          // My Schedule表示
-          const Text(
-            'My Schedule',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              fontSize: 32,
-            ),
-          ),
-
-          // 間のオレンジ線
-          const Divider(
-            color: Colors.deepOrangeAccent,
-            thickness: 2,
-            height: 20,
-          ),
-
-          // 起床時間設定
-          _timeSelectionRow(
-            label: 'Wake-up Time',
-            icon: Icons.alarm,
-            currentTime: _wakeupTime,
-            onConfirm: (date) => setState(() {
-              // 完了ボタンを押した時変数に代入
-              _wakeupTime = date;
-            }),
-          ),
-
-          // 到着時間設定
-          _timeSelectionRow(
-            label: 'Departure Time',
-            icon: Icons.departure_board,
-            currentTime: _departureTime,
-            onConfirm: (date) => setState(() {
-              _departureTime = date;
-            }),
-          ),
-
-          // 集合時間表示
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 2),
-              color: Colors.deepOrangeAccent,
-            ),
-            width: double.infinity,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // カレンダーアイコン
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 2),
-                    color: Colors.black,
-                  ),
-                  child: const Icon(Icons.event, color: Colors.white, size: 30),
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
+            children: [
+              // My Schedule表示
+              const Text(
+                'My Schedule',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 32,
                 ),
+              ),
 
-                const SizedBox(width: 15),
+              // 間のオレンジ線
+              const Divider(
+                color: Colors.deepOrangeAccent,
+                thickness: 2,
+                height: 20,
+              ),
 
-                // Arrival Goal
-                const Text(
-                  'Arrival Goal',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              // 起床時間設定
+              _timeSelectionRow(
+                label: 'Wake-up Time',
+                icon: Icons.alarm,
+                currentTime: _wakeupTime,
+                onConfirm: (date) => setState(() {
+                  // 完了ボタンを押した時変数に代入
+                  _wakeupTime = date;
+                }),
+              ),
+
+              // 到着時間設定
+              _timeSelectionRow(
+                label: 'Departure Time',
+                icon: Icons.departure_board,
+                currentTime: _departureTime,
+                onConfirm: (date) => setState(() {
+                  _departureTime = date;
+                }),
+              ),
+
+              // 集合時間表示
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 2),
+                  color: Colors.deepOrangeAccent,
                 ),
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // カレンダーアイコン
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 2),
+                        color: Colors.black,
+                      ),
+                      child: const Icon(
+                        Icons.event,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
 
-                const Spacer(),
+                    const SizedBox(width: 15),
 
-                // 時間表示
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: 2),
-                    color: Colors.white,
-                  ),
-                  child: Text(DateFormat('HH:mm').format(widget.arrivalTime)),
+                    // Arrival Goal
+                    const Text(
+                      'Arrival Goal',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 時間表示
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black, width: 2),
+                        color: Colors.white,
+                      ),
+                      child: Text(
+                        DateFormat('HH:mm').format(widget.arrivalTime),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          const Spacer(flex: 1),
+              const SizedBox(height: 100),
 
-          // SAVE CHANGESボタン
-          SizedBox(
-            width: double.infinity,
-            height: 80,
-            child: ElevatedButton(
-              onPressed: () async {
-                if (user != null &&
-                    _wakeupTime != null &&
-                    _departureTime != null) {
-                  // 引数が空でない時
+              // SAVE CHANGESボタン
+              SizedBox(
+                width: double.infinity,
+                height: 80,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (user != null &&
+                        _wakeupTime != null &&
+                        _departureTime != null) {
+                      // 引数が空でない時
 
-                  final wakeupTimeDay = DateTime(
-                    // 日にちをarrivalTimeに合わせる
-                    widget.arrivalTime.year,
-                    widget.arrivalTime.month,
-                    widget.arrivalTime.day,
-                    _wakeupTime!.hour,
-                    _wakeupTime!.minute,
-                  );
-                  final departureTimeDay = DateTime(
-                    widget.arrivalTime.year,
-                    widget.arrivalTime.month,
-                    widget.arrivalTime.day,
-                    _departureTime!.hour,
-                    _departureTime!.minute,
-                  );
-                  final String? reportId = await EventRepository().setReport(
-                    // データベースに保存
-                    eventId: widget.eventId,
-                    userId: user!.uid,
-                    wakeupTime: wakeupTimeDay,
-                    departureTime: departureTimeDay,
-                  );
-                  if (reportId != null) {
-                    // レポートが存在したら
-                    if (context.mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SaveChangesPage(
+                      final wakeupTimeDay = DateTime(
+                        // 日にちをarrivalTimeに合わせる
+                        widget.arrivalTime.year,
+                        widget.arrivalTime.month,
+                        widget.arrivalTime.day,
+                        _wakeupTime!.hour,
+                        _wakeupTime!.minute,
+                      );
+                      final departureTimeDay = DateTime(
+                        widget.arrivalTime.year,
+                        widget.arrivalTime.month,
+                        widget.arrivalTime.day,
+                        _departureTime!.hour,
+                        _departureTime!.minute,
+                      );
+                      final String? reportId = await EventRepository()
+                          .setReport(
+                            // データベースに保存
                             eventId: widget.eventId,
+                            userId: user!.uid,
                             wakeupTime: wakeupTimeDay,
                             departureTime: departureTimeDay,
-                            arrivalTime: widget.arrivalTime,
+                          );
+                      if (reportId != null) {
+                        // レポートが存在したら
+                        if (context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SaveChangesPage(
+                                eventId: widget.eventId,
+                                wakeupTime: wakeupTimeDay,
+                                departureTime: departureTimeDay,
+                                arrivalTime: widget.arrivalTime,
+                              ),
+                            ),
+                          );
+                          debugPrint('保存画面へ移動');
+                        }
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Please enter wake-up time and departure time.',
                           ),
                         ),
                       );
-                      debugPrint('保存画面へ移動');
+                      return;
                     }
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Please enter wake-up time and departure time.',
-                      ),
-                    ),
-                  );
-                  return;
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrangeAccent,
-                side: const BorderSide(color: Colors.black, width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, // 中央寄せ
-                children: [
-                  Text(
-                    'SAVE CHANGES',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 25,
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent,
+                    side: const BorderSide(color: Colors.black, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
                     ),
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center, // 中央寄せ
+                    children: [
+                      Text(
+                        'SAVE CHANGES',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

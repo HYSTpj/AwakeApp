@@ -29,12 +29,12 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
   Widget build(BuildContext context) {
     return CommonLayout(
       // 共通レイアウトを使用
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
                 // アイコンツリー
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -55,12 +55,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                       ),
 
                       // 間の黒線
-                      const Expanded(
-                        child: VerticalDivider(
-                          color: Colors.black,
-                          thickness: 3,
-                        ),
-                      ),
+                      Container(width: 3, height: 150, color: Colors.black),
 
                       // コンパスアイコン
                       const CircleAvatar(
@@ -78,12 +73,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                       ),
 
                       // 間の黒線
-                      const Expanded(
-                        child: VerticalDivider(
-                          color: Colors.black,
-                          thickness: 3,
-                        ),
-                      ),
+                      Container(width: 3, height: 160, color: Colors.black),
 
                       // ロックアイコン
                       const CircleAvatar(
@@ -150,7 +140,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(height: 20),
 
                         // 準備時間
                         Container(
@@ -185,7 +175,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(height: 20),
 
                         // departure box
                         Container(
@@ -219,7 +209,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(height: 20),
 
                         // 移動時間
                         Container(
@@ -252,7 +242,7 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                           ),
                         ),
 
-                        const Spacer(),
+                        const SizedBox(height: 20),
 
                         // arrival box
                         Container(
@@ -289,52 +279,55 @@ class _SaveChangesPageState extends State<SaveChangesPage> {
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 100),
 
-            const SizedBox(height: 30),
-
-            // イベント一覧移動ボタン
-            Container(
-              width: double.infinity,
-              height: 70,
-              decoration: BoxDecoration(color: Colors.deepOrangeAccent),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    // グループリストページへ移動
-                    MaterialPageRoute(
-                      builder: (context) => const GroupListPage(),
-                    ),
-                  );
-                  debugPrint('イベント一覧画面へ移動');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrangeAccent,
-                  side: const BorderSide(color: Colors.black, width: 3),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'APPLY SEQUENCE',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 24,
+              // イベント一覧移動ボタン
+              Container(
+                width: double.infinity,
+                height: 70,
+                decoration: BoxDecoration(color: Colors.deepOrangeAccent),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      // グループリストページへ移動
+                      MaterialPageRoute(
+                        builder: (context) => const GroupListPage(),
                       ),
+                    );
+                    debugPrint('イベント一覧画面へ移動');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent,
+                    side: const BorderSide(color: Colors.black, width: 3),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
                     ),
-                    SizedBox(width: 10),
-                    Icon(Icons.arrow_forward, color: Colors.white, size: 28),
-                  ],
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'APPLY SEQUENCE',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 24,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
