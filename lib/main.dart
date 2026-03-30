@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'select_participants_page.dart'; // 参加者選択ページのインポート
-import 'models/event_data.dart'; // イベントデータモデルのインポート
+import 'login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
@@ -59,16 +58,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 最初に表示する画面
-      home: SelectParticipantsPage(
-        allMembers: ['Alice', 'Bob', 'Charlie', 'Dave'],
-        eventData: EventData(
-          name: "テストイベント",
-          location: "名古屋駅",
-          lat: 35.1709,
-          lng: 136.8815,
-          scheduledTime: DateTime.now(),
-        ),
-      ),
+      home: LoginPage()
     );
   }
 }
