@@ -333,7 +333,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         height: 48,
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
-                          color: AppColors.Orange,
+                          color: AppColors.orange,
                           shape: const RoundedRectangleBorder(side: _kBorderSide),
                           shadows: [
                             BoxShadow(

@@ -1,8 +1,10 @@
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../select_participants_page.dart';
 
 // events ドキュメント
 class EventRepository {
+  EventRepository();
   final _db = FirebaseFirestore.instance;
 
   // イベント作成
@@ -14,6 +16,7 @@ class EventRepository {
     required String qrcodeId,
     required String password,
     required String arrivalTime,
+
     required String status
   }) async {
     final eventDoc = _db.collection('events').doc();
@@ -72,5 +75,29 @@ class EventRepository {
         .doc(docId)
         .delete();
     }
+  }
+
+  // data/event_repository.dart 内に追加
+  Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
+    final snapshot = await _db
+        .collection('users')
+        .where('group_id', isEqualTo: groupId)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      data['uid'] = doc.id;
+      return data;
+    }).toList();
+  }
+
+  Future<void> updateEventParticipants(String eventId, List<String> participants) async {
+    await FirebaseFirestore.instance
+        .collection('events')
+        .doc(eventId)
+        .update({
+      'participants': participants,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }
