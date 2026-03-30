@@ -138,12 +138,19 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     side: const BorderSide(color: borderColor, width: 3),
                   ),
                 ),
-                onPressed: () {
-                  // QRスキャナーを閉じてパスコード入力画面に遷移する（pushReplacement）
-                  Navigator.pushReplacement(
+                onPressed: () async {
+                  // パスコード入力画面を push で開き、結果を受け取る
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const PasscodeEntryPage()),
                   );
+                  
+                  if (!context.mounted) return;
+                  
+                  // 受け取った結果(result)を持って、QRScannerPage自体を pop し、呼び出し元の大元（Home）へ返す
+                  if (result != null) {
+                    Navigator.pop(context, result);
+                  }
                 },
                 icon: const Icon(Icons.apps, color: Colors.black),
                 label: const Text(
