@@ -30,6 +30,12 @@ void dispose() {
         emailController: emailController,
         passwordController: passwordController,
         onRegisterPressed: () async {
+        if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
+            );
+            return;
+          }        
           // ✅ ここにFirebaseの登録処理を書く
           try {
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
