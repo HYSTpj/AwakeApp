@@ -123,6 +123,7 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                 ),
                 child: TextField(
                   controller: _passcodeController,
+                  autofocus: true,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20,

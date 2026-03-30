@@ -125,7 +125,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             if (newGroupId != null) {
               setState(() {
                 selectedGroupId = newGroupId;
-                _eventsFuture = EventRepository().getEvents(selectedGroupId!);
+                _eventsFuture = EventRepository().getEvents(newGroupId);
               });
             }
           },
@@ -138,7 +138,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     if (_isLoadingGroups) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (selectedGroupId == null) {
+    if (selectedGroupId == null || _eventsFuture == null) {
       return const Center(
         child: Text(
           'Select or Create a Group first.',

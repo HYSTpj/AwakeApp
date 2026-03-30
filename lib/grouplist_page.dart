@@ -20,16 +20,26 @@ class GroupListPageState extends State<GroupListPage> {
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
   String? selectedGroupId;  // 今選択中のグループID
+  Future<List<Map<String, dynamic>>>? _groupsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  void _loadGroups() {
+    final String uid = user?.uid ?? "no user";
+    _groupsFuture = GroupRepository().getGroups(uid);
+  }
 
   @override
   Widget build(BuildContext context) {
 
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
-
     return CommonLayout(  // 共通レイアウトを使用
 
       body: FutureBuilder<List<Map<String, dynamic>>> ( // 作業終わるまで置き換えておく画面作成
-        future: GroupRepository().getGroups(uid),  // グループリストを作る予約
+        future: _groupsFuture,  // グループリストを作る予約
         builder: (context, snapshot) {  // 状況(snapshot)に合わせて作る画面作成
 
           if(snapshot.connectionState == ConnectionState.waiting) { // 待ち状態のとき

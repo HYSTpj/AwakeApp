@@ -57,26 +57,21 @@ class MemberCheckInViewModel extends ChangeNotifier {
     if (report != null) {
       // ---- 新しいOverslept判定ロジック（Copilotのレビュー解決） ----
       int currentStatus = report['status'] as int? ?? 0;
-      bool needsOversleptUpdate = false;
 
       // 起床予定時間を過ぎているのにSleepingのままであればOversleptに変更する
       if (currentStatus == 0) {
         final plannedWakeup = report['planned_wakeup_time'];
         if (plannedWakeup != null && plannedWakeup is Timestamp) {
           if (DateTime.now().isAfter(plannedWakeup.toDate())) {
-            currentStatus = 2; // Overslept判定
-            needsOversleptUpdate = true;
+            if (_reportId != null) {
+              try {
+                await _eventRepository.updateOversleptStatus(_reportId!);
+                currentStatus = 2; // 更新成功ならローカル変数も書き換える
+              } catch (e) {
+                debugPrint('寝坊ステータス更新失敗: $e');
+              }
+            }
           }
-        }
-      }
-
-      // 同期的なUI更新ステートが始まる前（つまりここでawait）に、時間のかかる非同期通信を処理する
-      if (needsOversleptUpdate && _reportId != null) {
-        try {
-          // エラーキャッチ付きで安全に待機
-          await _eventRepository.updateOversleptStatus(_reportId!);
-        } catch (e) {
-          debugPrint('Failed to update overslept status: $e');
         }
       }
 
