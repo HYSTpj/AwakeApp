@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/group_repository.dart';
 import '../data/event_repository.dart';
+import 'member_check_in.dart';
 
 import 'package:intl/intl.dart';  //DateFormatを使用するために追加
 
@@ -128,17 +129,16 @@ class EventListPageState extends State<EventListPage> {
                         */
                         debugPrint('${event['title']}の管理者ページへ移動');
                       } else {  // 利用者の時
-                        /*
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (contet) => Eventdetail(
-                              eventId: event['id'],
+                            builder: (context) => MemberCheckInPage(
+                              eventId: event['event_id'],
                               eventTitle: event['title'],
+                              groupId: widget.groupId,
                             ),
                           ),
                         );
-                        */
                         debugPrint('${event['title']}の利用者ページへ移動');
                       }
                     },

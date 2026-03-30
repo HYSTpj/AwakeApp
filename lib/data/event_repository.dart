@@ -92,8 +92,8 @@ class EventRepository {
     return null;
   }
 
-  // テスト用：レポートが存在しない場合に空のレポートを作成する
-  Future<String> createDummyReportIfNotExist(String eventId, String userId) async {
+  // レポートが存在しない場合に空のレポートを作成する
+  Future<String> createReportIfNotExist(String eventId, String userId) async {
     final report = await getEventReport(eventId, userId);
     if (report != null) return report['report_id'];
 

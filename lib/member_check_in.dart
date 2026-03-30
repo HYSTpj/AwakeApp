@@ -8,17 +8,26 @@ import '../data/event_repository.dart';
 import 'qr_scanner_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
-  const MemberCheckInPage({super.key});
+  final String eventId;
+  final String eventTitle;
+  final String groupId;
+
+  const MemberCheckInPage({
+    super.key,
+    required this.eventId,
+    required this.eventTitle,
+    required this.groupId,
+  });
 
   @override
   State<MemberCheckInPage> createState() => _MemberCheckInPageState();
 }
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
-  final String _dummyEventId = "DUMMY_EVENT_ID_123";
   final EventRepository _eventRepository = EventRepository();
   String? _userId;
   String? _reportId;
+  String _groupName = "Loading...";
 
   bool isDeparturePressed = false;
   bool isCheckInPressed = false;
@@ -32,13 +41,35 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   }
 
   Future<void> _loadData() async {
-    _userId = FirebaseAuth.instance.currentUser?.uid ?? "DUMMY_USER_ID_123";
+    _userId = FirebaseAuth.instance.currentUser?.uid;
+    if (_userId == null) {
+      // ユーザーがログインしていない場合のエラーハンドリング
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ログイン情報が見つかりません。再度ログインしてください。')),
+        );
+      }
+      return;
+    }
 
-    var report = await _eventRepository.getEventReport(_dummyEventId, _userId!);
+    // groupsコレクションからgroupNameを取得
+    try {
+      final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(widget.groupId).get();
+      if (groupDoc.exists && mounted) {
+        setState(() {
+          _groupName = groupDoc.data()?['group_name'] ?? 'Unknown Group';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching group name: $e');
+      if (mounted) setState(() => _groupName = 'Error');
+    }
+
+    var report = await _eventRepository.getEventReport(widget.eventId, _userId!);
     
     if (report == null) {
-      _reportId = await _eventRepository.createDummyReportIfNotExist(_dummyEventId, _userId!);
-      report = await _eventRepository.getEventReport(_dummyEventId, _userId!);
+      _reportId = await _eventRepository.createReportIfNotExist(widget.eventId, _userId!);
+      report = await _eventRepository.getEventReport(widget.eventId, _userId!);
     } else {
       _reportId = report['report_id'];
     }
@@ -109,10 +140,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       bool isValid = false;
       if (type == 'qrcode') {
         // データベースのeventsのqrcode_idと照合
-        isValid = await _eventRepository.verifyEventQRCode(_dummyEventId, value);
+        isValid = await _eventRepository.verifyEventQRCode(widget.eventId, value);
       } else if (type == 'passcode') {
         // データベースのeventsのpasswordと照合
-        isValid = await _eventRepository.verifyEventPassword(_dummyEventId, value);
+        isValid = await _eventRepository.verifyEventPassword(widget.eventId, value);
       }
 
       if (isValid) {
@@ -163,7 +194,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const GroupNameDropdown(),
+              GroupNameDropdown(groupName: _groupName),
               const SizedBox(height: 24),
               CurrentStatusPanel(status: selectedStatus),
               const SizedBox(height: 16),
@@ -190,7 +221,9 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
 }
 
 class GroupNameDropdown extends StatelessWidget {
-  const GroupNameDropdown({super.key});
+  final String groupName;
+  
+  const GroupNameDropdown({super.key, required this.groupName});
 
   @override
   Widget build(BuildContext context) {
@@ -207,10 +240,10 @@ class GroupNameDropdown extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
+        children: [
           Text(
-            'GROUP NAME',
-            style: TextStyle(
+            groupName,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: borderColor,
