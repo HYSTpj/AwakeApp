@@ -21,6 +21,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   String? selectedGroupId;
   List<Map<String, dynamic>> _myGroups = [];
   bool _isLoadingGroups = true;
+  Future<List<Map<String, dynamic>>>? _eventsFuture;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           _isLoadingGroups = false;
           if (groups.isNotEmpty) {
             selectedGroupId = groups.first['group_id'];
+            _eventsFuture = EventRepository().getEvents(selectedGroupId!);
           }
         });
       }
@@ -123,6 +125,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             if (newGroupId != null) {
               setState(() {
                 selectedGroupId = newGroupId;
+                _eventsFuture = EventRepository().getEvents(selectedGroupId!);
               });
             }
           },
@@ -145,7 +148,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     }
 
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: EventRepository().getEvents(selectedGroupId!),
+      future: _eventsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
