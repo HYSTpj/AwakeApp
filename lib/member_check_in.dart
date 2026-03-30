@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
-import 'data/event_repository.dart';
+import '../data/event_repository.dart';
 import 'qr_scanner_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
