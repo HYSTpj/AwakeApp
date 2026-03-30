@@ -53,7 +53,7 @@ Widget SignupBody({
 
                         // ボタン類
                         Padding(
-                            padding: const EdgeInsetsGeometry.only(top: 16),
+                            padding: const EdgeInsets.only(top: 16),
                             child: Column(
                                 children: [
                                     
