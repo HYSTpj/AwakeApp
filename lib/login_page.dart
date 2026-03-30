@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'signup_page.dart';
-import 'grouplist_page.dart'; // グループリストページへ移動
+import 'event_selection_home.dart'; // イベントリスト(Home)ページへ移動
 
 // ログイン機能
 class LoginPage extends StatefulWidget {      
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
                       context,
                       // グループリストページへ移動
                       MaterialPageRoute(
-                        builder: (context) => const GroupListPage(),
+                        builder: (context) => const EventSelectionHome(),
                       ),
                     );
                     debugPrint("ログイン成功");
