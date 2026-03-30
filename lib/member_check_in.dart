@@ -43,18 +43,25 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
 
     if (report != null && mounted) {
+      final repoData = report;
       setState(() {
-        isWakeUpPressed = report['actual_wakeup_time'] != null;
-        isDeparturePressed = report['actual_departure_time'] != null;
+        isWakeUpPressed = repoData['actual_wakeup_time'] != null;
+        isDeparturePressed = repoData['actual_departure_time'] != null;
         
-        final statusInt = report['status'] as int? ?? 0;
+        final statusInt = repoData['status'] as int? ?? 0;
         isCheckInPressed = (statusInt >= 4);
 
-        if (statusInt == 1) selectedStatus = StatusButtonType.awake;
-        else if (statusInt == 0) selectedStatus = StatusButtonType.sleeping;
-        else if (statusInt == 2) selectedStatus = StatusButtonType.overslept;
-        else if (statusInt == 3) selectedStatus = StatusButtonType.moving;
-        else if (statusInt >= 4) selectedStatus = StatusButtonType.arrived;
+        if (statusInt == 1) {
+          selectedStatus = StatusButtonType.awake;
+        } else if (statusInt == 0) {
+          selectedStatus = StatusButtonType.sleeping;
+        } else if (statusInt == 2) {
+          selectedStatus = StatusButtonType.overslept;
+        } else if (statusInt == 3) {
+          selectedStatus = StatusButtonType.moving;
+        } else if (statusInt >= 4) {
+          selectedStatus = StatusButtonType.arrived;
+        }
       });
     }
   }
@@ -117,12 +124,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     });
     await _eventRepository.updateWakeupTime(_reportId!);
     _loadData();
-  }
-
-  void _selectStatus(StatusButtonType type) {
-    setState(() {
-      selectedStatus = type;
-    });
   }
 
   @override
