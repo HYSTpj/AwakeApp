@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'eventlist_page.dart';
+import 'select_participants_page.dart';
+import 'data/event_repository.dart';
 
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -327,7 +329,40 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
-                      onTap: () => debugPrint('Confirm Participantボタンが押されました'),
+                      onTap: () async {
+                        // 1. 入力チェック
+                        if (_nameController.text.isEmpty || _locationController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please fill in all fields.')),
+                          );
+                          return;
+                        }
+
+                        // 2. EventRepositoryを使ってFirestoreに保存
+                        final eventId = await EventRepository().setEvent(
+                          groupId: widget.groupId,
+                          title: _nameController.text,
+                          destinationName: _locationController.text, // 目的地名として使用
+                          location: '${_selectedLocation.latitude},${_selectedLocation.longitude}', // 座標を文字列で保存
+                          qrcodeId: 'dummy_qr', // 必要に応じて生成ロジックを追加
+                          password: 'default_password', 
+                          arrivalTime: _scheduledTime.toIso8601String(), // 文字列型で保存
+                          status: 'planning',
+                        );
+
+                        // 3. 次の画面（参加者選択ページ）へ遷移
+                        if (eventId != null && mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SelectParticipantsPage(
+                                eventId: eventId,
+                                groupId: widget.groupId,
+                              ),
+                            ),
+                          );
+                        }
+                      },
                       child: Container(
                         width: double.infinity,
                         height: 48,
