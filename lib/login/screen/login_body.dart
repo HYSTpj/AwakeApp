@@ -138,6 +138,8 @@ Widget loginBody({
                                 // Login Button
                                 Padding(
                                     padding: const EdgeInsets.only(top: 25, bottom: 24),
+                                    child: InkWell(
+                                     onTap: onLoginPressed, 
                                     child: Container(
                                         width: 320,
                                         height: 56,
