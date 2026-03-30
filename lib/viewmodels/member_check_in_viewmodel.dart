@@ -27,12 +27,12 @@ class MemberCheckInViewModel extends ChangeNotifier {
   }) : _eventRepository = eventRepository ?? EventRepository();
 
   // 初期データおよび更新用データの取得
-  Future<void> loadData() async {
+  Future<String?> loadData() async {
     _userId = FirebaseAuth.instance.currentUser?.uid;
     if (_userId == null) {
       errorMessage = 'ログイン情報が見つかりません。再度ログインしてください。';
       notifyListeners();
-      return;
+      return errorMessage;
     }
 
     try {
@@ -100,6 +100,7 @@ class MemberCheckInViewModel extends ChangeNotifier {
       // Viewへ変更を通知する（これがsetStateの代わりになる）
       notifyListeners();
     }
+    return null;
   }
 
   // 起床ボタンのトグル

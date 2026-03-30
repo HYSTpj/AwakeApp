@@ -31,7 +31,34 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       eventId: widget.eventId,
       groupId: widget.groupId,
     );
-    _viewModel.loadData();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    final errorMessage = await _viewModel.loadData();
+    
+    // Copilot指摘解決: もしログインエラー（未認証状態）が返ってきたら、強制的にダイアログを出して戻る
+    if (errorMessage != null && mounted) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false, // 周りをタップして閉じられないようにブロック
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('ログインが必要です'),
+            content: const Text('メンバーのチェックインを利用するには、ログインしてください。'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // ダイアログを閉じる
+                  Navigator.of(context).pop(); // 元の画面へ戻る
+                },
+                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        }
+      );
+    }
   }
 
   @override
