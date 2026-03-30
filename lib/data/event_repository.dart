@@ -133,6 +133,14 @@ class EventRepository {
     });
   }
 
+  // 寝坊ステータスの更新
+  Future<void> updateOversleptStatus(String reportId) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 2, // overslept
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
   // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
   Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
     final eventDoc = await _db.collection('events').doc(eventId).get();

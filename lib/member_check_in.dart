@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
@@ -51,15 +52,28 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         final statusInt = repoData['status'] as int? ?? 0;
         isCheckInPressed = (statusInt >= 4);
 
-        if (statusInt == 1) {
+        int currentStatus = statusInt;
+
+        // 起床予定時間を過ぎているのにSleepingのままだったら、Oversleptに変更する
+        if (currentStatus == 0) {
+          final plannedWakeup = repoData['planned_wakeup_time'];
+          if (plannedWakeup != null && plannedWakeup is Timestamp) {
+            if (DateTime.now().isAfter(plannedWakeup.toDate())) {
+              currentStatus = 2; // Overslept
+              _eventRepository.updateOversleptStatus(_reportId!); // バックグラウンドで更新
+            }
+          }
+        }
+
+        if (currentStatus == 1) {
           selectedStatus = StatusButtonType.awake;
-        } else if (statusInt == 0) {
+        } else if (currentStatus == 0) {
           selectedStatus = StatusButtonType.sleeping;
-        } else if (statusInt == 2) {
+        } else if (currentStatus == 2) {
           selectedStatus = StatusButtonType.overslept;
-        } else if (statusInt == 3) {
+        } else if (currentStatus == 3) {
           selectedStatus = StatusButtonType.moving;
-        } else if (statusInt >= 4) {
+        } else if (currentStatus >= 4) {
           selectedStatus = StatusButtonType.arrived;
         }
       });
@@ -302,8 +316,9 @@ class DepartureButton extends StatelessWidget {
     const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
-    final backgroundColor = isSelected ? Colors.white : const Color(0xFFFF5C00);
-    final iconAreaColor = isSelected ? Colors.white : const Color(0xFFFF7A00);
+    final backgroundColor = isSelected ? const Color(0xFFE5E7EB) : Colors.white;
+    final iconAreaColor = isSelected ? Colors.transparent : const Color(0xFFFF5C00);
+    final iconColor = const Color(0xFF1A1C1C);
     final rightIcon = isSelected ? Icons.check : Icons.arrow_forward;
 
     return SizedBox(
@@ -364,14 +379,14 @@ class DepartureButton extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  width: 24.5,
-                  height: 24.5,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(rightIcon, color: Colors.black, size: 18),
+                    child: Icon(rightIcon, color: iconColor, size: 24),
                   ),
                 ),
               ],
@@ -500,8 +515,8 @@ class WakeUpButton extends StatelessWidget {
     const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
-    final backgroundColor = isPressed ? Colors.white : const Color(0xFFE2E2E2);
-    final iconAreaColor = isPressed ? const Color(0xFFFF5C00) : Colors.white;
+    final backgroundColor = isPressed ? const Color(0xFFE5E7EB) : Colors.white;
+    final iconAreaColor = isPressed ? Colors.transparent : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
     final rightIcon = isPressed ? Icons.check : Icons.arrow_forward;
 
@@ -559,14 +574,14 @@ class WakeUpButton extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  width: 24.5,
-                  height: 24.5,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(rightIcon, color: iconColor, size: 18),
+                    child: Icon(rightIcon, color: iconColor, size: 24),
                   ),
                 ),
               ],
