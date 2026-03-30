@@ -1,57 +1,22 @@
 import 'package:flutter/material.dart';
 
-enum StatusButtonType { awake, sleeping, moving, overslept, arrived }
+enum StatusButtonType {
+  sleeping(0, 'SLEEPING', Color(0xFFA1A1AA)),
+  awake(1, 'AWAKE', Color(0xFF53D96E)),
+  overslept(2, 'OVERSLEPT', Color(0xFFF26A63)),
+  moving(3, 'MOVING', Color(0xFF4EA9FF)),
+  arrived(4, 'ARRIVED', Color(0xFFFF8B16));
+
+  final int order;
+  final String label;
+  final Color color;
+
+  const StatusButtonType(this.order, this.label, this.color);
+}
 
 int statusOrderOf(StatusButtonType type) => type.order;
 String statusLabelOf(StatusButtonType type) => type.label;
 Color statusColorOf(StatusButtonType type) => type.color;
-
-extension _StatusButtonTypeData on StatusButtonType {
-  int get order {
-    switch (this) {
-      case StatusButtonType.sleeping:
-        return 0;
-      case StatusButtonType.awake:
-        return 1;
-      case StatusButtonType.moving:
-        return 3;
-      case StatusButtonType.overslept:
-        return 2;
-      case StatusButtonType.arrived:
-        return 4;
-    }
-  }
-
-  String get label {
-    switch (this) {
-        case StatusButtonType.sleeping:
-          return 'SLEEPING';
-      case StatusButtonType.awake:
-        return 'AWAKE';
-      case StatusButtonType.moving:
-        return 'MOVING';
-      case StatusButtonType.overslept:
-        return 'OVERSLEPT';
-      case StatusButtonType.arrived:
-        return 'ARRIVED';
-    }
-  }
-
-  Color get color {
-    switch (this) {
-      case StatusButtonType.sleeping:
-        return const Color(0xFFA1A1AA);
-      case StatusButtonType.awake:
-        return const Color(0xFF53D96E);
-      case StatusButtonType.moving:
-        return const Color(0xFF4EA9FF);
-      case StatusButtonType.overslept:
-        return const Color(0xFFF26A63);
-      case StatusButtonType.arrived:
-        return const Color(0xFFFF8B16);
-    }
-  }
-}
 
 class StatusButton extends StatelessWidget {
   const StatusButton({
