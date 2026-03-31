@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'common_layout.dart';
-import 'package:intl/intl.dart';  //DateFormatを使用するために追加
+import 'package:intl/intl.dart'; //DateFormatを使用するために追加
 
 class MemberPostPage extends StatelessWidget {
   final Map<String, dynamic> member; // 名前やアイコン用
@@ -21,9 +21,8 @@ class MemberPostPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     // 時間を文字に変換する処理（下のListViewと同じやり方）
-    final dynamic rawTime = report['autual_wakeup_time'];
+    final dynamic rawTime = report['actual_wakeup_time'];
     String displayTime = '--:--';
     if (rawTime != null && rawTime is Timestamp) {
       displayTime = DateFormat("M/dd HH:mm").format(rawTime.toDate());
@@ -34,7 +33,6 @@ class MemberPostPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
           children: [
-
             // 戻るボタン
             const SizedBox(height: 5),
             Align(
@@ -46,16 +44,20 @@ class MemberPostPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(0),
-                  border: Border.all(color: Colors.black, width: 2)
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black, size: 25),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                    size: 25,
+                  ),
                   onPressed: () {
                     Navigator.pop(context); // grouplist_pageに戻る
                     debugPrint('1画面戻る');
                   },
-                )
-              )
+                ),
+              ),
             ),
 
             const SizedBox(height: 10),
@@ -64,11 +66,18 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
-                  backgroundImage: member['avatar_url'] != null ? NetworkImage(member['avatar_url']) : null,
-                  child: member['avatar_url'] == null ? const Icon(Icons.person, color: Colors.white) : null,
+                  backgroundImage: member['avatar_url'] != null
+                      ? NetworkImage(member['avatar_url'])
+                      : null,
+                  child: member['avatar_url'] == null
+                      ? const Icon(Icons.person, color: Colors.white)
+                      : null,
                 ),
                 const SizedBox(width: 15),
-                Text(member['nickname'] ?? 'No name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  member['nickname'] ?? 'No name',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -79,23 +88,46 @@ class MemberPostPage extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
+                color: Colors.white, // 画像がない時の背景色
               ),
               // DecorationImage を使わずに、child に Image.network を入れます
-              child: Image.network(
-                report['photo_url'] ?? 'https://via.placeholder.com/300',
-                fit: BoxFit.cover,
-                // ここが「くるくる」の魔法です！
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child; // 読み込み完了なら画像を表示
-                  return const Center(
-                    child: CircularProgressIndicator(), // 読み込み中はくるくるを表示
-                  );
-                },
-                // 万が一画像が読み込めなかった時のエラー表示
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(child: Icon(Icons.error));
-                },
-              ),
+              child: report['photo_url'] != null && report['photo_url'] != ""
+                  ? Image.network(
+                      // photo_urlに中身がある時
+                      report['photo_url'],
+                      fit: BoxFit.cover,
+                      // ここが「くるくる」の魔法です！
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child; // 読み込み完了なら画像を表示
+                        }
+                        return const Center(
+                          child: CircularProgressIndicator(), // 読み込み中はくるくるを表示
+                        );
+                      },
+                      // 万が一画像が読み込めなかった時のエラー表示
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Icon(Icons.error));
+                      },
+                    )
+                  : const Center(
+                      // 中身がない時
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image_not_supported,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'No Image',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
             ),
             const SizedBox(height: 20),
 
@@ -103,7 +135,10 @@ class MemberPostPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _infoTag(Icons.location_on, _formatLocation(report['location'])),
+                _infoTag(
+                  Icons.location_on,
+                  _formatLocation(report['location']),
+                ),
                 _infoTag(Icons.alarm, 'WAKE-UP: $displayTime'),
               ],
             ),
@@ -115,12 +150,15 @@ class MemberPostPage extends StatelessWidget {
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
-                color: Colors.white
+                color: Colors.white,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('LATE REASON', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  const Text(
+                    'LATE REASON',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
                   const SizedBox(height: 10),
                   Text(report['late_reason'] ?? 'The reason is not entered.'),
                 ],
@@ -138,13 +176,16 @@ class MemberPostPage extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black),
         borderRadius: BorderRadius.circular(0),
-        color: Colors.grey[300]
+        color: Colors.grey[300],
       ),
       child: Row(
         children: [
           Icon(icon, size: 16),
           const SizedBox(width: 5),
-          Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

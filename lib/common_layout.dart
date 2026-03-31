@@ -101,8 +101,13 @@ class CommonLayoutState extends State<CommonLayout> {
             // groupボタン
             BottomNavigationBarItem(
               icon: Padding(
+<<<<<<< HEAD
                 padding: EdgeInsetsGeometry.only(top: 25),
                 child: Icon(Icons.group, color: Colors.black),
+=======
+                padding: EdgeInsets.only(top: 25),
+                child: Icon(Icons.group),
+>>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
               ),
               label: 'group'
             ),
@@ -110,9 +115,14 @@ class CommonLayoutState extends State<CommonLayout> {
             // calenderボタン
             BottomNavigationBarItem(
               icon: Padding(
+<<<<<<< HEAD
                 padding: EdgeInsetsGeometry.only(top: 25),
                 child: Icon(Icons.calendar_month, color: Colors.black),
 
+=======
+                padding: EdgeInsets.only(top: 25),
+                child: Icon(Icons.calendar_month),
+>>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
               ),
               label: 'calender'
             ),
@@ -120,8 +130,13 @@ class CommonLayoutState extends State<CommonLayout> {
             // QRcodeボタン
             BottomNavigationBarItem(
               icon: Padding(
+<<<<<<< HEAD
                 padding: EdgeInsetsGeometry.only(top: 25),
                 child: Icon(Icons.qr_code, color: Colors.black),
+=======
+                padding: EdgeInsets.only(top: 25),
+                child: Icon(Icons.qr_code),
+>>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
               ),
               label: 'QRcode'
             ),
