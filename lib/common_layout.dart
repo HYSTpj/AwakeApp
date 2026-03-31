@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/common_layout.dart';
+import 'package:flutter_application_1/ranking/ranking_screen.dart';
 
 class CommonLayout extends StatefulWidget{
   // 各画面の代入する中身
@@ -125,6 +126,12 @@ class CommonLayoutState extends State<CommonLayout> {
           ],
           onTap: (index) {
             debugPrint('$index番目のボタンが押されました');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RankingPreview(),
+              ),
+            );
           },
         ),
       ),
