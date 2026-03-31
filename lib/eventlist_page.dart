@@ -60,28 +60,9 @@ class _EventListPageState extends State<EventListPage> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-
     return  FutureBuilder<List<dynamic>> ( // 作業終わるまで置き換えておく画面作成
       future: _pageDataFuture,
       builder: (context, snapshot) {  // 状況(snapshot)に合わせて作る画面作成
-=======
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
-
-    return FutureBuilder<List<dynamic>>(
-      // 作業終わるまで置き換えておく画面作成
-      future: Future.wait([
-        GroupRepository().getRole(
-          id: uid,
-          groupId: widget.groupId,
-        ), // 自分の役割を取得する予約 snapshot.data[0]
-        EventRepository().getEvents(
-          widget.groupId,
-        ), // イベントリストを作る予約 snapshot.data[1]
-      ]),
-      builder: (context, snapshot) {
-        // 状況(snapshot)に合わせて作る画面作成
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           // 待ち状態のとき
@@ -96,11 +77,7 @@ class _EventListPageState extends State<EventListPage> {
         }
 
         // 取得し終わったとき
-<<<<<<< HEAD
         final myRole = (snapshot.data![0] ?? 1) as int;  // int型だと教えてあげる
-=======
-        final myRole = snapshot.data![0] as int; // int型だと教えてあげる
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
         final myEvents = snapshot.data![1] as List;
 
         if (selectedEventId != null) {
@@ -192,35 +169,22 @@ class _EventListPageState extends State<EventListPage> {
                                 selectedEventTitle = event['title'];
                               });
 
-<<<<<<< HEAD
-                        debugPrint('${event['title']}の管理者ページへ移動');
-                      } else {  // 利用者の時
-=======
                               debugPrint('${event['title']}の管理者ページへ移動');
                             } else {
                               // 利用者の時
-                              /*
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MemberCheckInPage(
-                              eventId: event['event_id'],
-                              eventTitle: event['title'],
-                              groupId: widget.groupId,
-                            ),
-                          ),
-                        );
-<<<<<<< HEAD
-                        debugPrint('${event['title']}の利用者ページへ移動');
-                      }
-                    },
-=======
-                        */
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MemberCheckInPage(
+                                    eventId: event['event_id'],
+                                    eventTitle: event['title'],
+                                    groupId: widget.groupId,
+                                  ),
+                                ),
+                              );
                               debugPrint('${event['title']}の利用者ページへ移動');
                             }
                           },
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
 
                           child: Container(
                             // イベント箱全体設定

@@ -20,12 +20,7 @@ class EventRepository {
     required String qrcodeId,
     required String password,
     required String arrivalTime,
-<<<<<<< HEAD
-
-    required String status
-=======
     required String status,
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
   }) async {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
@@ -76,10 +71,7 @@ class EventRepository {
         .collection("events")
         .doc(eventId).delete();
     }
-<<<<<<< HEAD
-  }
-=======
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
+
 
   // メンバーリストの取得
   Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {

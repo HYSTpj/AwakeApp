@@ -1,0 +1,5 @@
+﻿Analyzing HYST...                                               
+
+  error - The named parameter 'groupId' is required, but there's no corresponding argument - lib\grouplist_page.dart:119:21 - missing_required_argument
+  error - The named parameter 'group_id' isn't defined - lib\grouplist_page.dart:119:35 - undefined_named_parameter
+
