@@ -1,0 +1,10 @@
+﻿Analyzing HYST...                                               
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\late_report_page.dart:174:57 - deprecated_member_use
+   info - 'desiredAccuracy' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings - lib\viewmodels\late_report_viewmodel.dart:54:9 - deprecated_member_use
+  error - 4 positional arguments expected by 'updateLateReport', but 0 found - lib\viewmodels\late_report_viewmodel.dart:143:9 - not_enough_positional_arguments
+  error - The named parameter 'reportId' isn't defined - lib\viewmodels\late_report_viewmodel.dart:143:9 - undefined_named_parameter
+  error - The named parameter 'reason' isn't defined - lib\viewmodels\late_report_viewmodel.dart:144:9 - undefined_named_parameter
+  error - The named parameter 'photoUrl' isn't defined - lib\viewmodels\late_report_viewmodel.dart:145:9 - undefined_named_parameter
+  error - The named parameter 'location' isn't defined - lib\viewmodels\late_report_viewmodel.dart:146:9 - undefined_named_parameter
+

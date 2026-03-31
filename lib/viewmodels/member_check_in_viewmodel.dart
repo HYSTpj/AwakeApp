@@ -12,6 +12,8 @@ class MemberCheckInViewModel extends ChangeNotifier {
   String? _userId;
   String? _reportId;
 
+  String? get reportId => _reportId;
+
   // Viewに公開する状態データたち
   String groupName = "Loading...";
   bool isWakeUpPressed = false;

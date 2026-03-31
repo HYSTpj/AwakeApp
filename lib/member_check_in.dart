@@ -4,6 +4,7 @@ import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
+import 'late_report_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
@@ -135,8 +136,21 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   CheckInButton(isPressed: _viewModel.isCheckInPressed, onTap: _handleCheckIn),
                   const SizedBox(height: 16),
                   ReportLateButton(
-                    onTap: () {
-                      // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                    onTap: () async {
+                      if (_viewModel.reportId == null) return;
+                      final result = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LateReportPage(
+                            reportId: _viewModel.reportId!,
+                            eventId: widget.eventId,
+                          ),
+                        ),
+                      );
+                      // 遅刻理由を保存して戻った場合は、再読み込みしてUIを「LATE」ステータスに更新
+                      if (result == true) {
+                        _viewModel.loadData();
+                      }
                     },
                   ),
                 ],

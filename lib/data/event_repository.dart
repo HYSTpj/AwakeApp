@@ -150,6 +150,22 @@ class EventRepository {
     });
   }
 
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId, 
+    String reason, 
+    String photoUrl, 
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
   // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
   Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
     final eventDoc = await _db.collection('events').doc(eventId).get();
