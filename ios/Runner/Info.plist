@@ -2,122 +2,69 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 常に位置情報を使う許可 -->
-	<key>NSLocationAlwaysUsageDescription</key>
-	<!-- ユーザーに表示されるメッセージ -->
-	<string>このアプリには位置情報が必要です</string>
-
-	<!-- アプリの使用中のみ位置情報を使う許可 -->
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>このアプリには位置情報が必要です</string>
-
-	<!-- 上記2つを合わせた最新の記述方式(iOS11以降で必須) -->
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>このアプリには位置情報が必要です</string>
-
-	<!-- iPhone の画面更新をスムーズにする設定 -->
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-
-	<!-- アプリの開発地域 -->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-
-	<!-- スマホのホーム画面に表示されるアプリ名 -->
 	<key>CFBundleDisplayName</key>
 	<string>Flutter Application 1</string>
-
-	<!-- アプリを実行する際の実行ファイル名 -->
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-
-	<!-- アプリID -->
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-
-	<!-- Info.plist 自体のフォーマットのバージョン（現在は6.0が標準） -->
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-
-	<!-- アプリの識別名 -->
 	<key>CFBundleName</key>
 	<string>flutter_application_1</string>
-
-	<!-- パッケージの種類（ APPL は Application であることを意味する） -->
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-
-	<!-- ユーザーに見えるバージョン番号 -->
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
-
-	<!-- 4文字のクリエータコード -->
 	<key>CFBundleSignature</key>
 	<string>????</string>
-
-	<!-- アプリのビルド番号 -->
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-
-	<!-- iPhone OS (iOS) 専用であることを示す -->
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-
-	<!-- iOS 13以降のマルチウィンドウ機能など，画面の管理方法を定義 -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>このアプリには位置情報が必要です</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>このアプリには位置情報が必要です</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>このアプリには位置情報が必要です</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
-
-		<!-- アプリがマルチウィンドウに対応するかどうか -->
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
-
-		<!-- アプリが使用するすべてのSceneの定義をまとめる -->
 		<key>UISceneConfigurations</key>
 		<dict>
-		<!-- 通常のアプリ画面 -->
 			<key>UIWindowSceneSessionRoleApplication</key>
 			<array>
 				<dict>
-				<!-- Scene自体のクラス名 -->
 					<key>UISceneClassName</key>
 					<string>UIWindowScene</string>
-					<!-- この設定セットにつける名前 -->
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
-					<!-- ライフサイクルを管理するクラス -->
 					<key>UISceneDelegateClassName</key>
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<!-- Sceneが起動した時に最初に読み込むStoryboardファイル名の指定 -->
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>
 			</array>
 		</dict>
 	</dict>
-
-	<!-- 間接的な入力デバイスをサポートするかどうか -->
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-
-	<!-- アプリ起動時に一瞬表示されるスプラッシュ画面の設定 -->
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-
-	<!-- アプリのメインとなる画面設計図を指定 -->
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-
-	<!-- アプリが縦向きか横向きどちらに対応するかを決める -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
-
-		<!-- 縦向き -->
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-
-	<!-- iPad専用の画面回転設定 -->
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
