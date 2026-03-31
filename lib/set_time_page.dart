@@ -31,18 +31,15 @@ class _SetTimePageState extends State<SetTimePage> {
     if (user == null) return;
 
     // ユーザーが存在する時eventIdとuserIdが一致するevent_reportsを取得
-    final List<Map<String, dynamic>> reports = await EventRepository()
+    final Map<String, dynamic>? report = await EventRepository()
         .getEventReport(widget.eventId, user!.uid);
 
     // 空でないかつ画面が変わっていないなら
-    if (reports.isNotEmpty && mounted) {
-      final report = reports.first; // 最初の1件を取得
+    if (report != null && mounted) {
 
       setState(() {
-        final rawWakeup =
-            report['planned_wakeup_time'] ?? report['wakeupTime']; // 空の時は引数代入
-        final rawDeparture =
-            report['planned_departure_time'] ?? report['departureTime'];
+        final rawWakeup = report['planned_wakeup_time'] ?? report['wakeupTime']; // 空の時は引数代入
+        final rawDeparture = report['planned_departure_time'] ?? report['departureTime'];
 
         if (rawWakeup is Timestamp) {
           _wakeupTime = rawWakeup.toDate(); //timestampをdate型に変換
