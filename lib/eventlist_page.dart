@@ -7,6 +7,7 @@ import '../data/event_repository.dart';
 import 'member_check_in.dart';
 
 import 'package:intl/intl.dart';  //DateFormatを使用するために追加
+import 'create_event_page.dart';
 
 class EventListPage extends StatefulWidget {
 
@@ -66,7 +67,7 @@ class EventListPageState extends State<EventListPage> {
         }
         
         // 取得し終わったとき
-        final myRole = snapshot.data![0] as int;  // int型だと教えてあげる
+        final myRole = (snapshot.data![0] ?? 1) as int;  // int型だと教えてあげる
         final myEvents = snapshot.data![1] as List;
 
         return Column(
@@ -81,15 +82,13 @@ class EventListPageState extends State<EventListPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      /*
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (contet) => CreateEventPage(),
+                          builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
                           ),
-                        ),
                       );
-                      */
+                           
                       debugPrint('イベント作成ページへ移動');
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
