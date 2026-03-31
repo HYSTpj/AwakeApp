@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; 
+import '../../grouplist_page.dart';
 
-Widget CreateAccountBody() {
+Widget CreateAccountBody(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),
     // 💡 SafeArea を入れることで、スマホの時計部分との重なりを防ぎます
@@ -75,7 +76,12 @@ Widget CreateAccountBody() {
                   
                   // CREATE ACCOUNTボタン
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GroupListPage()),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEC5B13),
                       minimumSize: const Size(320, 56),
