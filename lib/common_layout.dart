@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/common_layout.dart';
 
 class CommonLayout extends StatefulWidget{
   // 各画面の代入する中身
@@ -24,6 +25,9 @@ class CommonLayoutState extends State<CommonLayout> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+
+      // 背景の色
+      backgroundColor: const Color(0xFFF8F6F6),
 
       // 上のバー表示
       appBar: AppBar(
@@ -51,7 +55,7 @@ class CommonLayoutState extends State<CommonLayout> {
 
         // アプリ名表示
         title: const Text(  // 真ん中
-          'APPNAME', // アプリ名入れる
+          'AWAKE', // アプリ名入れる
           style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
@@ -66,10 +70,8 @@ class CommonLayoutState extends State<CommonLayout> {
         ],
         
         // 色決め
-        backgroundColor: const Color(0xFFFF5C00),
-        foregroundColor: Colors.black,
-        elevation: 0,
-        shape: const Border(bottom: BorderSide(color: Colors.black, width: 4)),
+        backgroundColor: Colors.deepOrangeAccent,
+        foregroundColor: Colors. black,
       ),
 
       // 各画面のメイン
@@ -83,9 +85,8 @@ class CommonLayoutState extends State<CommonLayout> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFFFF5C00),
+          color: Colors.deepOrangeAccent,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.black, width: 4),
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,  // 場所固定
@@ -93,8 +94,6 @@ class CommonLayoutState extends State<CommonLayout> {
           elevation: 0, // 影消す
           showSelectedLabels: false,  // labelの表示を消す
           showUnselectedLabels: false,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.black,
           items: const [
 
             // groupボタン
