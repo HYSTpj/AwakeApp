@@ -126,7 +126,9 @@ class CommonLayoutState extends State<CommonLayout> {
             ),
           ],
           onTap: (index) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => RankingPreview()));
+            if (index == 2) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => RankingPreview()));
+            }
             debugPrint('$index番目のボタンが押されました');
           },
         ),
