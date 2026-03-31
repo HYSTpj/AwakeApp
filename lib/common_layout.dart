@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'ranking/ranking_screen.dart';
+import 'package:flutter_application_1/common_layout.dart';
 
 class CommonLayout extends StatefulWidget{
   // 各画面の代入する中身
@@ -101,13 +101,9 @@ class CommonLayoutState extends State<CommonLayout> {
             // groupボタン
             BottomNavigationBarItem(
               icon: Padding(
-<<<<<<< HEAD
-                padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.group, color: Colors.black),
-=======
                 padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.group),
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
+
               ),
               label: 'group'
             ),
@@ -115,14 +111,8 @@ class CommonLayoutState extends State<CommonLayout> {
             // calenderボタン
             BottomNavigationBarItem(
               icon: Padding(
-<<<<<<< HEAD
-                padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.calendar_month, color: Colors.black),
-
-=======
                 padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.calendar_month),
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
               ),
               label: 'calender'
             ),
@@ -130,21 +120,14 @@ class CommonLayoutState extends State<CommonLayout> {
             // QRcodeボタン
             BottomNavigationBarItem(
               icon: Padding(
-<<<<<<< HEAD
-                padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.qr_code, color: Colors.black),
-=======
                 padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.qr_code),
->>>>>>> 43e1dc8cf7e35213b9d2adc92476ba6d6a7f6d46
+
               ),
               label: 'QRcode'
             ),
           ],
           onTap: (index) {
-            if (index == 2) {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => RankingPreview()));
-            }
             debugPrint('$index番目のボタンが押されました');
           },
         ),
