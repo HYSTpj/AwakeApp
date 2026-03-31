@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>このアプリはQRコードを読み取るためにカメラを使用します。</string>
 </dict>
 </plist>

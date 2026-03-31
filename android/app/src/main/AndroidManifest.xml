@@ -9,6 +9,9 @@
     <!-- アプリを閉じている時も位置情報を取得 -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     
+    <!-- QRコード/バーコード読み取り用のカメラ権限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    
     <application
         android:label="flutter_application_1"
         android:name="${applicationName}"

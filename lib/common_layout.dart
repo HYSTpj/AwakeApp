@@ -55,7 +55,7 @@ class CommonLayoutState extends State<CommonLayout> {
 
         // アプリ名表示
         title: const Text(  // 真ん中
-          'APP NAME', // アプリ名入れる
+          'AWAKE', // アプリ名入れる
           style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
