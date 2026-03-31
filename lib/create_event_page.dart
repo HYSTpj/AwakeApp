@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'style/app_colors.dart';
+import 'style/app_color.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
+import 'select_participants_page.dart';
+import 'data/event_repository.dart';
 import 'eventlist_page.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
+
 
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -99,7 +102,7 @@ class _PickerButton extends StatelessWidget {
 }
 
 class CreateEventPage extends StatefulWidget {
-  final String groupId; // ✅ キャメルケースに修正
+  final String groupId; 
 
   const CreateEventPage({
     super.key,

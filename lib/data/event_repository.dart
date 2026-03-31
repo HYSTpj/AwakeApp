@@ -86,6 +86,29 @@ class EventRepository {
     }
   }
 
+  // グループに所属するメンバー一覧を取得
+  Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
+    final snapshot = await _db
+        .collection('users')
+        .where('group_id', isEqualTo: groupId)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      data['uid'] = doc.id; // ドキュメントIDをuidとして利用
+      return data;
+    }).toList();
+  }
+
+  Future<void> updateEventParticipants(String eventId, List<String> participants) async {
+    await _db
+        .collection('events')
+        .doc(eventId)
+        .update({
+      'participants': participants,
+      'update_at': FieldValue.serverTimestamp(),
+    });
+  }
 
   // --- event_reports 関連 ---
 

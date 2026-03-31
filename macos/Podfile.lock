@@ -1201,6 +1201,11 @@ PODS:
     - Firebase/Firestore (~> 12.9.0)
     - firebase_core
     - FlutterMacOS
+<<<<<<< HEAD
+=======
+  - file_selector_macos (0.0.1):
+    - FlutterMacOS
+>>>>>>> main
   - Firebase/Auth (12.9.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 12.9.0)
@@ -1209,14 +1214,31 @@ PODS:
   - Firebase/Firestore (12.9.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 12.9.0)
+<<<<<<< HEAD
+=======
+  - Firebase/Storage (12.9.0):
+    - Firebase/CoreOnly
+    - FirebaseStorage (~> 12.9.0)
+>>>>>>> main
   - firebase_auth (6.2.0):
     - Firebase/Auth (~> 12.9.0)
     - Firebase/CoreOnly (~> 12.9.0)
     - firebase_core
     - FlutterMacOS
+<<<<<<< HEAD
   - firebase_core (4.5.0):
     - Firebase/CoreOnly (~> 12.9.0)
     - FlutterMacOS
+=======
+  - firebase_core (4.6.0):
+    - Firebase/CoreOnly (~> 12.9.0)
+    - FlutterMacOS
+  - firebase_storage (13.2.0):
+    - Firebase/CoreOnly (~> 12.9.0)
+    - Firebase/Storage (~> 12.9.0)
+    - firebase_core
+    - FlutterMacOS
+>>>>>>> main
   - FirebaseAppCheckInterop (12.9.0)
   - FirebaseAuth (12.9.0):
     - FirebaseAppCheckInterop (~> 12.9.0)
@@ -1257,6 +1279,16 @@ PODS:
     - leveldb-library (~> 1.22)
     - nanopb (~> 3.30910.0)
   - FirebaseSharedSwift (12.9.0)
+<<<<<<< HEAD
+=======
+  - FirebaseStorage (12.9.0):
+    - FirebaseAppCheckInterop (~> 12.9.0)
+    - FirebaseAuthInterop (~> 12.9.0)
+    - FirebaseCore (~> 12.9.0)
+    - FirebaseCoreExtension (~> 12.9.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GTMSessionFetcher/Core (< 6.0, >= 3.4)
+>>>>>>> main
   - FlutterMacOS (1.0.0)
   - geolocator_apple (1.2.0):
     - Flutter
@@ -1376,6 +1408,11 @@ PODS:
   - gRPC-Core/Privacy (1.69.0)
   - GTMSessionFetcher/Core (5.1.0)
   - leveldb-library (1.22.6)
+<<<<<<< HEAD
+=======
+  - mobile_scanner (5.2.3):
+    - FlutterMacOS
+>>>>>>> main
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
@@ -1392,10 +1429,20 @@ PODS:
 DEPENDENCIES:
   - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
+<<<<<<< HEAD
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
+=======
+  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
+  - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
+  - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
+  - firebase_storage (from `Flutter/ephemeral/.symlinks/plugins/firebase_storage/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
+  - mobile_scanner (from `Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos`)
+>>>>>>> main
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
@@ -1414,6 +1461,10 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseFirestoreInternal
     - FirebaseSharedSwift
+<<<<<<< HEAD
+=======
+    - FirebaseStorage
+>>>>>>> main
     - GoogleUtilities
     - "gRPC-C++"
     - gRPC-Core
@@ -1426,14 +1477,29 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
   cloud_firestore:
     :path: Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos
+<<<<<<< HEAD
+=======
+  file_selector_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
+>>>>>>> main
   firebase_auth:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos
   firebase_core:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
+<<<<<<< HEAD
+=======
+  firebase_storage:
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_storage/macos
+>>>>>>> main
   FlutterMacOS:
     :path: Flutter/ephemeral
   geolocator_apple:
     :path: Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin
+<<<<<<< HEAD
+=======
+  mobile_scanner:
+    :path: Flutter/ephemeral/.symlinks/plugins/mobile_scanner/macos
+>>>>>>> main
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   shared_preferences_foundation:
@@ -1446,9 +1512,17 @@ SPEC CHECKSUMS:
   app_links: 05a6ec2341985eb05e9f97dc63f5837c39895c3f
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: 5d6c1cb7f6c050f66708f7c9cc1afee568a67713
+<<<<<<< HEAD
   Firebase: 065f2bb395062046623036d8e6dc857bc2521d56
   firebase_auth: def738277a306ec5676724b44ce49b37edd3bc91
   firebase_core: c74b220e9288decea6bed17399c249734a7e76d2
+=======
+  file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
+  Firebase: 065f2bb395062046623036d8e6dc857bc2521d56
+  firebase_auth: def738277a306ec5676724b44ce49b37edd3bc91
+  firebase_core: 82d678e9e10fc0b515ea1872dd446eee4722f144
+  firebase_storage: 9413f3b3326f464e086de5be4f4e6177bbf0ae1a
+>>>>>>> main
   FirebaseAppCheckInterop: 4bade10286cc977e516f75d2d8312cbdfa534789
   FirebaseAuth: 3a39f6436c21ebfd7919b698228b4f89ff94c23b
   FirebaseAuthInterop: f8f6ff72dc24621906497fbe5cf3c42ee815e59c
@@ -1458,6 +1532,10 @@ SPEC CHECKSUMS:
   FirebaseFirestore: d8b76ca1feb4ca0b0f078c45f7d1bd8014a49ef1
   FirebaseFirestoreInternal: 02341a9ba87f6309227b04685022a5e16307bbf7
   FirebaseSharedSwift: 9d2fa84a46676302b89dbd5e6e62bce2fe376909
+<<<<<<< HEAD
+=======
+  FirebaseStorage: 3ba2348d876c295236cdd9f408a62d3f9ff8e6b5
+>>>>>>> main
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
@@ -1465,6 +1543,10 @@ SPEC CHECKSUMS:
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
   GTMSessionFetcher: b8ab00db932816e14b0a0664a08cb73dda6d164b
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
+<<<<<<< HEAD
+=======
+  mobile_scanner: bd1e7cd9b67b442f4d903747f4778e040513f860
+>>>>>>> main
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
