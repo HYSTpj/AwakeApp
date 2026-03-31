@@ -32,7 +32,7 @@ Widget eventPageBody() {
   
   // テスト用データ（Firebaseを通さない）
   const String userImageUrl = 'https://via.placeholder.com/150';
-  const String displayName = 'MITSUKI';
+  const String displayName = 'USERNAME';
 
   return SingleChildScrollView(
     padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
