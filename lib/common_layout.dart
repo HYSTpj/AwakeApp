@@ -66,8 +66,10 @@ class CommonLayoutState extends State<CommonLayout> {
         ],
         
         // 色決め
-        backgroundColor: Colors.deepOrangeAccent,
-        foregroundColor: Colors. black,
+        backgroundColor: const Color(0xFFFF5C00),
+        foregroundColor: Colors.black,
+        elevation: 0,
+        shape: const Border(bottom: BorderSide(color: Colors.black, width: 4)),
       ),
 
       // 各画面のメイン
@@ -81,9 +83,9 @@ class CommonLayoutState extends State<CommonLayout> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.deepOrangeAccent,
+          color: const Color(0xFFFF5C00),
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.black, width: 2)
+          border: Border.all(color: Colors.black, width: 4),
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,  // 場所固定
@@ -91,6 +93,8 @@ class CommonLayoutState extends State<CommonLayout> {
           elevation: 0, // 影消す
           showSelectedLabels: false,  // labelの表示を消す
           showUnselectedLabels: false,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.black,
           items: const [
 
             // groupボタン

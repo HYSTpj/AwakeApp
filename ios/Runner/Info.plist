@@ -95,6 +95,10 @@
 		</dict>
 	</dict>
 
+	<!-- カメラを使用する許可 -->
+	<key>NSCameraUsageDescription</key>
+	<string>このアプリではQRコードを読み取る際にカメラを使用します。</string>
+
 	<!-- 間接的な入力デバイスをサポートするかどうか -->
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
