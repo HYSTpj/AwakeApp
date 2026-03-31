@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/common_layout.dart';
 
 class CommonLayout extends StatefulWidget{
   // 各画面の代入する中身
@@ -24,6 +25,9 @@ class CommonLayoutState extends State<CommonLayout> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+
+      // 背景の色
+      backgroundColor: const Color(0xFFF8F6F6),
 
       // 上のバー表示
       appBar: AppBar(
@@ -51,7 +55,7 @@ class CommonLayoutState extends State<CommonLayout> {
 
         // アプリ名表示
         title: const Text(  // 真ん中
-          'APP NAME', // アプリ名入れる
+          'AWAKE', // アプリ名入れる
           style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,

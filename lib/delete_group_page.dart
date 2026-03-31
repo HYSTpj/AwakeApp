@@ -42,7 +42,7 @@ class DeleteGroupPageState extends State<DeleteGroupPage> {
       try {
         await GroupRepository().deleteGroup(
           id: user.uid,
-          group_id: invitationCode
+          groupId: invitationCode
         );
 
         if (!mounted) return; // もし画面が閉じられていればここで終了

@@ -4,17 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../data/group_repository.dart';
 import '../data/event_repository.dart';
+import 'member_check_in.dart';
 
 import 'package:intl/intl.dart';  //DateFormatを使用するために追加
 import 'create_event_page.dart';
 
 class EventListPage extends StatefulWidget {
 
-  final String group_id;  // grouplist_pageのドロップダウンで指定されたgroup_id
+  final String groupId;  // grouplist_pageのドロップダウンで指定されたgroup_id
 
   const EventListPage({
     super.key,
-    required this.group_id
+    required this.groupId
   });
 
   @override
@@ -24,17 +25,37 @@ class EventListPage extends StatefulWidget {
 class EventListPageState extends State<EventListPage> {
 
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  Future<List<dynamic>>? _pageDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
+    _pageDataFuture = Future.wait([
+      GroupRepository().getRole(id: uid, groupId: widget.groupId),  // 自分の役割を取得する予約 snapshot.data[0]
+      EventRepository().getEvents(widget.groupId),  // イベントリストを作る予約 snapshot.data[1]
+    ]);
+  }
+
+  @override
+  void didUpdateWidget(EventListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.groupId != widget.groupId) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
 
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
-
     return  FutureBuilder<List<dynamic>> ( // 作業終わるまで置き換えておく画面作成
-      future: Future.wait([
-        GroupRepository().getRole(id: uid, group_id: widget.group_id),  // 自分の役割を取得する予約 snapshot.data[0]
-        EventRepository().getEvents(widget.group_id),  // イベントリストを作る予約 snapshot.data[1]
-      ]),
+      future: _pageDataFuture,
       builder: (context, snapshot) {  // 状況(snapshot)に合わせて作る画面作成
 
         if(snapshot.connectionState == ConnectionState.waiting) { // 待ち状態のとき
@@ -64,7 +85,7 @@ class EventListPageState extends State<EventListPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (contet) => CreateEventPage(groupId: widget.group_id)  // group_idも渡す,
+                          builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
                           ),
                       );
                            
@@ -127,17 +148,16 @@ class EventListPageState extends State<EventListPage> {
                         */
                         debugPrint('${event['title']}の管理者ページへ移動');
                       } else {  // 利用者の時
-                        /*
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (contet) => Eventdetail(
-                              eventId: event['id'],
+                            builder: (context) => MemberCheckInPage(
+                              eventId: event['event_id'],
                               eventTitle: event['title'],
+                              groupId: widget.groupId,
                             ),
                           ),
                         );
-                        */
                         debugPrint('${event['title']}の利用者ページへ移動');
                       }
                     },
