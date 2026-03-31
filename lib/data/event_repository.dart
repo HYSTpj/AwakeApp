@@ -4,9 +4,11 @@ import 'package:crypto/crypto.dart';
 
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../select_participants_page.dart';
 
 // events ドキュメント
 class EventRepository {
+  EventRepository();
   final _db = FirebaseFirestore.instance;
 
   // イベント作成
@@ -18,6 +20,7 @@ class EventRepository {
     required String qrcodeId,
     required String password,
     required String arrivalTime,
+
     required String status
   }) async {
     final eventDoc = _db.collection('events').doc();

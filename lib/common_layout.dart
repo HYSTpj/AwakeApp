@@ -55,7 +55,9 @@ class CommonLayoutState extends State<CommonLayout> {
 
         // アプリ名表示
         title: const Text(  // 真ん中
+
           'AWAKE', // アプリ名入れる
+
           style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
@@ -100,7 +102,7 @@ class CommonLayoutState extends State<CommonLayout> {
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.group),
+                child: Icon(Icons.group, color: Colors.black),
               ),
               label: 'group'
             ),
@@ -109,7 +111,7 @@ class CommonLayoutState extends State<CommonLayout> {
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.calendar_month),
+                child: Icon(Icons.calendar_month, color: Colors.black),
               ),
               label: 'calender'
             ),
@@ -118,7 +120,7 @@ class CommonLayoutState extends State<CommonLayout> {
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsetsGeometry.only(top: 25),
-                child: Icon(Icons.qr_code),
+                child: Icon(Icons.qr_code, color: Colors.black),
               ),
               label: 'QRcode'
             ),
