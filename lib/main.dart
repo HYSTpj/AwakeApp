@@ -13,10 +13,17 @@ void main() async {
   // Flutterを初期化
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Firebaseを初期化
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (e.toString().contains('duplicate-app')) {
+      debugPrint('初期化済み');
+    } else {
+      rethrow; 
+    }
+  }
 
   // Supabaseを初期化
   await Supabase.initialize(
