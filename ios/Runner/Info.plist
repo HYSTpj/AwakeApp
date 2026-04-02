@@ -53,6 +53,8 @@
 			</array>
 		</dict>
 	</dict>
+
+	<!-- 間接的な入力デバイスをサポートするかどうか -->
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
