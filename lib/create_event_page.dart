@@ -7,9 +7,6 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
-import 'eventlist_page.dart';
-import 'select_participants_page.dart';
-import 'data/event_repository.dart';
 
 
 
@@ -31,7 +28,7 @@ const _kValueStyle = TextStyle(
 
 class _LabelText extends StatelessWidget {
   final String text;
-  const _LabelText(this.text, {super.key});
+  const _LabelText(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +42,17 @@ class _LabelText extends StatelessWidget {
 // 枠付きの入力フィールドコンテナ
 class _InputBox extends StatelessWidget {
   final Widget child;
-  final double height;
   final EdgeInsets padding;
 
   const _InputBox({
     required this.child,
-    this.height = 48,
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
-    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: height,
       padding: padding,
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
@@ -77,7 +70,7 @@ class _PickerButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _PickerButton({required this.label, required this.onTap, super.key});
+  const _PickerButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -354,7 +347,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         );
 
                         // 3. 次の画面（参加者選択ページ）へ遷移
-                        if (eventId != null && mounted) {
+                        if (eventId != null && context.mounted) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(

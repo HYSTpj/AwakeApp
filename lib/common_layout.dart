@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/common_layout.dart';
 import 'package:flutter_application_1/ranking/ranking_screen.dart';
 
 class CommonLayout extends StatefulWidget{

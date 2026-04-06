@@ -71,7 +71,7 @@ Widget loginBody({
                                     ),
                                 ),
 
-                                Container(
+                                SizedBox(
                                     width: 320,
                                     height: 56,
                                     child: TextField(

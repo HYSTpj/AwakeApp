@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
 
-Widget SignupBody({
+Widget signupBody({
     required TextEditingController emailController, // LoginPageで定義したcontrollerを引数として受け取る
     required TextEditingController passwordController, // LoginPageで定義したcontrollerを引数として受け取る 
     required VoidCallback onRegisterPressed, // ログインボタンが押されたときの処理を引数として受け取る
@@ -71,7 +71,7 @@ Widget SignupBody({
                                         ),
                                     ),
 
-                                    Container(
+                                    SizedBox(
                                         width: 320,
                                         height: 56,
                                         child: TextField(
