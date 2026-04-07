@@ -83,39 +83,61 @@ class GroupListPageState extends State<GroupListPage> {
                         style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                       ),
 
-                      items: myGroups.map((group) { // myGroupsリストから一つずつgroupを取り出す
-                        return DropdownMenuItem<String> (
-                          value: group['group_id'] ?? '',  // グループIDを取得，空の場合も指定
+                      items: [  // items:[... ]でリスト連結
+                        ...myGroups.map((group) { // myGroupsリストから一つずつgroupを取り出す
+                          return DropdownMenuItem<String> (
+                            value: group['group_id'] ?? '',  // グループIDを取得，空の場合も指定
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,  // 両端に追いやる
+                              children: [
+                                Text(
+                                  group['group_name'] ?? 'unnamed group',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(text: group['invitation_code'] ?? ""));  // クリップボードに招待コードをコピー
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('copied the invitation code')),
+                                    );
+                                    debugPrint('招待コードをコピー');
+                                  },
+                                  child: const Icon(Icons.content_copy, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
+                        const DropdownMenuItem<String>( // ドロップダウンにcreate_add_deleteページ移動追加
+                          value: 'create_add_delete',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,  // 両端に追いやる
                             children: [
-                              Text(
-                                group['group_name'] ?? 'unnamed group',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Clipboard.setData(ClipboardData(text: group['invitation_code'] ?? ""));  // クリップボードに招待コードをコピー
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('copied the invitation code')),
-                                  );
-                                  debugPrint('招待コードをコピー');
-                                },
-                                child: const Icon(Icons.content_copy, color: Colors.black),
-                              ),
+                              Text('Create or Add or Delete group'),
+                              SizedBox(width: 10),
+                              Icon(Icons.add_box, color: Colors.deepOrangeAccent)
                             ],
                           ),
-                        );
-                      }).toList(),  // リストに連結
+                        )
+                      ],
 
-                      onChanged: (String? newGroupId) { // グループが選ばれたとき
-                        if (newGroupId == null) return;
+                      onChanged: (String? value) { // グループが選ばれたとき
+                        if (value == null) return;
 
-                        setState(() {
-                          selectedGroupId = newGroupId;
-                        });
+                        if (value == 'create_add_delete') {
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
+                          );
+                          debugPrint('作成or参加or脱退画面へ移動');
+                        } else {
+                          setState(() {
+                            selectedGroupId = value;
+                          });
 
-                        debugPrint('$newGroupIdのイベント一覧へ移動');
+                          debugPrint('$valueのイベント一覧へ移動');
+                        }
                       },
                     ),
                   ),
@@ -131,20 +153,6 @@ class GroupListPageState extends State<GroupListPage> {
             ],
           );      
         },
-      ),
-
-      // グループ新規作成か新しく参加するためのボタン
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green[900],
-        onPressed: () {
-          Navigator.push(
-            context, 
-            MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
-          );
-          debugPrint('作成or参加画面へ移動');
-        },
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
     );
   }

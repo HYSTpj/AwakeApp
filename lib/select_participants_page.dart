@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'common_layout.dart';
-
 import 'data/event_repository.dart';
 import 'eventlist_page.dart';
 
@@ -72,9 +71,6 @@ class UserTile extends StatelessWidget {
 class SelectParticipantsPage extends StatefulWidget {
   final String eventId;
   final String groupId; 
-  // final List<String> allMembers;
-  // final List<String> initialSelected;
-  // final EventData eventData;
   const SelectParticipantsPage({
     super.key,
     required this.groupId,
@@ -94,7 +90,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
   @override
   void initState() {
     super.initState();
-    _selectedMembers = <String>{};
     _loadMembers();
   }
 
