@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
+import 'package:flutter_application_1/login/screen/createaccount_body.dart';
 import 'login_page.dart'; // ログイン画面への遷移に必要
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
 import 'screen/login_header_screen.dart'; // ログイン画面のヘッダーを
@@ -44,7 +45,12 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
-            Navigator.pop(context); // 成功したら戻る
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CreateAccountBody(context),
+              ),
+            );
           } on FirebaseAuthException catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(e.message ?? '失敗しました')),
