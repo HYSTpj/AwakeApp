@@ -1,0 +1,28 @@
+name: Flutter CI  # 処理の名前
+
+on: [push]        # 実行するタイミング（コードがpushされた時）
+
+jobs:
+  test:           # 実行する作業の名前
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true # キャッシュを有効にすると2回目以降が速くなります
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static Analysis
+        run: flutter analyze
+
+      # ここに追加：脆弱性のあるパッケージをチェック
+      - name: Check for vulnerable packages
+        run: dart pub outdated --security --exit-code-with-vulnerabilities
+
+      - name: Run tests
+        run: flutter test
