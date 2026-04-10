@@ -7,9 +7,6 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
-import 'eventlist_page.dart';
-import 'select_participants_page.dart';
-import 'data/event_repository.dart';
 
 
 
@@ -31,7 +28,7 @@ const _kValueStyle = TextStyle(
 
 class _LabelText extends StatelessWidget {
   final String text;
-  const _LabelText(this.text, {super.key});
+  const _LabelText(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +49,6 @@ class _InputBox extends StatelessWidget {
     required this.child,
     this.height = 48,
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
-    super.key,
   });
 
   @override
@@ -77,7 +73,7 @@ class _PickerButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _PickerButton({required this.label, required this.onTap, super.key});
+  const _PickerButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
