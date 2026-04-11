@@ -63,6 +63,119 @@ class _SetTimePageState extends State<SetTimePage> {
     return DateFormat('HH:mm').format(time); // 時間表示
   }
 
+  // SmartCalculator: 移動時間と準備時間から起床・出発時刻を自動計算する
+  Future<void> _showSmartCalculatorDialog() async {
+    int transitMinutes = 30;
+    int prepMinutes = 60;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final previewDeparture = widget.arrivalTime.subtract(Duration(minutes: transitMinutes));
+            final previewWakeup = previewDeparture.subtract(Duration(minutes: prepMinutes));
+            return AlertDialog(
+              title: Row(
+                children: const [
+                  Icon(Icons.auto_fix_high, color: Colors.deepOrange),
+                  SizedBox(width: 8),
+                  Text('Smart Calculate', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '集合時刻: ${DateFormat('HH:mm').format(widget.arrivalTime)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('移動時間 (分)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => setDialogState(() {
+                          if (transitMinutes > 5) transitMinutes -= 5;
+                        }),
+                        icon: const Icon(Icons.remove_circle_outline),
+                      ),
+                      Text('$transitMinutes 分', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: () => setDialogState(() {
+                          transitMinutes += 5;
+                        }),
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('準備時間 (分)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => setDialogState(() {
+                          if (prepMinutes > 5) prepMinutes -= 5;
+                        }),
+                        icon: const Icon(Icons.remove_circle_outline),
+                      ),
+                      Text('$prepMinutes 分', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: () => setDialogState(() {
+                          prepMinutes += 5;
+                        }),
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // 計算結果プレビュー
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.deepOrange.shade50,
+                      border: Border.all(color: Colors.deepOrange, width: 1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('起床時刻: ${DateFormat('HH:mm').format(previewWakeup)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('出発時刻: ${DateFormat('HH:mm').format(previewDeparture)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('キャンセル'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _departureTime = previewDeparture;
+                      _wakeupTime = previewWakeup;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                  ),
+                  child: const Text('適用', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _timeSelectionRow({
     required String label,
     required IconData icon,
@@ -213,7 +326,33 @@ class _SetTimePageState extends State<SetTimePage> {
                 ),
               ),
 
-              const SizedBox(height: 100),
+              const SizedBox(height: 24),
+
+              // スマートカリキュレーター
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: OutlinedButton.icon(
+                  onPressed: _showSmartCalculatorDialog,
+                  icon: const Icon(Icons.auto_fix_high, color: Colors.deepOrange),
+                  label: const Text(
+                    'SMART CALCULATE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepOrange,
+                      fontSize: 18,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.deepOrange, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               // SAVE CHANGESボタン
               SizedBox(

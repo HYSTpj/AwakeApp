@@ -4,17 +4,20 @@ import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
+import 'set_time_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final DateTime? arrivalTime;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    this.arrivalTime,
   });
 
   @override
@@ -137,6 +140,28 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   ReportLateButton(
                     onTap: () {
                       // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SetScheduleButton(
+                    onTap: () {
+                      if (widget.arrivalTime != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SetTimePage(
+                              eventId: widget.eventId,
+                              arrivalTime: widget.arrivalTime!,
+                            ),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('集合時刻の情報が取得できませんでした。'),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ],
@@ -626,6 +651,88 @@ class ReportLateButton extends StatelessWidget {
                 const Icon(
                   Icons.warning_amber_rounded,
                   color: Color(0xFF93000A),
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SetScheduleButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final String label;
+
+  const SetScheduleButton({super.key, this.onTap, this.label = 'SET MY SCHEDULE'});
+
+  @override
+  Widget build(BuildContext context) {
+    const buttonWidth = 362.0;
+    const buttonHeight = 90.0;
+    const borderColor = Color(0xFF1A1C1C);
+    const buttonColor = Color(0xFFE8F5E9);
+    const iconBackgroundColor = Color(0xFF2E7D32);
+    const iconColor = Colors.white;
+
+    return SizedBox(
+      width: buttonWidth,
+      height: buttonHeight,
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            decoration: BoxDecoration(
+              color: buttonColor,
+              border: Border.all(color: borderColor, width: 4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(8, 8),
+                  blurRadius: 0,
+                ),
+              ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 54.6,
+                      height: 53,
+                      decoration: BoxDecoration(
+                        color: iconBackgroundColor,
+                        border: Border.all(color: borderColor, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.schedule, color: iconColor, size: 28),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
+                        letterSpacing: -1.0,
+                        height: 1.333,
+                      ),
+                    ),
+                  ],
+                ),
+                const Icon(
+                  Icons.arrow_forward,
+                  color: Color(0xFF2E7D32),
                   size: 28,
                 ),
               ],

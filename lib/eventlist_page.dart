@@ -185,18 +185,19 @@ class _EventListPageState extends State<EventListPage> {
                               debugPrint('${event['title']}の管理者ページへ移動');
                             } else {
                               // 利用者の時
-                              /*
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MemberCheckInPage(
-                              eventId: event['event_id'],
-                              eventTitle: event['title'],
-                              groupId: widget.groupId,
-                            ),
-                          ),
-                        );
-                        */
+                              final dynamic rawArrival = event['arrival_time'];
+                              final DateTime? arrivalDateTime = rawArrival is Timestamp ? rawArrival.toDate() : null;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MemberCheckInPage(
+                                    eventId: event['event_id'],
+                                    eventTitle: event['title'],
+                                    groupId: widget.groupId,
+                                    arrivalTime: arrivalDateTime,
+                                  ),
+                                ),
+                              );
                               debugPrint('${event['title']}の利用者ページへ移動');
                             }
                           },
