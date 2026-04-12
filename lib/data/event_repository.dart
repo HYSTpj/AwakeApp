@@ -4,8 +4,6 @@ import 'package:crypto/crypto.dart';
 
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../select_participants_page.dart';
-
 // events ドキュメント
 class EventRepository {
   EventRepository();
