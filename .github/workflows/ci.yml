@@ -31,7 +31,7 @@ jobs:
 
       # 脆弱性のあるパッケージをチェック
       - name: Security scan with OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v1
+        uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
         with:
           scan-args: ./pubspec.lock
 
