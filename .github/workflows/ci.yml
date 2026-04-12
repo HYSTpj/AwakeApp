@@ -20,7 +20,11 @@ jobs:
         run: flutter pub get
 
       - name: Create firebase_options.dart
-        run: echo "${{ secrets.FIREBASE_OPTIONS }}" > lib/data/firebase_options.dart
+        run: |
+          mkdir -p lib/data
+          cat <<'EOF' > lib/data/firebase_options.dart
+          ${{ secrets.FIREBASE_OPTIONS }}
+          EOF
 
       - name: Static Analysis
         run: flutter analyze
