@@ -1,6 +1,8 @@
 name: Flutter CI  # 処理の名前
 
-on: [push]        # 実行するタイミング（コードがpushされた時）
+on:               # 実行するタイミング
+  push:           # コードがpushされた時
+  pull_request:   # プルリクエスト作成・更新時
 
 jobs:
   test:           # 実行する作業の名前
