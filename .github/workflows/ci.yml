@@ -30,8 +30,10 @@ jobs:
         run: flutter analyze
 
       # 脆弱性のあるパッケージをチェック
-      - name: Check for vulnerable packages
-        run: dart pub outdated --security --exit-code-with-vulnerabilities
+      - name: Security scan with OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v1
+        with:
+          scan-args: ./pubspec.lock
 
       - name: Run tests
         run: flutter test
