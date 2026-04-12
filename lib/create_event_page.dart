@@ -7,10 +7,6 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
-import 'eventlist_page.dart';
-import 'select_participants_page.dart';
-import 'data/event_repository.dart';
-
 
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -31,7 +27,7 @@ const _kValueStyle = TextStyle(
 
 class _LabelText extends StatelessWidget {
   final String text;
-  const _LabelText(this.text, {super.key});
+  const _LabelText(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +41,18 @@ class _LabelText extends StatelessWidget {
 // 枠付きの入力フィールドコンテナ
 class _InputBox extends StatelessWidget {
   final Widget child;
-  final double height;
   final EdgeInsets padding;
 
   const _InputBox({
     required this.child,
-    this.height = 48,
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
-    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: height,
+      height: 48,
       padding: padding,
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
@@ -77,7 +70,7 @@ class _PickerButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _PickerButton({required this.label, required this.onTap, super.key});
+  const _PickerButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
