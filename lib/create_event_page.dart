@@ -347,7 +347,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         );
 
                         // 3. 次の画面（参加者選択ページ）へ遷移
-                        if (eventId != null && mounted) {
+                        if (!context.mounted) return;
+                        if (eventId != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(

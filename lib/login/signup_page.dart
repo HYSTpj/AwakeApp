@@ -43,7 +43,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
-            if (!mounted) return;
+            if (!context.mounted) return;
             Navigator.pop(context); // 成功したら戻る
           } on FirebaseAuthException catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +52,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           }
         },
         onReturnToLoginPressed: () {
-          if (!mounted) return;
+          if (!context.mounted) return;
           Navigator.pop(context); // ログイン画面に戻る
         },
       );
