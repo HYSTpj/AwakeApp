@@ -27,7 +27,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     // 画面のベース（アプリの見た目の骨組み）作成
     @override
     Widget build(BuildContext context) {
-      return SignupBody(
+      return signupBody(
         emailController: emailController,
         passwordController: passwordController,
         onRegisterPressed: () async {
