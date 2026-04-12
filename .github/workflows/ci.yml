@@ -17,10 +17,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create firebase_options.dart
+        run: echo "${{ secrets.FIREBASE_OPTIONS }}" > lib/data/firebase_options.dart
+
       - name: Static Analysis
         run: flutter analyze
 
-      # ここに追加：脆弱性のあるパッケージをチェック
+      # 脆弱性のあるパッケージをチェック
       - name: Check for vulnerable packages
         run: dart pub outdated --security --exit-code-with-vulnerabilities
 
