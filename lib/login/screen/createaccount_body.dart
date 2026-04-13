@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; 
-import '../../grouplist_page.dart';
+import '../../group/view/group_list_view.dart';
 
-Widget CreateAccountBody(BuildContext context) {
+Widget createAccountBody(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),
     // 💡 SafeArea を入れることで、スマホの時計部分との重なりを防ぎます

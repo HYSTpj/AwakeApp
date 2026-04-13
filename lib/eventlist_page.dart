@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../data/group_repository.dart';
+import '../../../data/group_repository.dart';
 import '../data/event_repository.dart';
-import 'member_check_in.dart';
 
 import 'package:intl/intl.dart'; //DateFormatを使用するために追加
 import 'memberstatus_page.dart';
@@ -60,19 +59,10 @@ class _EventListPageState extends State<EventListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
     return FutureBuilder<List<dynamic>>(
       // 作業終わるまで置き換えておく画面作成
-      future: Future.wait([
-        GroupRepository().getRole(
-          id: uid,
-          groupId: widget.groupId,
-        ), // 自分の役割を取得する予約 snapshot.data[0]
-        EventRepository().getEvents(
-          widget.groupId,
-        ), // イベントリストを作る予約 snapshot.data[1]
-      ]),
+      future: _pageDataFuture,
       builder: (context, snapshot) {
         // 状況(snapshot)に合わせて作る画面作成
 
@@ -127,7 +117,7 @@ class _EventListPageState extends State<EventListPage> {
                           builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
                           ),
                       );
-                           
+                      
                       debugPrint('イベント作成ページへ移動');
                     },
                     icon: const Icon(Icons.add, color: Colors.black),

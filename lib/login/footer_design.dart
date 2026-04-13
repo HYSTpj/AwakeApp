@@ -17,7 +17,7 @@ Widget myFooter() {
     child: const Text(
       'APPNAME',
       style: TextStyle(
-        color: const Color(0xFF0F172A),
+        color: Color(0xFF0F172A),
         fontSize: 16,
         fontFamily: 'Noto Sans JP',
         fontWeight: FontWeight.w900,
