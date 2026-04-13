@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 import 'common_layout.dart';
-import 'create_add_delete.dart';
+import 'group/view/create_add_delete_view.dart';
 import 'member_check_in.dart';
 import '../data/group_repository.dart';
 import '../data/event_repository.dart';

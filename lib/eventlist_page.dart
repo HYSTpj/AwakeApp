@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../data/group_repository.dart';
+import '../../../data/group_repository.dart';
 import '../data/event_repository.dart';
 
 import 'package:intl/intl.dart'; //DateFormatを使用するために追加
@@ -117,7 +117,7 @@ class _EventListPageState extends State<EventListPage> {
                           builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
                           ),
                       );
-                           
+                      
                       debugPrint('イベント作成ページへ移動');
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
