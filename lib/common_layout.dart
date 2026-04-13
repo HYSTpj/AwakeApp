@@ -56,7 +56,9 @@ class CommonLayoutState extends State<CommonLayout> {
 
         // アプリ名表示
         title: const Text(  // 真ん中
+
           'AWAKE', // アプリ名入れる
+
           style: TextStyle(fontWeight: FontWeight.bold)
         ),
         centerTitle: true,
@@ -100,8 +102,9 @@ class CommonLayoutState extends State<CommonLayout> {
             // groupボタン
             BottomNavigationBarItem(
               icon: Padding(
-                padding: EdgeInsetsGeometry.only(top: 25),
+                padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.group),
+
               ),
               label: 'group'
             ),
@@ -109,7 +112,7 @@ class CommonLayoutState extends State<CommonLayout> {
             // calenderボタン
             BottomNavigationBarItem(
               icon: Padding(
-                padding: EdgeInsetsGeometry.only(top: 25),
+                padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.calendar_month),
               ),
               label: 'calender'
@@ -118,8 +121,9 @@ class CommonLayoutState extends State<CommonLayout> {
             // QRcodeボタン
             BottomNavigationBarItem(
               icon: Padding(
-                padding: EdgeInsetsGeometry.only(top: 25),
+                padding: EdgeInsets.only(top: 25),
                 child: Icon(Icons.qr_code),
+
               ),
               label: 'QRcode'
             ),

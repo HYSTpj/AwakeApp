@@ -45,6 +45,8 @@ dependencies:
   # 以下の手順で，アプリケーションにCupertino Iconsフォントが追加されます。
   # iOSスタイルのアイコンには，CupertinoIconsクラスと組み合わせて使用​
 
+  flutter_datetime_picker_plus: ^2.2.0
+
   # iPhone風のアイコンを使えるパッケージ
   cupertino_icons: ^1.0.8
 
@@ -69,6 +71,8 @@ dependencies:
 
   http: ^1.6.0
   intl: ^0.20.2
+
+  qr_flutter: ^4.1.0
   mobile_scanner: ^5.2.3
   crypto: ^3.0.7
   firebase_storage: ^13.2.0

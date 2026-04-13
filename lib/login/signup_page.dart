@@ -4,6 +4,8 @@ import 'package:flutter_application_1/login/screen/createaccount_body.dart';
 import 'login_page.dart'; // ログイン画面への遷移に必要
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
 import 'screen/login_header_screen.dart'; // ログイン画面のヘッダーを
+import 'createprofile_page.dart'; // アカウント作成画面のUIを定義したファイル
+import '../grouplist_page.dart'; // グループリスト画面への遷
 
 // アカウント作成画面
 class CreateAccountPage extends StatefulWidget { 
@@ -25,7 +27,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       super.dispose();
     }
     
-
     // 画面のベース（アプリの見た目の骨組み）作成
     @override
     Widget build(BuildContext context) {
@@ -45,10 +46,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreateAccountBody(context),
+                builder: (context) => const CreateAccountProfile(),
               ),
             );
           } on FirebaseAuthException catch (e) {

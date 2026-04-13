@@ -4,9 +4,11 @@ import 'package:crypto/crypto.dart';
 
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../select_participants_page.dart';
 
 // events ドキュメント
 class EventRepository {
+  EventRepository();
   final _db = FirebaseFirestore.instance;
 
   // イベント作成
@@ -19,6 +21,7 @@ class EventRepository {
     required String password,
     required String arrivalTime,
     required String status
+
   }) async {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
@@ -39,48 +42,88 @@ class EventRepository {
       'arrival_time': arrivalTime,
       'status': status,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
-      'update_at': FieldValue.serverTimestamp()
+      'update_at': FieldValue.serverTimestamp(),
     });
 
     return eventId;
   }
   // 3.イベント作成完了
 
-
   // 所属イベント一覧
   Future<List<Map<String, dynamic>>> getEvents(String groupId) async {
-    final events = await _db // eventsから指定されたgroup_idと同じものの中身を調べる
-      .collection("events")
-      .where("group_id", isEqualTo: groupId)
-      .get();
+    final events =
+        await _db // eventsから指定されたgroup_idと同じものの中身を調べる
+            .collection("events")
+            .where("group_id", isEqualTo: groupId)
+            .get();
 
-    return events.docs.map ((doc) {
+    return events.docs.map((doc) {
       final data = doc.data();
-      data['event_id'] = doc.id;  // ドキュメントIDをデータに含める
+      data['event_id'] = doc.id; // ドキュメントIDをデータに含める
       return data;
     }).toList();
   }
 
-
   // イベント削除
   Future<void> deleteEvent({
-    required String groupId,
-    required String title
+    required String eventId // 同じイベント名でも削除されないように
   }) async {
-    final event = await _db
-      .collection("events")
-      .where("group_id", isEqualTo: groupId)
-      .where("title", isEqualTo: title)
-      .get();
-
-    if (event.docs.isNotEmpty) {
-      final docId = event.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
-    
-      await _db
+    await _db
         .collection("events")
-        .doc(docId)
-        .delete();
+        .doc(eventId).delete();
     }
+  
+
+  // メンバーリストの取得
+  Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {
+    final eventMembersSnapshot =
+        await _db // event_reportsから指定されたeventIdと同じものの中身を調べる
+            .collection("event_reports")
+            .where("event_id", isEqualTo: eventId)
+            .get();
+
+    final profileFutures = eventMembersSnapshot.docs.map((doc) async {
+      // 全員分のprofile取得を予約リストにする
+      final reportData = doc.data();
+      final userId = reportData['user_id'];
+      final userDoc = await _db
+          .collection('profiles')
+          .doc(userId)
+          .get(); // 一人一人のprofile取得を予約
+      if (userDoc.exists) {
+        final profileData = userDoc.data()!;
+        profileData['user_id'] = userId;
+        profileData['status'] = reportData['status'];
+        profileData['report_id'] = doc.id;
+        return profileData;
+      }
+      return null;
+    }).toList();
+    final results = await Future.wait(profileFutures); // 全員分終わるまで待つ
+    return results
+        .whereType<Map<String, dynamic>>()
+        .toList(); // nullの人は除去してリスト化
+  }
+
+  // 遅刻者理由，写真取得
+  Future<Map<String, dynamic>?> getMemberReport(
+    String eventId,
+    String userId,
+  ) async {
+    final snapshot =
+        await _db // event_reports内のevent_idとuser_idが一致するものの中身を調べる
+            .collection("event_reports")
+            .where("event_id", isEqualTo: eventId)
+            .where("user_id", isEqualTo: userId)
+            .orderBy("updated_at", descending: true) // 更新日時順
+            //データベース見る限りcreated_atないけど新しく作る？or updated_atで並べ替えするか
+            .limit(1) // 1件だけ
+            .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first.data(); // 一番新しいレポートを1件返す
+    }
+    return null;
   }
 
   // グループに所属するメンバー一覧を取得
@@ -108,6 +151,40 @@ class EventRepository {
   }
 
   // --- event_reports 関連 ---
+
+  // 予定時間（起床・出発）を保存または更新する
+  Future<String?> setReport({
+    required String eventId,
+    required String userId,
+    required DateTime wakeupTime,
+    required DateTime departureTime,
+  }) async {
+    // すでにそのイベントのレポートが存在するか確認
+    final existingReport = await getEventReport(eventId, userId);
+
+    if (existingReport != null) {
+      // 存在する場合は「更新(update)」
+      final String reportId = existingReport['report_id'];
+      await _db.collection("event_reports").doc(reportId).update({
+        "planned_wakeup_time": wakeupTime,
+        "planned_departure_time": departureTime,
+        "updated_at": FieldValue.serverTimestamp(),
+      });
+      return reportId;
+    } else {
+      // 存在しない場合は「新規作成(add)」
+      final docRef = await _db.collection("event_reports").add({
+        "event_id": eventId,
+        "user_id": userId,
+        "planned_wakeup_time": wakeupTime,
+        "planned_departure_time": departureTime,
+        "status": 0, // 0: sleeping (初期状態)
+        "created_at": FieldValue.serverTimestamp(),
+        "updated_at": FieldValue.serverTimestamp(),
+      });
+      return docRef.id;
+    }
+  }
 
   // レポートの取得
   Future<Map<String, dynamic>?> getEventReport(String eventId, String userId) async {

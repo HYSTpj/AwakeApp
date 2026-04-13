@@ -3,9 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/grouplist_page.dart';
 import 'signup_page.dart'; // アカウント作成画面への遷移に必要
 import 'screen/login_body.dart'; // ログイン画面のUIを定義したファイル
-import 'screen/signup_body.dart'; // アカウント作成画面のUIを定
-import 'screen/login_header_screen.dart'; // ログイン画面のヘッダーを定義したファイル
-import '../grouplist_page.dart';
 
 // ログイン機能
 class LoginPage extends StatefulWidget {      

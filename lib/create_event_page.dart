@@ -7,6 +7,10 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
+import 'eventlist_page.dart';
+import 'select_participants_page.dart';
+import 'data/event_repository.dart';
+
 
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -98,7 +102,7 @@ class _PickerButton extends StatelessWidget {
 }
 
 class CreateEventPage extends StatefulWidget {
-  final String groupId; // ✅ キャメルケースに修正
+  final String groupId; 
 
   const CreateEventPage({
     super.key,
