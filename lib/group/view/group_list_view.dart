@@ -28,11 +28,16 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   void initState() {
     super.initState();
+
+    viewModel.addListener(_onViewModelUpdated);
     if (user != null) {
       viewModel.getGroups(user!.uid);
-      if (mounted) setState(() {}); // 画面更新
     }
   }
+
+  void _onViewModelUpdated() {
+    if (mounted) setState(() {});
+  } 
 
   @override
   Widget build(BuildContext context) {

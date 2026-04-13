@@ -149,8 +149,11 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       child: ElevatedButton(
         onPressed: _newName,
         style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
         child: const Text(

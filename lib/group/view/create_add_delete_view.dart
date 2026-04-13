@@ -85,8 +85,10 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
         child: const Text(
@@ -114,8 +116,10 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
         child: const Text(
@@ -143,8 +147,10 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
         child: const Text(

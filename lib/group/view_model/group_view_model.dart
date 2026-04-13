@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import '../domain/group_entity.dart';
 
-class CreateGroupViewModel {
+class CreateGroupViewModel extends ChangeNotifier {
   final GroupRepository _repository;
 
   bool _isLoading = false;
@@ -18,6 +19,7 @@ class CreateGroupViewModel {
     String groupName
   ) async {
     _isLoading = true;
+    notifyListeners();
 
     if (groupName.isNotEmpty && userId.isNotEmpty) {  // group nameとuser idが空でないとき
       try {
@@ -31,18 +33,22 @@ class CreateGroupViewModel {
         _errorMessage = '$e';
         _isLoading = false;
         return false;
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     } else {
 
       _errorMessage = 'Please enter a new group name.';
       _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 }
 
 
-class AddGroupViewModel {
+class AddGroupViewModel extends ChangeNotifier {
   final GroupRepository _repository;
 
   bool _isLoading = false;
@@ -60,6 +66,7 @@ class AddGroupViewModel {
     String groupId
   ) async {
     _isLoading = true;
+    notifyListeners();
 
     final currentGroups = await _repository.getGroups(userId);
     final alreadyJoin = currentGroups.any((group) => group.groupId == groupId);
@@ -82,18 +89,22 @@ class AddGroupViewModel {
         _errorMessage = '$e';
         _isLoading = false;
         return false;
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     } else {
 
       _errorMessage = 'Please enter invitation code.';
       _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 }
 
 
-class DeleteGroupViewModel {
+class DeleteGroupViewModel extends ChangeNotifier {
   final GroupRepository _repository;
 
   bool _isLoading = false;
@@ -111,6 +122,7 @@ class DeleteGroupViewModel {
     String groupId
   ) async {
     _isLoading = true;
+    notifyListeners();
 
     if (groupId.isNotEmpty && userId.isNotEmpty) {  // group idとuser idが空でないとき
       try {
@@ -124,18 +136,22 @@ class DeleteGroupViewModel {
         _errorMessage = '$e';
         _isLoading = false;
         return false;
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     } else {
 
       _errorMessage = 'Please enter groupID.';
       _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 }
 
 
-class GroupListViewModel {
+class GroupListViewModel extends ChangeNotifier {
   final GroupRepository _repository;
 
   // 状態(State)を管理
@@ -154,6 +170,7 @@ class GroupListViewModel {
   // Viewからの命令を受けて実行(加入に成功したか失敗したかを出力)
   Future<void> getGroups(String userId) async {
     _isLoading = true;
+    notifyListeners();
 
     if (userId.isNotEmpty) {  // user idが空でないとき
       try {
@@ -162,12 +179,16 @@ class GroupListViewModel {
       } catch (e) {
         _errorMessage = '$e';
         _isLoading = false;
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     } else {
 
       _errorMessage = null;
       _isLoading = false;
       _groups = [];
+      notifyListeners();
     }
   }
 }
