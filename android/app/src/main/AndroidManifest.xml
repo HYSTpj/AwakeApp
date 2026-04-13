@@ -46,7 +46,7 @@
         <!-- API取得 -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDw6-T_rx5lubJ76HtuvjApYa6LwtTH5x0"/>
+            android:value="${mapsApiKey}"/>
 
     </application>
     <!-- テキストを処理できるアクティビティを照会するには，以下を参照 :
