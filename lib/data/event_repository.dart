@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// events ドキュメント
+
 class EventRepository {
   EventRepository();
   final _db = FirebaseFirestore.instance;
