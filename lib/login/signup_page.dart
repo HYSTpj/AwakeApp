@@ -27,7 +27,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     // 画面のベース（アプリの見た目の骨組み）作成
     @override
     Widget build(BuildContext context) {
-      return signupBody(
+      return SignupBody(
         emailController: emailController,
         passwordController: passwordController,
         onRegisterPressed: () async {
@@ -52,7 +52,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           }
         },
         onReturnToLoginPressed: () {
-          if (!context.mounted) return;
           Navigator.pop(context); // ログイン画面に戻る
         },
       );
