@@ -182,46 +182,62 @@ class _SetTimePageState extends State<SetTimePage> {
     required DateTime? currentTime,
     required Function(DateTime) onConfirm,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 2),
-        color: Colors.white,
-      ),
-      width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 両端寄せ
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 2),
-              color: Colors.deepOrange,
+    return GestureDetector(
+      onTap: () {
+        DatePicker.showTimePicker(
+          context,
+          showTitleActions: true, // キャンセル，完了表示
+          showSecondsColumn: false, // 秒表記なし
+          onConfirm: onConfirm,
+          currentTime: DateTime.now(), // 初期値設定
+          locale: LocaleType.en, // アプリに合わせて言語を英語に設定
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 2),
+          color: Colors.white,
+        ),
+        width: double.infinity,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 2),
+                color: Colors.deepOrange,
+              ),
+              child: Icon(icon, color: Colors.white, size: 30),
             ),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          const SizedBox(width: 15),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          TextButton(
-            onPressed: () {
-              DatePicker.showTimePicker(
-                context,
-                showTitleActions: true, // キャンセル，完了表示
-                showSecondsColumn: false, // 秒表記なし
-                onConfirm: onConfirm,
-                currentTime: DateTime.now(), // 初期値設定
-                locale: LocaleType.en, // アプリに合わせて言語を英語に設定
-              );
-            },
-            child: Text(
-              currentTime != null
-                  ? _formatTime(currentTime) // 時間が指定されたとき
-                  : '-- : --', // 時間がnullのとき
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.deepOrange, width: 2),
+                color: currentTime != null
+                    ? Colors.deepOrange.shade50
+                    : Colors.grey.shade100,
+              ),
+              child: Text(
+                currentTime != null
+                    ? _formatTime(currentTime) // 時間が指定されたとき
+                    : '-- : --', // 時間がnullのとき
+                style: TextStyle(
+                  color: currentTime != null ? Colors.deepOrange : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -229,22 +245,20 @@ class _SetTimePageState extends State<SetTimePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'My Schedule',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.deepOrangeAccent,
+        foregroundColor: Colors.black,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
             children: [
-              // My Schedule表示
-              const Text(
-                'My Schedule',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  fontSize: 32,
-                ),
-              ),
-
               // 間のオレンジ線
               const Divider(
                 color: Colors.deepOrangeAccent,
@@ -282,7 +296,6 @@ class _SetTimePageState extends State<SetTimePage> {
                 ),
                 width: double.infinity,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // カレンダーアイコン
                     Container(
@@ -301,25 +314,29 @@ class _SetTimePageState extends State<SetTimePage> {
                     const SizedBox(width: 15),
 
                     // Arrival Goal
-                    const Text(
-                      'Arrival Goal',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    const Expanded(
+                      child: Text(
+                        'Arrival Goal',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 10),
-
                     // 時間表示
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black, width: 2),
                         color: Colors.white,
                       ),
                       child: Text(
                         DateFormat('HH:mm').format(widget.arrivalTime),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                     ),
                   ],
