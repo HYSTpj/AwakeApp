@@ -220,7 +220,10 @@ class _SetTimePageState extends State<SetTimePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.deepOrange, width: 2),
+                border: Border.all(
+                  color: currentTime != null ? Colors.deepOrange : Colors.grey,
+                  width: 2,
+                ),
                 color: currentTime != null
                     ? Colors.deepOrange.shade50
                     : Colors.grey.shade100,
