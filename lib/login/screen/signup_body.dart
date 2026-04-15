@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
 
-Widget SignupBody({
-    required TextEditingController emailController, // LoginPageで定義したcontrollerを引数として受け取る
-    required TextEditingController passwordController, // LoginPageで定義したcontrollerを引数として受け取る 
-    required VoidCallback onRegisterPressed, // ログインボタンが押されたときの処理を引数として受け取る
-    required VoidCallback onReturnToLoginPressed, // ログイン画面に遷移するボタンが押されたときの処理を引数として受け取る
-}) {
+class SignupBody extends StatelessWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final VoidCallback onRegisterPressed;
+  final VoidCallback onReturnToLoginPressed;
+
+  const SignupBody({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+    required this.onRegisterPressed,
+    required this.onReturnToLoginPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color(0xFFf8f6f6),
         body: SingleChildScrollView(
@@ -71,7 +81,7 @@ Widget SignupBody({
                                         ),
                                     ),
 
-                                    Container(
+                                    SizedBox(
                                         width: 320,
                                         height: 56,
                                         child: TextField(
@@ -217,4 +227,5 @@ Widget SignupBody({
             ),
         ),
     );
+  }
 }
