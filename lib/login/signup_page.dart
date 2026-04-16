@@ -46,6 +46,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
+               if (!context.mounted) return;
             Navigator.push(
               context,
               MaterialPageRoute(
