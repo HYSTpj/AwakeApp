@@ -104,6 +104,11 @@ class _CreateAccountBodysState extends State<CreateAccountBodys> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
+  @override
+  void dispose() {
+    _userNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
