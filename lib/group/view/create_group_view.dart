@@ -5,7 +5,7 @@ import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
 import 'group_list_view.dart';
 
-
+/// グループ作成ページ
 class CreateGroupPage extends StatefulWidget {
   const CreateGroupPage({super.key});
   
@@ -21,6 +21,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
+  bool _isLoading = false; // 作成処理中のフラグ
+
   @override
   // メモリを解放するための関数
   void dispose() {
@@ -28,41 +30,52 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     super.dispose();  // 親クラスでも掃除
   }
 
+  /// グループ作成処理
   Future<void> _newName() async {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('グループ名を入力してください')),
+      );
+      return;
+    }
 
     // ログインチェック
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('Please log in.')),
+        const SnackBar(content: Text('ログインしてください')),
       );
       return;
     }
 
-    final success = await viewModel.createGroup(
-      user.uid, 
-      _controller.text.trim()
-    );
+    setState(() => _isLoading = true);
 
-    if (!mounted) return;
-    
-    if (success) {
-      Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
-        builder: (context) => const GroupListPage()
-      ),);
+    try {
+      final success = await viewModel.createGroup(user.uid, name);
 
-      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-        const SnackBar(
-          content: Text('Created a new group')
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-        SnackBar(
-          content: Text(viewModel.errorMessage ?? 'Error')
-        ),
-      );
+      if (!mounted) return;
+      
+      if (success) {
+        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
+          builder: (context) => const GroupListPage()
+        ),);
+
+        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+          const SnackBar(
+            content: Text('新しいグループを作成しました')
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+          SnackBar(
+            content: Text(viewModel.errorMessage ?? 'エラーが発生しました')
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -147,7 +160,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       width: 400,
       height: 80,
       child: ElevatedButton(
-        onPressed: _newName,
+        onPressed: _isLoading ? null : _newName, // ローディング中は無効
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
           backgroundColor: Colors.white,
@@ -156,10 +169,12 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
-        child: const Text(
-          'Create',
-          style: TextStyle(fontSize: 24),
-        )
+        child: _isLoading
+            ? const CircularProgressIndicator() // ローディングインジケーター
+            : const Text(
+                'Create',
+                style: TextStyle(fontSize: 24),
+              ),
       ),
     );
   }

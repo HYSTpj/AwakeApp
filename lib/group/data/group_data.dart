@@ -4,107 +4,147 @@ import '../domain/group_entity.dart';
 
 // groups ドキュメント
 class GroupRepositoryImpl implements GroupRepository {
-  final _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   @override
   // グループ作成
   Future<String?> setGroup({
     required String userId,
-    required String groupName
+    required String groupName,
   }) async {
-    final group = _db.collection('groups').doc();
-    final String invitationCode = group.id; // 自動生成されたドキュメントid
+    // 処理前チェック
+    if (userId.isEmpty) {
+      throw ArgumentError('User ID cannot be empty');
+    }
+    if (groupName.isEmpty) {
+      throw ArgumentError('Group name cannot be empty');
+    }
 
-    // 2.グループ作成
-    await group.set({
-      'group_name': groupName,
-      'invitation_code': invitationCode,
-      'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
-    });
+    try {
+      final group = _db.collection('groups').doc();
+      final String invitationCode = group.id;
 
-    // groups_membershipsに管理者登録
-    await _db.collection('groups_memberships').add({
-      'group_id': group.id,
-      'user_id': userId,
-      'role': 0,
-      'joined_at': FieldValue.serverTimestamp(),
-    });
-    return group.id;
+      await group.set({
+        'group_name': groupName,
+        'invitation_code': invitationCode,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      await _db.collection('groups_memberships').add({
+        'group_id': group.id,
+        'user_id': userId,
+        'role': 0, // 管理者ロール
+        'joined_at': FieldValue.serverTimestamp(),
+      });
+      return group.id;
+    } catch (e) {
+      throw Exception('Failed to create group: $e');
+    }
   }
-  // 3.グループ作成完了
-
 
   @override
   // グループ参加
-  // 6.グループID存在するかチェック
   Future<void> addGroup({
     required String userId,
-    required String groupId
+    required String groupId,
   }) async {
-    final group = await _db.collection("groups").doc(groupId).get();
-    if (!group.exists) {
-      throw StateError("Group does not exist: $groupId");
+    // 処理前チェック
+    if (userId.isEmpty) {
+      throw ArgumentError('User ID cannot be empty');
     }
-    await _db.collection("groups_memberships").add({
-      'group_id': groupId,
-      'user_id': userId,
-      'role': 1,
-      'joined_at': FieldValue.serverTimestamp(),
-    });
-  }
-  // 8.参加完了
+    if (groupId.isEmpty) {
+      throw ArgumentError('Group ID cannot be empty');
+    }
 
+    try {
+      final group = await _db.collection('groups').doc(groupId).get();
+      if (!group.exists) {
+        throw StateError('Group does not exist: $groupId');
+      }
+
+      await _db.collection('groups_memberships').add({
+        'group_id': groupId,
+        'user_id': userId,
+        'role': 1, // メンバー
+        'joined_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to join group: $e');
+    }
+  }
 
   @override
   // グループ脱退
   Future<void> deleteGroup({
     required String userId,
-    required String groupId
+    required String groupId,
   }) async {
-    final membership = await _db
-      .collection("groups_memberships")
-      .where("group_id", isEqualTo: groupId)
-      .where("user_id", isEqualTo: userId)
-      .get();
-
-    if (membership.docs.isEmpty) {
-      throw StateError("Membership not found for userId=$userId, groupId=$groupId");
+    // 処理前チェック
+    if (userId.isEmpty) {
+      throw ArgumentError('User ID cannot be empty');
     }
-    final docId = membership.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
-  
-    await _db
-      .collection("groups_memberships")
-      .doc(docId)
-      .delete();
-  }
+    if (groupId.isEmpty) {
+      throw ArgumentError('Group ID cannot be empty');
+    }
 
+    try {
+      final membership = await _db
+          .collection('groups_memberships')
+          .where('group_id', isEqualTo: groupId)
+          .where('user_id', isEqualTo: userId)
+          .get();
+
+      if (membership.docs.isEmpty) {
+        throw StateError('Membership not found for userId=$userId, groupId=$groupId');
+      }
+
+      final docId = membership.docs.first.id;
+      await _db.collection('groups_memberships').doc(docId).delete();
+    } catch (e) {
+      throw Exception('Failed to leave group: $e');
+    }
+  }
 
   @override
   // 所属グループ一覧
   Future<List<GroupEntity>> getGroups(String userId) async {
-    final groups = await _db // membershipsから指定されたuidと同じものの中身を調べる
-      .collection("groups_memberships")
-      .where("user_id", isEqualTo: userId)
-      .get();
+    // 処理前チェック
+    if (userId.isEmpty) {
+      throw ArgumentError('User ID cannot be empty');
+    }
 
-    // 1. まずIDだけを全部集める
-    final groupIds = groups.docs.map((doc) => doc.data()['group_id'] as String).toList();
+    try {
+      final groups = await _db
+          .collection('groups_memberships')
+          .where('user_id', isEqualTo: userId)
+          .get();
 
-    if (groupIds.isEmpty) return [];
+      final groupIds = groups.docs.map((doc) => doc.data()['group_id'] as String).toList();
 
-    // 2. まとめて取得する（10個までなら一気に取れます）
-    final groupDocs = await _db
-        .collection('groups')
-        .where(FieldPath.documentId, whereIn: groupIds)
-        .get();
+      if (groupIds.isEmpty) return [];
 
-    // 3. Entityに変換
-    return groupDocs.docs.map((doc) {
-      final data = doc.data();
-      return GroupEntity(
-        groupId: doc.id,
-        groupName: data['group_name'] ?? 'No Name',
-      );
-    }).toList();
+      final List<GroupEntity> result = [];
+      for (int i = 0; i < groupIds.length; i += 10) {
+        final end = (i + 10 < groupIds.length) ? i + 10 : groupIds.length;
+        final batchIds = groupIds.sublist(i, end);
+
+        final groupDocs = await _db
+            .collection('groups')
+            .where(FieldPath.documentId, whereIn: batchIds)
+            .get();
+
+        result.addAll(groupDocs.docs.map((doc) {
+          final data = doc.data();
+          return GroupEntity(
+            groupId: doc.id,
+            groupName: data['group_name'] ?? 'No Name',
+          );
+        }));
+      }
+
+      return result;
+    } catch (e) {
+      throw Exception('Failed to retrieve groups: $e');
+    }
   }
 }

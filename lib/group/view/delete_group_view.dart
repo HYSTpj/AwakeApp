@@ -5,7 +5,7 @@ import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
 import 'group_list_view.dart';
 
-
+/// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
   const DeleteGroupPage({super.key});
   
@@ -21,6 +21,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
+  bool _isLoading = false; // 削除処理中のフラグ
+
   @override
   // メモリを解放するための関数
   void dispose() {
@@ -28,41 +30,73 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     super.dispose();  // 親クラスでも掃除
   }
 
+  /// グループ脱退処理
   Future<void> _deleteGroup() async {
+    final groupId = _controller.text.trim();
+    if (groupId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('グループIDを入力してください')),
+      );
+      return;
+    }
+
+    // 確認ダイアログを表示
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('確認'),
+        content: const Text('本当にこのグループから脱退しますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('脱退'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
 
     // ログインチェック
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('Please log in.')),
+        const SnackBar(content: Text('ログインしてください')),
       );
       return;
     }
 
-    final success = await viewModel.deleteGroup(
-      user.uid, 
-      _controller.text.trim()
-    );
+    setState(() => _isLoading = true);
 
-    if (!mounted) return;
-    
-    if (success) {
-      Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
-        builder: (context) => const GroupListPage()
-      ),);
+    try {
+      final success = await viewModel.deleteGroup(user.uid, groupId);
 
-      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-        const SnackBar(
-          content: Text('Deleted the group')
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-        SnackBar(
-          content: Text(viewModel.errorMessage ?? 'Error')
-        ),
-      );
+      if (!mounted) return;
+      
+      if (success) {
+        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
+          builder: (context) => const GroupListPage()
+        ),);
+
+        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+          const SnackBar(
+            content: Text('グループから脱退しました')
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+          SnackBar(
+            content: Text(viewModel.errorMessage ?? 'エラーが発生しました')
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -141,13 +175,13 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     );
   }
 
-  // グループ作成ボタン
+  // グループ削除ボタン
   Widget _deleteButton() {
     return SizedBox(
       width: 400,
       height: 80,
       child: ElevatedButton(
-        onPressed: _deleteGroup,
+        onPressed: _isLoading ? null : _deleteGroup, // ローディング中は無効
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
           backgroundColor: Colors.white,
@@ -156,10 +190,12 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
             side: const BorderSide(color: Colors.black, width: 2),
           ),
         ),
-        child: const Text(
-          'Delete',
-          style: TextStyle(fontSize: 24),
-        )
+        child: _isLoading
+            ? const CircularProgressIndicator() // ローディングインジケーター
+            : const Text(
+                'Delete',
+                style: TextStyle(fontSize: 24),
+              ),
       ),
     );
   }

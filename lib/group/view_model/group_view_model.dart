@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
 import '../domain/group_entity.dart';
 
-class CreateGroupViewModel extends ChangeNotifier {
-  final GroupRepository _repository;
-
+// 共通の基底クラス
+abstract class BaseGroupViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  // エラーメッセージを受けっとたか判定するために設定
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+  set errorMessage(String? value) => _errorMessage = value;
+
+  void setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void setError(String? message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+}
+
+class CreateGroupViewModel extends BaseGroupViewModel {
+  final GroupRepository _repository;
 
   CreateGroupViewModel(this._repository);
 
@@ -18,45 +31,33 @@ class CreateGroupViewModel extends ChangeNotifier {
     String userId,
     String groupName
   ) async {
-    _isLoading = true;
-    notifyListeners();
+    setLoading(true);
+    setError(null); // エラークリア
 
-    if (groupName.isNotEmpty && userId.isNotEmpty) {  // group nameとuser idが空でないとき
-      try {
-        await _repository.setGroup(
-          userId: userId,
-          groupName: groupName
-        );
-        _isLoading = false;
-        return true;
-      } catch (e) {
-        _errorMessage = '$e';
-        _isLoading = false;
-        return false;
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
-    } else {
+    if (groupName.trim().isEmpty || userId.isEmpty) {
+      setError('Please enter a new group name.');
+      setLoading(false);
+      return false;
+    }
 
-      _errorMessage = 'Please enter a new group name.';
-      _isLoading = false;
-      notifyListeners();
+    try {
+      await _repository.setGroup(
+        userId: userId,
+        groupName: groupName.trim()
+      );
+      setLoading(false);
+      return true;
+    } catch (e) {
+      setError('Failed to create group: $e');
+      setLoading(false);
       return false;
     }
   }
 }
 
 
-class AddGroupViewModel extends ChangeNotifier {
+class AddGroupViewModel extends BaseGroupViewModel {
   final GroupRepository _repository;
-
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  // エラーメッセージを受けっとたか判定するために設定
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
 
   AddGroupViewModel(this._repository);
 
@@ -65,54 +66,42 @@ class AddGroupViewModel extends ChangeNotifier {
     String userId,
     String groupId
   ) async {
-    _isLoading = true;
-    notifyListeners();
+    setLoading(true);
+    setError(null);
 
-    if (groupId.isNotEmpty && userId.isNotEmpty) {  // group idとuser idが空でないとき
+    if (groupId.trim().isEmpty || userId.isEmpty) {
+      setError('Please enter invitation code.');
+      setLoading(false);
+      return false;
+    }
+
+    try {
       final currentGroups = await _repository.getGroups(userId);
-      final alreadyJoin = currentGroups.any((group) => group.groupId == groupId);
+      final alreadyJoin = currentGroups.any((group) => group.groupId == groupId.trim());
 
-      if (alreadyJoin) {  // 今加入しているグループのidでないかチェック
-        _errorMessage = 'You have already joined this group.';
-        _isLoading = false;
-        notifyListeners();
+      if (alreadyJoin) {
+        setError('You have already joined this group.');
+        setLoading(false);
         return false;
       }
-      try {
-        await _repository.addGroup(
-          userId: userId,
-          groupId: groupId
-        );
-        _isLoading = false;
-        return true;
-      } catch (e) {
-        _errorMessage = '$e';
-        _isLoading = false;
-        return false;
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
-    } else {
 
-      _errorMessage = 'Please enter invitation code.';
-      _isLoading = false;
-      notifyListeners();
+      await _repository.addGroup(
+        userId: userId,
+        groupId: groupId.trim()
+      );
+      setLoading(false);
+      return true;
+    } catch (e) {
+      setError('Failed to join group: $e');
+      setLoading(false);
       return false;
     }
   }
 }
 
 
-class DeleteGroupViewModel extends ChangeNotifier {
+class DeleteGroupViewModel extends BaseGroupViewModel {
   final GroupRepository _repository;
-
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  // エラーメッセージを受けっとたか判定するために設定
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
 
   DeleteGroupViewModel(this._repository);
 
@@ -121,74 +110,59 @@ class DeleteGroupViewModel extends ChangeNotifier {
     String userId,
     String groupId
   ) async {
-    _isLoading = true;
-    notifyListeners();
+    setLoading(true);
+    setError(null);
 
-    if (groupId.isNotEmpty && userId.isNotEmpty) {  // group idとuser idが空でないとき
-      try {
-        await _repository.deleteGroup(
-          userId: userId,
-          groupId: groupId
-        );
-        _isLoading = false;
-        return true;
-      } catch (e) {
-        _errorMessage = '$e';
-        _isLoading = false;
-        return false;
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
-    } else {
+    if (groupId.trim().isEmpty || userId.isEmpty) {
+      setError('Please enter group ID.');
+      setLoading(false);
+      return false;
+    }
 
-      _errorMessage = 'Please enter groupID.';
-      _isLoading = false;
-      notifyListeners();
+    try {
+      await _repository.deleteGroup(
+        userId: userId,
+        groupId: groupId.trim()
+      );
+      setLoading(false);
+      return true;
+    } catch (e) {
+      setError('Failed to leave group: $e');
+      setLoading(false);
       return false;
     }
   }
 }
 
 
-class GroupListViewModel extends ChangeNotifier {
+class GroupListViewModel extends BaseGroupViewModel {
   final GroupRepository _repository;
 
   // 状態(State)を管理
   List<GroupEntity> _groups = [];
   List<GroupEntity> get groups => _groups;
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  // エラーメッセージを受けっとたか判定するために設定
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
   GroupListViewModel(this._repository);
 
   // Viewからの命令を受けて実行(加入に成功したか失敗したかを出力)
   Future<void> getGroups(String userId) async {
-    _isLoading = true;
-    notifyListeners();
+    setLoading(true);
+    setError(null);
 
-    if (userId.isNotEmpty) {  // user idが空でないとき
-      try {
-        _groups = await _repository.getGroups(userId);
-        _isLoading = false;
-      } catch (e) {
-        _errorMessage = '$e';
-        _isLoading = false;
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
-    } else {
-
-      _errorMessage = null;
-      _isLoading = false;
+    if (userId.isEmpty) {
+      setError('User ID is required.');
+      setLoading(false);
       _groups = [];
-      notifyListeners();
+      return;
+    }
+
+    try {
+      _groups = await _repository.getGroups(userId);
+      setLoading(false);
+    } catch (e) {
+      setError('Failed to load groups: $e');
+      setLoading(false);
+      _groups = [];
     }
   }
 }

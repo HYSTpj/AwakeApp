@@ -5,6 +5,7 @@ import 'create_group_view.dart';
 import 'add_group_view.dart';
 import 'delete_group_view.dart';
 
+/// グループ作成、参加、脱退を選択するページ
 class CreateOrAddOrDeletePage extends StatelessWidget {
   const CreateOrAddOrDeletePage({super.key});
 
@@ -68,13 +69,25 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
     );
   }
 
+  /// 共通のボタンスタイル
+  ButtonStyle _buttonStyle() {
+    return ElevatedButton.styleFrom(
+      foregroundColor: Colors.black,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Colors.black, width: 2),
+      ),
+    );
+  }
+
   // グループ作成ボタン
   Widget _createButton(BuildContext context) {
     return SizedBox(
       width: 400,
       height: 100,
       child: ElevatedButton(
-        onPressed: () async {                                
+        onPressed: () {                                
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -83,14 +96,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           );
           debugPrint('グループ作成画面へ移動');
         },
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 2),
-          ),
-        ),
+        style: _buttonStyle(),
         child: const Text(
           'Create group',
           style: TextStyle(fontSize: 24),
@@ -114,14 +120,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           );
           debugPrint('グループ参加画面へ移動');
         },
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 2),
-          ),
-        ),
+        style: _buttonStyle(),
         child: const Text(
           'Add group',
           style: TextStyle(fontSize: 24),
@@ -145,14 +144,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           );
           debugPrint('グループ脱退画面へ移動');
         },
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 2),
-          ),
-        ),
+        style: _buttonStyle(),
         child: const Text(
           'Delete group',
           style: TextStyle(fontSize: 24),

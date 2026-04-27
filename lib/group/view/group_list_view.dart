@@ -9,6 +9,7 @@ import '../../common_layout.dart';
 import 'create_add_delete_view.dart';
 import '../../eventlist_page.dart'; // イベント一覧表示画面できたらインポート
 
+/// グループリストページ
 class GroupListPage extends StatefulWidget {
   const GroupListPage({super.key});
 
@@ -45,10 +46,20 @@ class _GroupListPageState extends State<GroupListPage> {
 
   void _onViewModelUpdated() {
     if (mounted) setState(() {});
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
+    // エラーメッセージを表示
+    if (viewModel.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(viewModel.errorMessage!)),
+        );
+        viewModel.errorMessage = null; // 表示後クリア
+      });
+    }
+
     return CommonLayout(
       // 共通レイアウトを使用
       body: viewModel.isLoading
