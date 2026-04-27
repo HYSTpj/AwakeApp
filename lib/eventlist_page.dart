@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../data/group_repository.dart';
-import '../data/event_repository.dart';
+import 'data/group_repository.dart';
+import 'data/event_repository.dart';
 
 import 'package:intl/intl.dart'; //DateFormatを使用するために追加
 import 'memberstatus_page.dart';

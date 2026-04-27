@@ -68,16 +68,16 @@ class AddGroupViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final currentGroups = await _repository.getGroups(userId);
-    final alreadyJoin = currentGroups.any((group) => group.groupId == groupId);
-
-    if (alreadyJoin) {  // 今加入しているグループのidでないかチェック
-      _errorMessage = 'You have already joined this group.';
-      _isLoading = false;
-      return false;
-    }
-
     if (groupId.isNotEmpty && userId.isNotEmpty) {  // group idとuser idが空でないとき
+      final currentGroups = await _repository.getGroups(userId);
+      final alreadyJoin = currentGroups.any((group) => group.groupId == groupId);
+
+      if (alreadyJoin) {  // 今加入しているグループのidでないかチェック
+        _errorMessage = 'You have already joined this group.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
       try {
         await _repository.addGroup(
           userId: userId,

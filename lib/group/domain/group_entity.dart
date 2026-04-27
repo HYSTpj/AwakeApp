@@ -1,4 +1,4 @@
-// Entit: アプリ内で扱う純粋なデータモデル
+// Entity: アプリ内で扱う純粋なデータモデル
 class GroupEntity {
   final String groupId;
   final String groupName;

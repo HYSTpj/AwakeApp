@@ -42,14 +42,15 @@ class GroupRepositoryImpl implements GroupRepository {
     required String groupId
   }) async {
     final group = await _db.collection("groups").doc(groupId).get();
-    if (group.exists) {
-      await _db.collection("groups_memberships").add({
-        'group_id': groupId,
-        'user_id': userId,
-        'role': 1,
-        'joined_at': FieldValue.serverTimestamp(),
-      });
+    if (!group.exists) {
+      throw StateError("Group does not exist: $groupId");
     }
+    await _db.collection("groups_memberships").add({
+      'group_id': groupId,
+      'user_id': userId,
+      'role': 1,
+      'joined_at': FieldValue.serverTimestamp(),
+    });
   }
   // 8.参加完了
 
@@ -66,14 +67,15 @@ class GroupRepositoryImpl implements GroupRepository {
       .where("user_id", isEqualTo: userId)
       .get();
 
-    if (membership.docs.isNotEmpty) {
-      final docId = membership.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
-    
-      await _db
-        .collection("groups_memberships")
-        .doc(docId)
-        .delete();
+    if (membership.docs.isEmpty) {
+      throw StateError("Membership not found for userId=$userId, groupId=$groupId");
     }
+    final docId = membership.docs.first.id; // 上記で見つけた空出ないドキュメントidを指定
+  
+    await _db
+      .collection("groups_memberships")
+      .doc(docId)
+      .delete();
   }
 
 
