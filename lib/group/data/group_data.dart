@@ -87,21 +87,24 @@ class GroupRepositoryImpl implements GroupRepository {
       .where("user_id", isEqualTo: userId)
       .get();
 
-    List<GroupEntity> myGroups = [];
-    for (var doc in groups.docs) {
-      final groupId = doc.data()['group_id']; // groups_membership内に自分のuser_idが存在するgroup_idを取得
-      final groupDoc = await _db.collection('groups').doc(groupId).get(); // groups内のgroup_idが一致するものの中身を調べる
+    // 1. まずIDだけを全部集める
+    final groupIds = groups.docs.map((doc) => doc.data()['group_id'] as String).toList();
 
-      if (groupDoc.exists) {
-        final data = groupDoc.data()!;  // 中身が絶対あるgroupのデータ取得
+    if (groupIds.isEmpty) return [];
 
-        // APIデータをEntityに変換
-        myGroups.add(GroupEntity(
-          groupId: groupDoc.id,
-          groupName: data['group_name'] ?? 'No Name',
-        ));
-      }
-    }
-    return myGroups;
+    // 2. まとめて取得する（10個までなら一気に取れます）
+    final groupDocs = await _db
+        .collection('groups')
+        .where(FieldPath.documentId, whereIn: groupIds)
+        .get();
+
+    // 3. Entityに変換
+    return groupDocs.docs.map((doc) {
+      final data = doc.data();
+      return GroupEntity(
+        groupId: doc.id,
+        groupName: data['group_name'] ?? 'No Name',
+      );
+    }).toList();
   }
 }

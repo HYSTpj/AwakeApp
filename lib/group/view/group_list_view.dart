@@ -35,6 +35,14 @@ class _GroupListPageState extends State<GroupListPage> {
     }
   }
 
+  @override
+  // メモリを解放するための関数
+  void dispose() {
+    viewModel.removeListener(_onViewModelUpdated);
+    viewModel.dispose();  // _controller内を掃除
+    super.dispose();  // 親クラスでも掃除
+  }
+
   void _onViewModelUpdated() {
     if (mounted) setState(() {});
   } 
