@@ -78,6 +78,13 @@ dependencies:
   firebase_storage: ^13.2.0
   image_picker: ^1.2.1
 
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.2
+  path: ^1.9,0
+
+
+
 # 開発用ツール
 dev_dependencies:
 
@@ -88,9 +95,12 @@ dev_dependencies:
   # 以下の「flutter_lints」パッケージには、優れたコーディング習慣を促進するための推奨リンターセットが含まれている
   # このパッケージで提供されるリンターセットは
   # パッケージのルートにある "analysis_options.yaml" ファイルで有効化される
-  # 特定のリンタールールを無効化したり，追加のルールを有効化したりする方法については，
+  # 特定のリンタールールを無効化したり，追加のルーßルを有効化したりする方法については，
   # このファイルを参照する
   flutter_lints: ^6.0.0
+
+  drift_dev: ^2.14.1
+  build_runner: ^2.4.8
 
 # このファイルの汎用 Dart 部分に関する情報については，次のページを参照
 # https://dart.dev/tools/pub/pubspec
