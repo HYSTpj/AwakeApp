@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'login/login_page.dart'; // ログインページのインポート
-
-// Firebaseを利用するためのパッケージ
+import 'login/login_page.dart'; 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import '../data/firebase_options.dart';
-
-// Supabaseを利用するためのパッケージ
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'database/database.dart';
+import 'data/repositories/room_repository.dart';
 
 void main() async {
   // Flutterを初期化
@@ -29,9 +28,23 @@ void main() async {
     url: 'https://nnxfbifnaebzfapgbfkr.supabase.co',  // Project URL
     anonKey: 'sb_publishable_eldYHgMllFya3mprP7AMXw_SJrK6bkv', // Anon Key
   );
+
+  //DriftDBとrepositoryのインスタンス化
+   final database = AwakeDatabase(openConnection());
+   final roomRepository = RoomRepository(database);
+
+    runApp(
+        MultiProvider(
+          providers: [
+            Provider<AwakeDatabase>.value(value: database),
+            Provider<RoomRepository>.value(value: roomRepository),
+          ],
+          child: const MyApp(),
+      ),
+    );
   
   // 画面のUIスタート
-  runApp(const MyApp());
+  // runApp(const MyApp());
 }
 
 // アプリ全体の設定
