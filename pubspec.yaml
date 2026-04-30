@@ -78,11 +78,11 @@ dependencies:
   firebase_storage: ^13.2.0
   image_picker: ^1.2.1
 
-  drift: ^2.14.1
+  drift: ^2.32.1
   sqlite3_flutter_libs: ^0.5.20
   path_provider: ^2.1.2
-  path: ^1.9,0
-
+  path: ^1.9.0
+  provider: ^6.1.5+1
 
 
 # 開発用ツール
