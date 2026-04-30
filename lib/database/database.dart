@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'dart:io';
@@ -93,7 +92,7 @@ class EventReports extends Table {
   EventReports,
 ])
 class AwakeDatabase extends _$AwakeDatabase {
-  AwakeDatabase(QueryExecutor e) : super(e);
+  AwakeDatabase(super.e);
 
   @override
   int get schemaVersion => 1;
