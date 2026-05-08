@@ -21,11 +21,14 @@ class RoomRepository{
   }
 
   Future<void> syncFromFirebase(String id, Map<String, dynamic> data) async {
+    final groupName = data['group_name'] ?? data['groupName'];
+    final invitationCode = data['invitation_code'] ?? data['invitationCode'];
+
     await db.into(db.groups).insertOnConflictUpdate(
       GroupsCompanion.insert(
         id: id,
-        groupName: data['groupName'],
-        invitationCode: data['invitationCode'],
+        groupName: groupName,
+        invitationCode: invitationCode,
         createdAt: Value(DateTime.now()),
       ),
     );
