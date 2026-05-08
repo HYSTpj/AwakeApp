@@ -43,7 +43,7 @@ android {
         versionName = flutter.versionName
         val apiKey = localProperties.getProperty("MAPS_API_KEY") ?: ""
         manifestPlaceholders["mapsApiKey"] = apiKey
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     buildTypes {
