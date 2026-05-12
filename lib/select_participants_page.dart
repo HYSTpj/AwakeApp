@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'common_layout.dart';
 import 'data/event_repository.dart';
-import 'event/view/event_list_view.dart';
+import 'eventlist_page.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 
