@@ -22,7 +22,8 @@ class GroupRepositoryImpl implements GroupRepository {
 
     try {
       final group = _db.collection('groups').doc();
-      final String invitationCode = group.id;
+      final String groupId = group.id; // 自動生成されたドキュメントid
+      final String invitationCode = groupId;
 
       await group.set({
         'group_name': groupName,
@@ -31,12 +32,12 @@ class GroupRepositoryImpl implements GroupRepository {
       });
 
       await _db.collection('groups_memberships').add({
-        'group_id': group.id,
+        'group_id': groupId,
         'user_id': userId,
         'role': 0, // 管理者ロール
         'joined_at': FieldValue.serverTimestamp(),
       });
-      return group.id;
+      return groupId;
     } catch (e) {
       throw Exception('Failed to create group: $e');
     }
