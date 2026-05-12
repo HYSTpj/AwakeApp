@@ -7,7 +7,7 @@ import '../data/group_data.dart';
 import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
 import 'create_add_delete_view.dart';
-import '../../eventlist_page.dart'; // イベント一覧表示画面できたらインポート
+import '../../event/view/event_list_view.dart'; // イベント一覧表示画面できたらインポート
 
 /// グループリストページ
 class GroupListPage extends StatefulWidget {
