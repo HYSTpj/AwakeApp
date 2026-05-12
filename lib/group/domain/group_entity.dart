@@ -47,4 +47,7 @@ abstract class GroupRepository{
 
   /// ユーザーが所属するグループの一覧を取得する
   Future<List<GroupEntity>> getGroups(String userId);
+
+  /// グループ名が存在するか確認する
+  Future<bool> isGroupNameExists(String groupName);
 }

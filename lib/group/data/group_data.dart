@@ -148,4 +148,18 @@ class GroupRepositoryImpl implements GroupRepository {
       throw Exception('Failed to retrieve groups: $e');
     }
   }
+
+  // グループ名が存在するか確認する
+  @override
+  Future<bool> isGroupNameExists(String groupName) async {
+    try {
+      final result = await _db
+          .collection('groups')
+          .where('group_name', isEqualTo: groupName)
+          .get();
+      return result.docs.isNotEmpty; // 1つでも見つかれば true
+    } catch (e) {
+      throw Exception('Failed to check group name: $e');
+    }
+  }
 }

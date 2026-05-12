@@ -36,7 +36,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
     final code = _controller.text.trim();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('招待コードを入力してください')),
+        const SnackBar(content: Text('Please enter your invitation code.')),
       );
       return;
     }
@@ -46,7 +46,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('ログインしてください')),
+        const SnackBar(content: Text('Please log in.')),
       );
       return;
     }
@@ -65,13 +65,13 @@ class _AddGroupPageState extends State<AddGroupPage> {
 
         ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
           const SnackBar(
-            content: Text('グループに参加しました')
+            content: Text('Joined the group.')
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'エラーが発生しました')
+            content: Text(viewModel.errorMessage ?? 'An error has occurred.')
           ),
         );
       }

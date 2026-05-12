@@ -32,6 +32,8 @@ class CreateGroupViewModel extends BaseGroupViewModel {
     setLoading(true);
     setError(null); // エラークリア
 
+    final trimmedName = groupName.trim();
+
     if (groupName.trim().isEmpty || userId.isEmpty) {
       setError('Please enter a new group name.');
       setLoading(false);
@@ -39,6 +41,13 @@ class CreateGroupViewModel extends BaseGroupViewModel {
     }
 
     try {
+      // 重複チェック
+      final isExists = await _repository.isGroupNameExists(trimmedName);
+      if (isExists) {
+        setError('This group name is already taken.'); // 同じ名前がある場合
+        setLoading(false);
+        return false;
+      }
       await _repository.setGroup(
         userId: userId,
         groupName: groupName.trim()

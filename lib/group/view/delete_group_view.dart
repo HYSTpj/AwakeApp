@@ -36,7 +36,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     final groupId = _controller.text.trim();
     if (groupId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('グループIDを入力してください')),
+        const SnackBar(content: Text('Please enter your group ID.')),
       );
       return;
     }
@@ -45,16 +45,16 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('確認'),
-        content: const Text('本当にこのグループから脱退しますか？'),
+        title: const Text('confirmation'),
+        content: const Text('Are you really going to leave this group?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('キャンセル'),
+            child: const Text('cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('脱退'),
+            child: const Text('delete'),
           ),
         ],
       ),
@@ -67,7 +67,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('ログインしてください')),
+        const SnackBar(content: Text('Please log in.')),
       );
       return;
     }
@@ -86,13 +86,13 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
         ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
           const SnackBar(
-            content: Text('グループから脱退しました')
+            content: Text('You have left the group.')
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
           SnackBar(
-            content: Text(viewModel.errorMessage ?? 'エラーが発生しました')
+            content: Text(viewModel.errorMessage ?? 'An error has occurred.')
           ),
         );
       }
