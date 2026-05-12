@@ -67,122 +67,94 @@ class _GroupListPageState extends State<GroupListPage> {
           : Column(
               // 垂直に並べる
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.black, width: 2),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      // ドロップダウンの下線削除
-                      child: DropdownButton<String>(
-                        value: selectedGroupId, // 今どのグループが選択されているか
-                        isExpanded: true, // 横幅広げる
-                        dropdownColor: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.black,
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black, width: 4),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedGroupId,
+                      isExpanded: true,
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
+                      hint: const Text(
+                        'GROUP NAME',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1C1C),
+                          letterSpacing: 0.5,
                         ),
-
-                        // グループが選択されていない時に表示されるテキスト
-                        hint: const Text(
-                          'Select group',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        items: [
-                          // items:[... ]でリスト連結
-                          ...viewModel.groups.map((GroupEntity group) {
-                            // myGroupsリストから一つずつgroupを取り出す
-                            return DropdownMenuItem<String>(
-                              value: group.groupId, // グループIDを取得，空の場合も指定
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween, // 両端に追いやる
-                                children: [
-                                  Text(
-                                    group.groupName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Clipboard.setData(
-                                        ClipboardData(text: group.groupId),
-                                      ); // クリップボードに招待コードをコピー
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'copied the invitation code',
-                                          ),
-                                        ),
-                                      );
-                                      debugPrint('招待コードをコピー');
-                                    },
-                                    child: const Icon(
-                                      Icons.content_copy,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-
-                          const DropdownMenuItem<String>(
-                            // ドロップダウンにcreate_add_deleteページ移動追加
-                            value: 'create_add_delete',
+                      ),
+                      items: [
+                        ...viewModel.groups.map((GroupEntity group) {
+                          return DropdownMenuItem<String>(
+                            value: group.groupId,
                             child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween, // 両端に追いやる
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Create or Add or Delete group'),
-                                SizedBox(width: 10),
-                                Icon(
-                                  Icons.add_box,
-                                  color: Colors.deepOrangeAccent,
+                                Text(
+                                  group.groupName, // 統一感を出すために大文字化
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1A1C1C),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Clipboard.setData(ClipboardData(text: group.groupId));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('copied the invitation code')),
+                                    );
+                                  },
+                                  child: const Icon(Icons.content_copy, color: Colors.black, size: 20),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-
-                        onChanged: (String? value) {
-                          // グループが選ばれたとき
-                          if (value == null) return;
-
-                          if (value == 'create_add_delete') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const CreateOrAddOrDeletePage(),
+                          );
+                        }),
+                        // 管理用メニューの項目
+                        DropdownMenuItem<String>(
+                          value: 'create_add_delete',
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text(
+                                'CREATE OR ADD OR DELETE',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFFF5C00), // オレンジのアクセント
+                                ),
                               ),
-                            );
-                            debugPrint('作成or参加or脱退画面へ移動');
-                          } else {
-                            setState(() {
-                              selectedGroupId = value;
-                            });
-
-                            debugPrint('$valueのイベント一覧へ移動');
-                          }
-                        },
-                      ),
+                              Icon(Icons.add_box, color: Color(0xFFFF5C00)),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        if (value == null) return;
+                        if (value == 'create_add_delete') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
+                          );
+                        } else {
+                          setState(() {
+                            selectedGroupId = value;
+                          });
+                        }
+                      },
                     ),
                   ),
                 ),
-
                 // それぞれのイベント一覧表示画面へ移動
                 Expanded(
                   child: selectedGroupId == null

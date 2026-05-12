@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/group_data.dart';
 import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
+import 'return_button.dart';
 import 'group_list_view.dart';
 
 /// グループ作成ページ
@@ -86,10 +87,15 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            const SizedBox(height: 16),
             // 戻るボタン
-            _returnButton(),
+            ReturnButton(onTap: () {
+              Navigator.pop(context);
+              debugPrint('1画面戻る');
+            }),
 
             const Spacer(),
 
@@ -105,33 +111,6 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           ],
         ),
       ),
-    );
-  }
-
-  // 戻るボタン
-  Widget _returnButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: GestureDetector(
-          onTap: () {
-            Navigator.pop(context); // createOrAddOrDeleteに戻る
-            debugPrint('1画面戻る');
-          },
-          child: Container(
-            width: 60,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.green[900],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Icon(Icons.arrow_back, color: Colors.white, size: 25),
-            )
-          )
-        ),
-      )
     );
   }
 

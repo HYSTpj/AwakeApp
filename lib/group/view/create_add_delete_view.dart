@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common_layout.dart';
+import 'return_button.dart';
 import 'create_group_view.dart';
 import 'add_group_view.dart';
 import 'delete_group_view.dart';
@@ -15,10 +16,15 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            const SizedBox(height: 16),
             // 戻るボタン
-            _returnButton(context),
+            ReturnButton(onTap: () {
+              Navigator.pop(context);
+              debugPrint('1画面戻る');
+            }),
 
             const Spacer(), // 真ん中に押し出す
 
@@ -39,33 +45,6 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           ],
         )
       ),
-    );
-  }
-
-  // 戻るボタン
-  Widget _returnButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: GestureDetector(
-          onTap: () {
-            Navigator.pop(context); // createOrAddOrDeleteに戻る
-            debugPrint('1画面戻る');
-          },
-          child: Container(
-            width: 60,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.green[900],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Icon(Icons.arrow_back, color: Colors.white, size: 25),
-            )
-          )
-        ),
-      )
     );
   }
 
