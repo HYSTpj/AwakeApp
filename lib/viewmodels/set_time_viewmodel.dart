@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:alarm/alarm.dart';
 import '../domain/entities/event_report.dart';
 import '../domain/repositories/i_event_report_repository.dart';
 import '../data/repositories/event_report_repository_impl.dart';
@@ -86,6 +87,38 @@ class SetTimeViewModel extends ChangeNotifier {
         wakeupTime: wakeupTimeDay,
         departureTime: departureTimeDay,
       );
+
+      // アラームの登録
+      final wakeupSettings = AlarmSettings(
+        id: 1, // 起床アラームの固定ID
+        dateTime: wakeupTimeDay,
+        assetAudioPath: 'assets/alarm.mp3',
+        loopAudio: true,
+        vibrate: true,
+        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        notificationSettings: const NotificationSettings(
+          title: '起床時間です！',
+          body: 'チェックイン画面から起きたことを報告しましょう',
+          stopButton: 'ストップ',
+        ),
+      );
+      
+      final departureSettings = AlarmSettings(
+        id: 2, // 出発アラームの固定ID
+        dateTime: departureTimeDay,
+        assetAudioPath: 'assets/alarm.mp3',
+        loopAudio: true,
+        vibrate: true,
+        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        notificationSettings: const NotificationSettings(
+          title: '出発時間です！',
+          body: '忘れ物はないですか？出発を報告しましょう',
+          stopButton: 'ストップ',
+        ),
+      );
+
+      await Alarm.set(alarmSettings: wakeupSettings);
+      await Alarm.set(alarmSettings: departureSettings);
 
       isSaving = false;
       notifyListeners();
