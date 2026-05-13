@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import alarm
 
 // 地図機能利用
 import GoogleMaps
@@ -13,6 +14,10 @@ import GoogleMaps
 
     // API取得
     GMSServices.provideAPIKey("AIzaSyDw6-T_rx5lubJ76HtuvjApYa6LwtTH5x0")
+
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
