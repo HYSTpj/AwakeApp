@@ -7,8 +7,7 @@ import '../data/repositories/event_report_repository_impl.dart';
 
 class SetTimeViewModel extends ChangeNotifier {
   final String eventId;
-  final IEventReportRepository _repository;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final IEventReportRepository? _repository;
 
   DateTime? wakeupTime;
   DateTime? departureTime;
@@ -18,10 +17,10 @@ class SetTimeViewModel extends ChangeNotifier {
   SetTimeViewModel({
     required this.eventId,
     IEventReportRepository? repository,
-  }) : _repository = repository ?? EventReportRepositoryImpl();
+  }) : _repository = repository;
 
   Future<void> loadTime() async {
-    final user = _auth.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       errorMessage = "ユーザーがログインしていません。";
       notifyListeners();
@@ -29,8 +28,8 @@ class SetTimeViewModel extends ChangeNotifier {
     }
 
     try {
-      final EventReport? report =
-          await _repository.getEventReport(eventId, user.uid);
+      final repository = _repository ?? EventReportRepositoryImpl();
+      final EventReport? report = await repository.getEventReport(eventId, user.uid);
           
       if (report != null) {
         wakeupTime = report.plannedWakeupTime;
@@ -54,7 +53,7 @@ class SetTimeViewModel extends ChangeNotifier {
   }
 
   Future<bool> saveChanges(DateTime arrivalTime) async {
-    final user = _auth.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null || wakeupTime == null || departureTime == null) {
       errorMessage = 'Please enter wake-up time and departure time.';
       notifyListeners();
@@ -66,6 +65,7 @@ class SetTimeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final repository = _repository ?? EventReportRepositoryImpl();
       final wakeupTimeDay = DateTime(
         arrivalTime.year,
         arrivalTime.month,
@@ -81,7 +81,7 @@ class SetTimeViewModel extends ChangeNotifier {
         departureTime!.minute,
       );
 
-      final String? reportId = await _repository.setReport(
+      final String? reportId = await repository.setReport(
         eventId: eventId,
         userId: user.uid,
         wakeupTime: wakeupTimeDay,
