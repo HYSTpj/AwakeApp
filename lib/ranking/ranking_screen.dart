@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/common_layout.dart';
 
-// --- 1. プレビュー用のメイン関数 ---
+// --- プレビュー用のメイン関数 ---
 void main() {
   runApp(
     const MaterialApp(
@@ -11,8 +11,8 @@ void main() {
   );
 }
 
-// --- 2. プレビュー用ウィジェット ---
-class RankingPreview extends StatelessWidget {
+// 一つの画面として動く形にパッケージングしたもの
+class RankingPreview extends StatelessWidget { // 表示専用のウィジェット
   const RankingPreview({super.key});
 
   @override
@@ -23,11 +23,13 @@ class RankingPreview extends StatelessWidget {
   }
 }
 
-// --- 3. ランキング画面の中身 ---
+// --- ランキング画面の中身 ---
 Widget eventPageBody() {
-  final BoxBorder neoBorder = Border.all(color: Colors.black, width: 2.5);
+
+  //　画面全体で使うデザインのルール
+  final BoxBorder neoBorder = Border.all(color: Colors.black, width: 2.5); // すべての箱を囲む枠線
   final List<BoxShadow> neoShadow = [
-    const BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+    const BoxShadow(color: Colors.black, offset: Offset(4, 4)), // すべての箱に適用される影
   ];
   
   // テスト用データ（Firebaseを通さない）
@@ -35,9 +37,11 @@ Widget eventPageBody() {
   const String displayName = 'USERNAME';
 
   return SingleChildScrollView(
+    // 画面の淵の余白を一括で設定。下はスペースを大きめに取る。
     padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
     child: Column(
       children: [
+        // アイコンとRankingのタイトルを横並び
         const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -49,11 +53,15 @@ Widget eventPageBody() {
             ),
           ],
         ),
+        // タイトル下の隙間
         const SizedBox(height: 20),
 
-        Stack(
-          clipBehavior: Clip.none,
+        // 白いカード
+        Stack( // stack→重ねるための土台
+          // 1位の大きな白いカードの土台
+          clipBehavior: Clip.none, // はみ出す部分も表示する
           children: [
+            // メインの白いカード
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -63,6 +71,7 @@ Widget eventPageBody() {
                 boxShadow: neoShadow,
               ),
               child: Column(
+                // #1のユーザーカードの内容
                 children: [
                   const SizedBox(height: 10),
                   Container(
@@ -106,6 +115,7 @@ Widget eventPageBody() {
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // ★ ストリークと遅刻時間の部分をRowで横並びにして、スペースを空ける
                       children: [
                         const Text('STREAK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
                         Container(
@@ -127,6 +137,8 @@ Widget eventPageBody() {
                 ],
               ),
             ),
+
+            // #1のラベル
             Positioned(
               top: -10,
               left: -5,
@@ -145,6 +157,8 @@ Widget eventPageBody() {
             ),
           ],
         ),
+
+        // #2以降のユーザーカードの内容
         const SizedBox(height: 20),
         _buildListItem('#2', 'Alex Riv', '@alex_riv_2024', '8 DAYS', neoBorder, neoShadow),
         const SizedBox(height: 15),
@@ -154,6 +168,7 @@ Widget eventPageBody() {
   );
 }
 
+// #1のユーザーカードのストリークと遅刻時間の部分を作る関数
 Widget _buildSmallBox(String title, String value, BoxBorder border, List<BoxShadow> shadow) {
   return Expanded(
     child: Container(
@@ -169,6 +184,7 @@ Widget _buildSmallBox(String title, String value, BoxBorder border, List<BoxShad
   );
 }
 
+// #2以降のユーザーカードを作る関数
 Widget _buildListItem(String rank, String name, String id, String days, BoxBorder border, List<BoxShadow> shadow) {
   return Container(
     padding: const EdgeInsets.all(12),

@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
-import 'screen/createaccount_body.dart';
+import 'screen/create_account_body.dart';
 import 'package:flutter_application_1/data/profiles_repository.dart';
 import '../grouplist_page.dart';
 

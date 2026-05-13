@@ -40,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
                   password: passwordController.text.trim(),
                 );
                 debugPrint("ログイン成功");
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const GroupListPage()),
