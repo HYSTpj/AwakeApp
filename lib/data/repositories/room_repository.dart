@@ -29,7 +29,7 @@ class RoomRepository{
         id: id,
         groupName: groupName,
         invitationCode: invitationCode,
-        createdAt: Value(DateTime.now()),
+        createdAt: Value(createdAtTime),
       ),
     );
   }
