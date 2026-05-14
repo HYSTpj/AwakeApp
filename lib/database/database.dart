@@ -97,6 +97,17 @@ class AwakeDatabase extends _$AwakeDatabase {
   @override
   int get schemaVersion => 1;
 
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      beforeOpen: (details) async {
+        // SQLiteの外部キー制約をデフォルトで有効化する（Driftベストプラクティス）
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
+
   Future<void> upsertGroup(GroupsCompanion entity) {
     return into(groups).insertOnConflictUpdate(entity);
   }

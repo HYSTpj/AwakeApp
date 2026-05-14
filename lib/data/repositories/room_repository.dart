@@ -26,7 +26,7 @@ class RoomRepository{
         id: id,
         groupName: data['groupName'],
         invitationCode: data['invitationCode'],
-        createdAt: Value(DateTime.now()),
+        createdAt: Value(data['createdAt']),
       ),
     );
   }

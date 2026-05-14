@@ -24,7 +24,7 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourßceCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
@@ -43,7 +43,7 @@ android {
         versionName = flutter.versionName
         val apiKey = localProperties.getProperty("MAPS_API_KEY") ?: ""
         manifestPlaceholders["mapsApiKey"] = apiKey
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     buildTypes {
