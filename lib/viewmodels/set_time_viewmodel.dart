@@ -55,7 +55,7 @@ class SetTimeViewModel extends ChangeNotifier {
   Future<bool> saveChanges(DateTime arrivalTime) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || wakeupTime == null || departureTime == null) {
-      errorMessage = 'Please enter wake-up time and departure time.';
+      errorMessage = '起床時刻と出発時刻を入力してください。';
       notifyListeners();
       return false;
     }
