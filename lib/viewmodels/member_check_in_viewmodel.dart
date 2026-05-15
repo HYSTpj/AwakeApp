@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 import '../widgets/statusbutton.dart';
 
+import 'package:alarm/alarm.dart';
+
 class MemberCheckInViewModel extends ChangeNotifier {
   final String eventId;
   final String groupId;
@@ -102,6 +104,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
   Future<void> toggleWakeUp() async {
     if (_reportId == null || isWakeUpPressed) return;
     isWakeUpPressed = true;
+    
+    // 起床アラームを停止
+    await Alarm.stop(1);
+
     notifyListeners(); // まずUIだけ反応させる
     
     await _eventRepository.updateWakeupTime(_reportId!);
@@ -112,6 +118,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
   Future<void> toggleDeparture() async {
     if (_reportId == null || isDeparturePressed) return;
     isDeparturePressed = true;
+
+    // 出発アラームを停止
+    await Alarm.stop(2);
+
     notifyListeners(); // まずUIだけ反応させる
     
     await _eventRepository.updateDepartureTime(_reportId!);
