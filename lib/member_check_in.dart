@@ -159,6 +159,9 @@ class GroupNameDropdown extends StatelessWidget {
     const borderColor = Color(0xFF1A1C1C);
     
     return Container(
+      eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      groupId: widget.groupId,
       width: 362,
       height: 60,
       decoration: BoxDecoration(
