@@ -35,7 +35,9 @@ class _SetTimePageState extends State<SetTimePage> {
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 
