@@ -4,6 +4,7 @@ import alarm
 
 // 地図機能利用
 import GoogleMaps
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
