@@ -59,11 +59,10 @@ class _EventListPageState extends State<EventListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
 
     return FutureBuilder<List<dynamic>>(
       // 作業終わるまで置き換えておく画面作成
-      future: _pageDataFuture,
+      future: _pageDataFuture, // 先に予約しておいたデータ取得の作業を呼び出す
       builder: (context, snapshot) {
         // 状況(snapshot)に合わせて作る画面作成
 

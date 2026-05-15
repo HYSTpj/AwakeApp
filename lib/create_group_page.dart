@@ -83,6 +83,7 @@ class CreateGroupPageState extends State<CreateGroupPage> {
               alignment: Alignment.topLeft, // 左上に表示
               child: GestureDetector(
                 onTap: () {
+                  if (!mounted) return;
                   Navigator.pop(context); // createOrAddOrDeleteに戻る
                   debugPrint('1画面戻る');
                 },

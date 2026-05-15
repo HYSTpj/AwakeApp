@@ -45,7 +45,7 @@ class UserTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('@$userId', style: TextStyle(color: Colors.black.withOpacity(0.5), fontSize: 12)),
+                Text('@$userId', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontSize: 12)),
               ],
             ),
           ),
@@ -58,7 +58,7 @@ class UserTile extends StatelessWidget {
                 onChanged: (bool value) {
                   onToggle?.call();
                 },
-                activeColor: const Color(0xFFFF5C00),
+                activeThumbColor: const Color(0xFFFF5C00),
               ),
             ],
           ),
@@ -265,7 +265,7 @@ Future<void> _loadMembers() async {
                       shape: const RoundedRectangleBorder(side: _kBorderSide),
                       shadows: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           offset: const Offset(4, 4),
                         ),
                       ],

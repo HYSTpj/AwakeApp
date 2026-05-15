@@ -12,14 +12,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   // Flutterを初期化
   WidgetsFlutterBinding.ensureInitialized();
-
   // Alarmを初期化
   await Alarm.init();
 
-  // Firebaseを初期化
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    // Firebaseを初期化
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (e.toString().contains('duplicate-app')) {
+      debugPrint('初期化済み');
+    } else {
+      rethrow; 
+    }
+  }
 
   // Supabaseを初期化
   await Supabase.initialize(

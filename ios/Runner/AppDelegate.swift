@@ -13,7 +13,9 @@ import GoogleMaps
   ) -> Bool {
 
     // API取得
-    GMSServices.provideAPIKey("AIzaSyDw6-T_rx5lubJ76HtuvjApYa6LwtTH5x0")
+    if let apiKey = ProcessInfo.processInfo.environment["API_KEY"] {
+      GMSServices.provideAPIKey(apiKey)
+    }
 
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate

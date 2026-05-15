@@ -9,7 +9,6 @@ import 'select_participants_page.dart';
 import 'data/event_repository.dart';
 
 
-
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 const _kLabelStyle = TextStyle(
   fontSize: 14,
@@ -42,12 +41,10 @@ class _LabelText extends StatelessWidget {
 // 枠付きの入力フィールドコンテナ
 class _InputBox extends StatelessWidget {
   final Widget child;
-  final double height;
   final EdgeInsets padding;
 
   const _InputBox({
     required this.child,
-    this.height = 48,
     this.padding = const EdgeInsets.symmetric(horizontal: 12),
   });
 
@@ -55,7 +52,7 @@ class _InputBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: height,
+      height: 48,
       padding: padding,
       clipBehavior: Clip.antiAlias,
       alignment: Alignment.center,
@@ -350,7 +347,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         );
 
                         // 3. 次の画面（参加者選択ページ）へ遷移
-                        if (eventId != null && mounted) {
+                        if (!context.mounted) return;
+                        if (eventId != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(

@@ -47,3 +47,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# APIキーが含まれるファイル
+/android/app/build.gradle.kts
+/android/app/google-services.json
+/android/app/src/main/AndroidManifest.xml
+/ios/Runner/AppDelegate.swift
+/ios/Runner/GoogleService-Info.plist
+/lib/data/firebase_options.dart
+/macos/Runner/GoogleService-Info.plist
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
