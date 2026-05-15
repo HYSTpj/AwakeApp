@@ -7,11 +7,13 @@ import 'viewmodels/set_time_viewmodel.dart';
 class SetTimePage extends StatefulWidget {
   final String eventId;
   final DateTime arrivalTime;
+  final SetTimeViewModel? viewModel;
 
   const SetTimePage({
     super.key,
     required this.eventId,
     required this.arrivalTime,
+    this.viewModel,
   });
 
   @override
@@ -24,8 +26,11 @@ class _SetTimePageState extends State<SetTimePage> {
   @override
   void initState() {
     super.initState();
-    _viewModel = SetTimeViewModel(eventId: widget.eventId);
-    _viewModel.loadTime(); // Firestoreからデータを取得
+    _viewModel = widget.viewModel ?? SetTimeViewModel(eventId: widget.eventId);
+    // If a viewModel was injected (e.g. in tests), avoid auto-loading from Firebase
+    if (widget.viewModel == null) {
+      _viewModel.loadTime(); // Firestoreからデータを取得
+    }
   }
 
   @override

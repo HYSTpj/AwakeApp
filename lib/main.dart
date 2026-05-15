@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 最初に表示する画面
-      home: LoginPage()
+      home: LoginPage(),
     );
   }
 }
