@@ -5,6 +5,9 @@ import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'data/group_repository.dart';
+
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
@@ -23,18 +26,35 @@ class MemberCheckInPage extends StatefulWidget {
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
   late final MemberCheckInViewModel _viewModel;
+  late String _currentGroupId; // 現在表示中のグループID
+  List<Map<String, dynamic>> _myGroups = [];  // 所属グループ全リスト
 
   @override
   void initState() {
     super.initState();
+    _currentGroupId = widget.groupId; // 初期値
     _viewModel = MemberCheckInViewModel(
       eventId: widget.eventId,
-      groupId: widget.groupId,
+      groupId: _currentGroupId,
     );
     _initializeData();
   }
 
-  Future<void> _initializeData() async {
+  Future<void> _initializeData() async 
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      try {
+        final groups = await GroupRepository().getGroups(uid);
+        if (mounted) {
+          setState(() {
+            _myGroups = groups;
+          });
+        }
+      } catch (e) {
+        debugPrint('Group load error: $e');
+      }
+    }
+
     final errorMessage = await _viewModel.loadData();
     
     // Copilot指摘解決: もしログインエラー（未認証状態）が返ってきたら、強制的にダイアログを出して戻る
@@ -59,6 +79,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         }
       );
     }
+  }
+
+  Widget _buildGroupDropdown() {
+    return Container(
+      width: 362,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _myGroups.any((g) => g['group_id'] == _currentGroupId) ? _currentGroupId : null,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
+          items: _myGroups.map((group) {
+            return DropdownMenuItem<String>(
+              value: group['group_id'],
+              child: Text(
+                group['group_name'] ?? 'Unnamed Group',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newGroupId) {
+            if (newGroupId != null && newGroupId != _currentGroupId) {
+              // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
+              Navigator.pop(context);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -121,7 +176,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GroupNameDropdown(groupName: _viewModel.groupName),
+                  _buildGroupDropdown(),
                   const SizedBox(height: 24),
                   CurrentStatusPanel(status: _viewModel.selectedStatus),
                   const SizedBox(height: 16),
