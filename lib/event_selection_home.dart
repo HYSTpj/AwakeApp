@@ -9,6 +9,8 @@ import 'member_check_in.dart';
 import '../data/group_repository.dart';
 import '../data/event_repository.dart';
 
+import 'package:flutter/services.dart'; // 招待コードをコピーするためにインポート
+
 class EventSelectionHome extends StatefulWidget {
   const EventSelectionHome({super.key});
 
@@ -57,20 +59,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
-      // 緑の追加ボタン（FAB）
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green[900],
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
-          );
-        },
-        shape: CircleBorder(
-          side: const BorderSide(color: Colors.black, width: 2), // Neo-Brutalism
-        ),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
-      ),
       body: Column(
         children: [
           _buildGroupDropdown(),
@@ -107,22 +95,60 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
               letterSpacing: 0.5,
             ),
           ),
-          items: _myGroups.map((group) {
-            return DropdownMenuItem<String>(
-              value: group['group_id'],
-              child: Text(
-                group['group_name'] ?? 'Unnamed Group',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1C1C),
-                  letterSpacing: 0.5,
+          items: [
+            // 所属しているグループ一覧
+            ..._myGroups.map((group) {
+              return DropdownMenuItem<String>(
+                value: group['group_id'],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      group['group_name'] ?? 'Unnamed Group',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1A1C1C)),
+                    ),
+                    // 招待コードのコピーアイコン
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: group['group_id']));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Copied the invitation code')),
+                        );
+                      },
+                      child: const Icon(Icons.content_copy, color: Colors.black, size: 20),
+                    ),
+                  ],
                 ),
+              );
+            }),
+            // グループ作成・参加・削除
+            const DropdownMenuItem<String>(
+              value: 'create_add_delete',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'CREATE OR ADD OR DELETE',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFFF5C00),
+                    ),
+                  ),
+                  Icon(Icons.add_box, color: Color(0xFFFF5C00)),
+                ],
               ),
-            );
-          }).toList(),
+            ),
+          ],
           onChanged: (String? newGroupId) {
-            if (newGroupId != null) {
+            if (newGroupId == null) return;
+            
+            if (newGroupId == 'create_add_delete') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
+              );
+            } else {
               setState(() {
                 selectedGroupId = newGroupId;
                 _eventsFuture = EventRepository().getEvents(newGroupId);
