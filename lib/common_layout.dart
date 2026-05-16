@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/group/view/group_list_view.dart';
+import 'grouplist_page.dart';
 import 'create_event_page.dart';
 import 'member_check_in.dart';
 import 'ranking/ranking_screen.dart';
@@ -12,6 +12,16 @@ class CommonLayout extends StatelessWidget {
   final String? eventId;
   final String? eventTitle;
   final int? myRole;
+
+  const CommonLayout({
+    super.key,
+    required this.body,
+    this.floatingActionButton,
+    this.groupId,
+    this.eventId,
+    this.eventTitle,
+    this.myRole,
+  });
 
   // ボトムナビゲーション
   static const _bottomNavigationItems = <BottomNavigationBarItem>[
