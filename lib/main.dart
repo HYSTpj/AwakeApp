@@ -7,10 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'data/firebase_options.dart';
 
 // Supabaseを利用するためのパッケージ
-import 'login/login_page.dart'; 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'data/firebase_options.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'database/database.dart';
 import 'data/repositories/room_repository.dart';
