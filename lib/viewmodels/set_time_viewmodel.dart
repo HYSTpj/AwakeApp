@@ -81,14 +81,7 @@ class SetTimeViewModel extends ChangeNotifier {
         departureTime!.minute,
       );
 
-      final String? reportId = await repository.setReport(
-        eventId: eventId,
-        userId: user.uid,
-        wakeupTime: wakeupTimeDay,
-        departureTime: departureTimeDay,
-      );
-
-      // アラームの登録
+      // まずローカルでアラームの登録を行う
       final wakeupSettings = AlarmSettings(
         id: 1, // 起床アラームの固定ID
         dateTime: wakeupTimeDay,
@@ -117,16 +110,42 @@ class SetTimeViewModel extends ChangeNotifier {
         ),
       );
 
-      await Alarm.set(alarmSettings: wakeupSettings);
-      await Alarm.set(alarmSettings: departureSettings);
+      try {
+        await Alarm.set(alarmSettings: wakeupSettings);
+        await Alarm.set(alarmSettings: departureSettings);
+      } catch (e) {
+        isSaving = false;
+        errorMessage = "アラームの登録に失敗しました。";
+        notifyListeners();
+        return false;
+      }
 
-      isSaving = false;
-      notifyListeners();
+      // アラーム登録成功後、Firestoreへ保存を行う
+      try {
+        final String? reportId = await repository.setReport(
+          eventId: eventId,
+          userId: user.uid,
+          wakeupTime: wakeupTimeDay,
+          departureTime: departureTimeDay,
+        );
 
-      return reportId != null;
+        isSaving = false;
+        notifyListeners();
+
+        return reportId != null;
+      } catch (e) {
+        // 保存に失敗した場合は、設定したアラームをキャンセル(ロールバック)する
+        await Alarm.stop(1);
+        await Alarm.stop(2);
+
+        isSaving = false;
+        errorMessage = "保存に失敗しました。";
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       isSaving = false;
-      errorMessage = "保存に失敗しました。";
+      errorMessage = "予期せぬエラーが発生しました。";
       notifyListeners();
       return false;
     }
