@@ -40,7 +40,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     _initializeData();
   }
 
-  Future<void> _initializeData() async 
+  Future<void> _initializeData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       try {
@@ -202,6 +202,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       },
     );
   }
+}
 
 class CurrentStatusPanel extends StatelessWidget {
   const CurrentStatusPanel({super.key, required this.status});
