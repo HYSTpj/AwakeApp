@@ -181,7 +181,7 @@ class CommonLayout extends StatelessWidget {
         break;
     }
     if (nextPage != null) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => nextPage!)
       );
@@ -190,7 +190,7 @@ class CommonLayout extends StatelessWidget {
 
   // 管理者ボタンが押された時の処理
   void _onLeaderPressed(BuildContext context) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const GroupListPage()),
     );
@@ -199,7 +199,7 @@ class CommonLayout extends StatelessWidget {
 
   // 利用者ボタンが押された時の処理
   void _onMemberPressed(BuildContext context) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const EventSelectionHome()),
     );
