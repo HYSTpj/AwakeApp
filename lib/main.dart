@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
+import 'package:vibration/vibration.dart';
 import 'login/login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
@@ -75,6 +76,9 @@ class _MyAppState extends State<MyApp> {
   bool _isDialogShowing = false;
   bool _isStoppingAlarm = false;
 
+  Timer? _vibrationTimer;
+  int _currentVibrationIntensity = 50;
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +88,7 @@ class _MyAppState extends State<MyApp> {
       for (final id in newIds) {
         final alarm = alarmSet.alarms.firstWhere((a) => a.id == id);
         _showAlarmDialog(alarm);
+        _startGradualVibration();
       }
       _lastRingingIds = currentIds;
     });
@@ -120,26 +125,27 @@ class _MyAppState extends State<MyApp> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent,
                   ),
-                  onPressed: () async {
-                    if (_isStoppingAlarm) {
-                      return;
-                    }
-
-                    _isStoppingAlarm = true;
-                    Navigator.of(context).pop();
-
-                    await Alarm.stop(alarmSettings.id);
-                    if (eventId != null) {
-                      try {
-                        await _eventRepository.stopAlarmAndUpdateStatus(
-                          eventId: eventId,
-                          phase: alarmData?['phase'] as String? ?? '',
-                        );
-                      } catch (e) {
-                        debugPrint('アラーム停止後のステータス更新に失敗: $e');
+                    onPressed: () async {
+                      if (_isStoppingAlarm) {
+                        return;
                       }
-                    }
-                  },
+
+                      _isStoppingAlarm = true;
+                      Navigator.of(context).pop();
+
+                      _stopCustomVibration();
+                      await Alarm.stop(alarmSettings.id);
+                      if (eventId != null) {
+                        try {
+                          await _eventRepository.stopAlarmAndUpdateStatus(
+                            eventId: eventId,
+                            phase: alarmData?['phase'] as String? ?? '',
+                          );
+                        } catch (e) {
+                          debugPrint('アラーム停止後のステータス更新に失敗: $e');
+                        }
+                      }
+                    },
                   child: const Text(
                     'ストップ',
                     style: TextStyle(
@@ -159,9 +165,45 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<void> _startGradualVibration() async {
+    _stopCustomVibration();
+
+    final hasAmplitude = await Vibration.hasAmplitudeControl() ?? false;
+    _currentVibrationIntensity = 50;
+    int secondsElapsed = 0;
+
+    _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (hasAmplitude) {
+        Vibration.vibrate(
+          duration: 1000,
+          amplitude: _currentVibrationIntensity,
+        );
+
+        secondsElapsed += 2;
+
+        if (secondsElapsed >= 30) {
+          secondsElapsed = 0;
+          if (_currentVibrationIntensity < 255) {
+            _currentVibrationIntensity = (_currentVibrationIntensity + 50).clamp(50, 255);
+            debugPrint('バイブレーション強度が $_currentVibrationIntensity に上昇しました。');
+          }
+        }
+      } else {
+        Vibration.vibrate(duration: 1000);
+      }
+    });
+  }
+
+  void _stopCustomVibration() {
+    _vibrationTimer?.cancel();
+    _vibrationTimer = null;
+    Vibration.cancel();
+  }
+
   @override
   void dispose() {
     _ringingSubscription?.cancel();
+    _stopCustomVibration();
     super.dispose();
   }
 
