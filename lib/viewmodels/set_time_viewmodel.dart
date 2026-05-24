@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alarm/alarm.dart';
 import '../domain/entities/event_report.dart';
 import '../domain/repositories/i_event_report_repository.dart';
 import '../data/repositories/event_report_repository_impl.dart';
+import '../utils/alarm_id.dart';
 
 class SetTimeViewModel extends ChangeNotifier {
   final String eventId;
@@ -14,10 +17,8 @@ class SetTimeViewModel extends ChangeNotifier {
   String? errorMessage;
   bool isSaving = false;
 
-  SetTimeViewModel({
-    required this.eventId,
-    IEventReportRepository? repository,
-  }) : _repository = repository;
+  SetTimeViewModel({required this.eventId, IEventReportRepository? repository})
+    : _repository = repository;
 
   Future<void> loadTime() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -29,8 +30,11 @@ class SetTimeViewModel extends ChangeNotifier {
 
     try {
       final repository = _repository ?? EventReportRepositoryImpl();
-      final EventReport? report = await repository.getEventReport(eventId, user.uid);
-          
+      final EventReport? report = await repository.getEventReport(
+        eventId,
+        user.uid,
+      );
+
       if (report != null) {
         wakeupTime = report.plannedWakeupTime;
         departureTime = report.plannedDepartureTime;
@@ -83,26 +87,28 @@ class SetTimeViewModel extends ChangeNotifier {
 
       // まずローカルでアラームの登録を行う
       final wakeupSettings = AlarmSettings(
-        id: 1, // 起床アラームの固定ID
+        id: getAlarmId(eventId, 'wakeup'),
         dateTime: wakeupTimeDay,
         assetAudioPath: 'assets/alarm.mp3',
         loopAudio: true,
         vibrate: true,
         volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        payload: jsonEncode({'eventId': eventId, 'phase': 'wakeup'}),
         notificationSettings: const NotificationSettings(
           title: '起床時間です！',
           body: 'チェックイン画面から起きたことを報告しましょう',
           stopButton: 'ストップ',
         ),
       );
-      
+
       final departureSettings = AlarmSettings(
-        id: 2, // 出発アラームの固定ID
+        id: getAlarmId(eventId, 'departure'),
         dateTime: departureTimeDay,
         assetAudioPath: 'assets/alarm.mp3',
         loopAudio: true,
         vibrate: true,
         volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        payload: jsonEncode({'eventId': eventId, 'phase': 'departure'}),
         notificationSettings: const NotificationSettings(
           title: '出発時間です！',
           body: '忘れ物はないですか？出発を報告しましょう',
@@ -135,8 +141,8 @@ class SetTimeViewModel extends ChangeNotifier {
         return reportId != null;
       } catch (e) {
         // 保存に失敗した場合は、設定したアラームをキャンセル(ロールバック)する
-        await Alarm.stop(1);
-        await Alarm.stop(2);
+        await Alarm.stop(getAlarmId(eventId, 'wakeup'));
+        await Alarm.stop(getAlarmId(eventId, 'departure'));
 
         isSaving = false;
         errorMessage = "保存に失敗しました。";
