@@ -51,7 +51,6 @@ class UserTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const SizedBox(width: 16),
           // 名前とID
           Expanded(
             child: Column(
