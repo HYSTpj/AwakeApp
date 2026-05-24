@@ -91,8 +91,12 @@ class SetTimeViewModel extends ChangeNotifier {
         dateTime: wakeupTimeDay,
         assetAudioPath: 'assets/alarm.mp3',
         loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        vibrate: false,
+        volumeSettings: VolumeSettings.fade(
+          volume: 1.0,
+          fadeDuration: const Duration(minutes: 1),
+          volumeEnforced: true,
+        ),
         payload: jsonEncode({'eventId': eventId, 'phase': 'wakeup'}),
         notificationSettings: const NotificationSettings(
           title: '起床時間です！',
@@ -106,8 +110,12 @@ class SetTimeViewModel extends ChangeNotifier {
         dateTime: departureTimeDay,
         assetAudioPath: 'assets/alarm.mp3',
         loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        vibrate: false,
+        volumeSettings: VolumeSettings.fade(
+          volume: 1.0,
+          fadeDuration: const Duration(minutes: 1),
+          volumeEnforced: true,
+        ),
         payload: jsonEncode({'eventId': eventId, 'phase': 'departure'}),
         notificationSettings: const NotificationSettings(
           title: '出発時間です！',
