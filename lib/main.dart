@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'login/login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
@@ -69,14 +70,23 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final EventRepository _eventRepository = EventRepository();
-  StreamSubscription<AlarmSettings>? _ringSubscription;
+  StreamSubscription<AlarmSet>? _ringingSubscription;
+  Set<int> _lastRingingIds = {};
   bool _isDialogShowing = false;
   bool _isStoppingAlarm = false;
 
   @override
   void initState() {
     super.initState();
-    _ringSubscription = Alarm.ringStream.stream.listen(_showAlarmDialog);
+    _ringingSubscription = Alarm.ringing.listen((AlarmSet alarmSet) {
+      final currentIds = alarmSet.alarms.map((a) => a.id).toSet();
+      final newIds = currentIds.difference(_lastRingingIds);
+      for (final id in newIds) {
+        final alarm = alarmSet.alarms.firstWhere((a) => a.id == id);
+        _showAlarmDialog(alarm);
+      }
+      _lastRingingIds = currentIds;
+    });
   }
 
   Future<void> _showAlarmDialog(AlarmSettings alarmSettings) async {
@@ -151,7 +161,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    _ringSubscription?.cancel();
+    _ringingSubscription?.cancel();
     super.dispose();
   }
 
