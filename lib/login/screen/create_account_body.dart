@@ -4,11 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; 
-import '../../grouplist_page.dart';
 import 'package:flutter/foundation.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:typed_data';
 
 Widget createAccountBody(
   BuildContext context,

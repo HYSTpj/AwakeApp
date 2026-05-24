@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
-import 'package:flutter_application_1/login/screen/create_account_body.dart';
-import 'login_page.dart'; // ログイン画面への遷移に必要
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
-import 'screen/login_header_screen.dart'; // ログイン画面のヘッダーを
-import 'create_profile_page.dart'; // アカウント作成画面のUIを定義したファイル
-import '../grouplist_page.dart'; // グループリスト画面への遷
 
 // アカウント作成画面
 class CreateAccountPage extends StatefulWidget { 

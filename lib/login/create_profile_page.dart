@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'screen/create_account_body.dart';
 import 'package:flutter_application_1/data/profiles_repository.dart';
@@ -20,7 +18,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
   final TextEditingController _userNameController = TextEditingController();
   dynamic _pickedImage;
   final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false; // 処理中のぐるぐる表示用     
+  final bool _isLoading = false; // 処理中のぐるぐる表示用
   final ProfilesRepository _profilesRepository = ProfilesRepository();                                                                                                                              
 
   @override
@@ -63,7 +61,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
   }
 
   // アカウント作成の処理(Firebaseへの保存など)
-  void  _handleCreateAccount() async {
+  Future<void> _handleCreateAccount() async {
     final String name = _userNameController.text.trim();
     final user = FirebaseAuth.instance.currentUser;
 
@@ -86,9 +84,8 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
         avatarUrl: '', // 画像URLは後で保存するので空でOK
       );
 
-      print("保存に成功しました！");
-
       // 次の画面へ遷移
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const GroupListPage()),
