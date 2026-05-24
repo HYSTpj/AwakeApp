@@ -22,8 +22,6 @@ class _AddGroupPageState extends State<AddGroupPage> {
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
-  bool _isLoading = false; // 参加処理中のフラグ
-
   @override
   // メモリを解放するための関数
   void dispose() {
@@ -51,8 +49,6 @@ class _AddGroupPageState extends State<AddGroupPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
       final success = await viewModel.addGroup(user.uid, code);
 
@@ -75,8 +71,8 @@ class _AddGroupPageState extends State<AddGroupPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      debugPrint("エラーあり");
     }
   }
 
@@ -135,26 +131,31 @@ class _AddGroupPageState extends State<AddGroupPage> {
 
   // グループ参加ボタン
   Widget _addButton() {
-    return SizedBox(
-      width: 400,
-      height: 80,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _invitation, // ローディング中は無効
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 2),
-          ),
-        ),
-        child: _isLoading
-            ? const CircularProgressIndicator() // ローディングインジケーター
-            : const Text(
-                'Add',
-                style: TextStyle(fontSize: 24),
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        return SizedBox(
+          width: 400,
+          height: 80,
+          child: ElevatedButton(
+            onPressed: viewModel.isLoading ? null : _invitation, // ローディング中は無効
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: Colors.black, width: 2),
               ),
-      ),
+            ),
+            child: viewModel.isLoading
+                ? const CircularProgressIndicator() // ローディングインジケーター
+                : const Text(
+                    'Add',
+                    style: TextStyle(fontSize: 24),
+                  ),
+          ),
+        );
+      },
     );
   }
 }

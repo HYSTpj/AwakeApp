@@ -4,7 +4,9 @@ import '../domain/group_entity.dart';
 
 // groups ドキュメント
 class GroupRepositoryImpl implements GroupRepository {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
+
+  GroupRepositoryImpl({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
 
   @override
   // グループ作成

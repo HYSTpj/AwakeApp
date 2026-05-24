@@ -22,8 +22,6 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
   final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
-  bool _isLoading = false; // 削除処理中のフラグ
-
   @override
   // メモリを解放するための関数
   void dispose() {
@@ -72,8 +70,6 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
       final success = await viewModel.deleteGroup(user.uid, groupId);
 
@@ -96,8 +92,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      debugPrint("エラーあり");
     }
   }
 
@@ -156,26 +152,31 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
   // グループ削除ボタン
   Widget _deleteButton() {
-    return SizedBox(
-      width: 400,
-      height: 80,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _deleteGroup, // ローディング中は無効
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Colors.black, width: 2),
-          ),
-        ),
-        child: _isLoading
-            ? const CircularProgressIndicator() // ローディングインジケーター
-            : const Text(
-                'Delete',
-                style: TextStyle(fontSize: 24),
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        return SizedBox(
+          width: 400,
+          height: 80,
+          child: ElevatedButton(
+            onPressed: viewModel.isLoading ? null : _deleteGroup, // ローディング中は無効
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: Colors.black, width: 2),
               ),
-      ),
+            ),
+            child: viewModel.isLoading
+                ? const CircularProgressIndicator() // ローディングインジケーター
+                : const Text(
+                    'Delete',
+                    style: TextStyle(fontSize: 24),
+                  ),
+          ),
+        );
+      },
     );
   }
 }
