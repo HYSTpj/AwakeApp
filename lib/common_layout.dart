@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'grouplist_page.dart';
+import 'group/view/group_list_view.dart';
 import 'create_event_page.dart';
 import 'member_check_in.dart';
 import 'ranking/ranking_screen.dart';
