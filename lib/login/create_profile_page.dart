@@ -18,7 +18,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
   final TextEditingController _userNameController = TextEditingController();
   dynamic _pickedImage;
   final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false; // 処理中のぐるぐる表示用     
+  final bool _isLoading = false; // 処理中のぐるぐる表示用     
   final ProfilesRepository _profilesRepository = ProfilesRepository();                                                                                                                              
 
   @override
@@ -84,8 +84,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
         avatarUrl: '', // 画像URLは後で保存するので空でOK
       );
 
-      print("保存に成功しました！");
+      debugPrint("保存に成功しました！");
 
+      if (!mounted) return;
       // 次の画面へ遷移
       Navigator.push(
         context,
@@ -93,6 +94,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       );
 
     } catch (e) {
+      if (!context.mounted) return;
       _showSnackBar('プロファイルの保存に失敗しました: $e');
     }
   }

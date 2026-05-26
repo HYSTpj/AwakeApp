@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; 
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import 'dart:typed_data';
 
 Widget createAccountBody(
   BuildContext context,
