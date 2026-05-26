@@ -8,8 +8,20 @@ import 'return_button.dart';
 class MemberPostPage extends StatelessWidget {
   final Map<String, dynamic> member; // 名前やアイコン用
   final Map<String, dynamic> report; // 理由や写真用
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
 
-  const MemberPostPage({super.key, required this.member, required this.report});
+  const MemberPostPage({
+    super.key,
+    required this.member,
+    required this.report,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+  });
 
   // 位置情報を文字に変換する関数
   String _formatLocation(dynamic location) {
@@ -30,6 +42,10 @@ class MemberPostPage extends StatelessWidget {
     }
 
     return CommonLayout(
+      groupId: groupId,
+      eventId: eventId,
+      eventTitle: eventTitle,
+      myRole: myRole,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(

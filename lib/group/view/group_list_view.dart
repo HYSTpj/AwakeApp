@@ -182,7 +182,10 @@ class _GroupListPageState extends State<GroupListPage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => EventSelectionHome(groupId: value),
+                                builder: (context) => EventSelectionHome(
+                                  groupId: value,
+                                  myRole: role!
+                                ),
                               ),
                             );
                             return;

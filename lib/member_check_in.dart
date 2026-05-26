@@ -12,12 +12,14 @@ class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final int myRole;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    required this.myRole
   });
 
   @override
@@ -131,7 +133,12 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
-        builder: (context) => const QRScannerPage(),
+        builder: (context) => QRScannerPage(
+          groupId: widget.groupId,
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          myRole: widget.myRole,
+        ),
       ),
     );
 
@@ -174,6 +181,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
           eventId: widget.eventId,
           eventTitle: widget.eventTitle,
           groupId: widget.groupId,
+          myRole: widget.myRole,
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24),

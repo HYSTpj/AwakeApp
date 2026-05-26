@@ -6,15 +6,19 @@ import 'package:flutter/services.dart'; // コピー用
 import 'return_button.dart';
 
 class QrcodePage extends StatefulWidget {
+  final String groupId;
   final String eventId;
   final String eventTitle;
+  final int myRole;
   final String arrivalTime;
   final String password;
 
   const QrcodePage({
     super.key,
+    required this.groupId,
     required this.eventId,
     required this.eventTitle,
+    required this.myRole,
     required this.arrivalTime,
     required this.password,
   });
@@ -30,6 +34,10 @@ class _QrcodePageState extends State<QrcodePage> {
   Widget build(BuildContext context) {
     return CommonLayout(
       // 共通レイアウトを使用
+      groupId: widget.groupId,
+      eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      myRole: widget.myRole,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(

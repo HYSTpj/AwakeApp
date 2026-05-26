@@ -9,12 +9,18 @@ import 'common_layout.dart';
 import 'return_button.dart';
 
 class SetTimePage extends StatefulWidget {
+  final String groupId;
   final String eventId;
+  final String eventTitle;
+  final int myRole;
   final DateTime arrivalTime;
 
   const SetTimePage({
     super.key,
+    required this.groupId,
     required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
     required this.arrivalTime,
   });
 
@@ -117,7 +123,10 @@ class _SetTimePageState extends State<SetTimePage> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      groupId: widget.groupId,
       eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      myRole: widget.myRole,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
