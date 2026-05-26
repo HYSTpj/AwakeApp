@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'; // 時刻選択用パッケージ
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'common_layout.dart';
@@ -77,6 +76,7 @@ class _SetTimePageState extends State<SetTimePage> {
     required Function(DateTime) onConfirm,
   }) {
     return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black, width: 3),
@@ -84,29 +84,45 @@ class _SetTimePageState extends State<SetTimePage> {
       ),
       width: double.infinity,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 両端寄せ
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 3),
-              color: Colors.deepOrange,
-            ),
-            child: Icon(icon, color: Colors.white, size: 30),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 3),
+                  color: Colors.deepOrange,
+                ),
+                child: Icon(icon, color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: 15),
+              Text(
+                label, 
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ],
           ),
-          const SizedBox(width: 15),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
           TextButton(
-            onPressed: () {
-              DatePicker.showTimePicker(
-                context,
-                showTitleActions: true, // キャンセル，完了表示
-                showSecondsColumn: false, // 秒表記なし
-                onConfirm: onConfirm,
-                currentTime: DateTime.now(), // 初期値設定
-                locale: LocaleType.en, // アプリに合わせて言語を英語に設定
+            onPressed: () async {
+              final TimeOfDay? picked = await showTimePicker(
+                context: context,
+                initialTime: currentTime != null 
+                    ? TimeOfDay.fromDateTime(currentTime) 
+                    : const TimeOfDay(hour: 7, minute: 0), // デフォルトは朝7:00
               );
+
+              if (picked != null) {
+                final now = DateTime.now();
+                final combinedDateTime = DateTime(
+                  now.year,
+                  now.month,
+                  now.day,
+                  picked.hour,
+                  picked.minute,
+                );
+                onConfirm(combinedDateTime);
+              }
             },
             child: Text(
               currentTime != null
@@ -177,6 +193,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   _departureTime = date;
                 }),
               ),
+              const SizedBox(height: 8),
 
               // 集合時間表示
               Container(
@@ -189,29 +206,32 @@ class _SetTimePageState extends State<SetTimePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // カレンダーアイコン
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white, width: 2),
-                        color: Colors.black,
-                      ),
-                      child: const Icon(
-                        Icons.event,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-
-                    const SizedBox(width: 15),
-
-                    // Arrival Goal
-                    const Text(
-                      'Arrival Goal',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    Row(
+                      children: [
+                        // カレンダーアイコン
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 2),
+                            color: Colors.black,
+                          ),
+                          child: const Icon(
+                            Icons.event,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        // Arrival Goal
+                        const Text(
+                          'Arrival Goal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 10),
@@ -225,18 +245,19 @@ class _SetTimePageState extends State<SetTimePage> {
                       ),
                       child: Text(
                         DateFormat('HH:mm').format(widget.arrivalTime),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 100),
+              const SizedBox(height: 60),
 
               // SAVE CHANGESボタン
               SizedBox(
                 width: double.infinity,
-                height: 80,
+                height: 64,
                 child: ElevatedButton(
                   onPressed: () async {
                     if (user != null &&
@@ -294,18 +315,13 @@ class _SetTimePageState extends State<SetTimePage> {
                       borderRadius: BorderRadius.circular(0),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // 中央寄せ
-                    children: [
-                      Text(
-                        'SAVE CHANGES',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 25,
-                        ),
-                      ),
-                    ],
+                  child: const Text(
+                    'SAVE CHANGES',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 22,
+                    ),
                   ),
                 ),
               ),
