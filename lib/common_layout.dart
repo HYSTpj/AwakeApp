@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'data/profiles_repository.dart';
 import 'group/view/group_list_view.dart';
 import 'create_event_page.dart';
 import 'member_check_in.dart';
@@ -120,10 +122,49 @@ class CommonLayout extends StatelessWidget {
 
   ///AppBarの右側
   List<Widget> _buildRightIcons() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return [
+        const Padding(
+          padding: EdgeInsets.only(right: 16),
+          child: CircleAvatar(
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          ),
+        )
+      ];
+    }
     return [
-      IconButton(
-        icon: const Icon(Icons.account_circle),
-        onPressed: _onProfilePressed,
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: GestureDetector(
+          onTap: _onProfilePressed,
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: ProfilesRepository().getProfile(uid: currentUser.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError || !snapshot.hasData) {
+                return const CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, color: Colors.white),
+                );
+              }
+
+              final profileData = snapshot.data ?? {};
+              final String? avatarUrl = profileData['avatar_url'];
+
+              return CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: (avatarUrl == null || avatarUrl.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              );
+            },
+          ),
+        ),
       ),
     ];
   }
