@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/group_data.dart';
 import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
-import 'return_button.dart';
+import '../../return_button.dart';
 import 'group_list_view.dart';
 
 /// グループ作成ページ

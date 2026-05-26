@@ -9,8 +9,13 @@ import '../domain/event_entity.dart';
 
 class EventListPage extends StatefulWidget {
   final String groupId;
+  final int myRole;
 
-  const EventListPage({super.key, required this.groupId});
+  const EventListPage({
+    super.key,
+    required this.groupId,
+    required this.myRole,
+  });
 
   @override
   State<EventListPage> createState() => _EventListPageState();
@@ -71,7 +76,7 @@ class _EventListPageState extends State<EventListPage> {
     final arrivalTime = _formatTime(event.arrivalTime);
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (!mounted) return;
         if (myRole == 0) {
           setState(() {
@@ -79,6 +84,16 @@ class _EventListPageState extends State<EventListPage> {
             selectedEventTitle = event.title;
           });
           debugPrint('${event.title}の管理者ページへ移動');
+
+          await Future.delayed(Duration.zero); // 画面遷移が落ち着くのを待つ
+
+          // データを再取得して最新状態にリフレッシュ
+          if (mounted) {
+            setState(() {
+              _viewModel.loadData(); // 一覧のデータを再読込
+            });
+            debugPrint('データを最新に更新');
+          }
         } else {
           debugPrint('${event.title}の利用者ページへ移動');
         }
@@ -182,7 +197,7 @@ class _EventListPageState extends State<EventListPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final myRole = _viewModel.myRole ?? 1;
+    final myRole = _viewModel.myRole;
     final events = _viewModel.events;
 
     if (selectedEventId != null) {
@@ -216,14 +231,22 @@ class _EventListPageState extends State<EventListPage> {
               height: 50,
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CreateEventPage(groupId: widget.groupId),
                     ),
                   );
                   debugPrint('イベント作成ページへ移動');
+
+                  // 画面が戻ってきたらデータを再取得して画面を更新
+                  if (mounted) {
+                    setState(() {
+                      _viewModel.loadData();
+                    });
+                    debugPrint('イベント一覧をリフレッシュ');
+                  }
                 },
                 icon: const Icon(Icons.add, color: Colors.black),
                 label: const Text(
@@ -249,7 +272,7 @@ class _EventListPageState extends State<EventListPage> {
               ? const Center(child: Text('No events found for this group.'))
               : ListView.builder(
                   itemCount: events.length,
-                  itemBuilder: (context, index) => _buildEventTile(events[index], myRole),
+                  itemBuilder: (context, index) => _buildEventTile(events[index], myRole!),
                 ),
         ),
       ],

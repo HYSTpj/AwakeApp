@@ -4,8 +4,9 @@ import '../data/event_repository.dart';
 
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'; // 時刻選択用パッケージ
 import 'package:intl/intl.dart';
-import 'save_changes_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'common_layout.dart';
+import 'return_button.dart';
 
 class SetTimePage extends StatefulWidget {
   final String eventId;
@@ -72,7 +73,7 @@ class _SetTimePageState extends State<SetTimePage> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 2),
+        border: Border.all(color: Colors.black, width: 3),
         color: Colors.white,
       ),
       width: double.infinity,
@@ -82,7 +83,7 @@ class _SetTimePageState extends State<SetTimePage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 2),
+              border: Border.all(color: Colors.black, width: 3),
               color: Colors.deepOrange,
             ),
             child: Icon(icon, color: Colors.white, size: 30),
@@ -115,13 +116,21 @@ class _SetTimePageState extends State<SetTimePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CommonLayout(
+      eventId: widget.eventId,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // 左寄せ
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 16),
+              // 戻るボタン
+              ReturnButton(onTap: () {
+                Navigator.pop(context);
+                debugPrint('1画面戻る');
+              }),
+              const SizedBox(height: 10),
               // My Schedule表示
               const Text(
                 'My Schedule',
@@ -135,7 +144,7 @@ class _SetTimePageState extends State<SetTimePage> {
               // 間のオレンジ線
               const Divider(
                 color: Colors.deepOrangeAccent,
-                thickness: 2,
+                thickness: 3,
                 height: 20,
               ),
 
@@ -164,7 +173,7 @@ class _SetTimePageState extends State<SetTimePage> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 2),
+                  border: Border.all(color: Colors.black, width: 3),
                   color: Colors.deepOrangeAccent,
                 ),
                 width: double.infinity,
@@ -252,18 +261,10 @@ class _SetTimePageState extends State<SetTimePage> {
                       if (reportId != null) {
                         // レポートが存在したら
                         if (context.mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SaveChangesPage(
-                                eventId: widget.eventId,
-                                wakeupTime: wakeupTimeDay,
-                                departureTime: departureTimeDay,
-                                arrivalTime: widget.arrivalTime,
-                              ),
-                            ),
+                          Navigator.pop(context); 
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Schedule saved successfully.')),
                           );
-                          debugPrint('保存画面へ移動');
                         }
                       }
                     } else {
@@ -279,7 +280,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent,
-                    side: const BorderSide(color: Colors.black, width: 2),
+                    side: const BorderSide(color: Colors.black, width: 3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(0),
                     ),

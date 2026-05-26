@@ -95,6 +95,8 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         child: DropdownButton<String>(
           value: _myGroups.any((g) => g['group_id'] == _currentGroupId) ? _currentGroupId : null,
           isExpanded: true,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
           items: _myGroups.map((group) {
             return DropdownMenuItem<String>(

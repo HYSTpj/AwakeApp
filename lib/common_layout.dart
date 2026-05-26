@@ -101,12 +101,18 @@ class CommonLayout extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: const Icon(Icons.flag),
-          onPressed: () => _onLeaderPressed(context),
+          icon: const Icon(Icons.flag, color: Colors.black),
+          onPressed: () {
+            _onLeaderPressed(context);
+            debugPrint("管理者ボタン");
+          },
         ),
         IconButton(
-          icon: const Icon(Icons.schedule),
-          onPressed: () => _onMemberPressed(context),
+          icon: const Icon(Icons.schedule, color: Colors.black),
+          onPressed: () {
+            _onMemberPressed(context);
+            debugPrint("利用者ボタン");
+          },
         ),
       ],
     );
@@ -153,7 +159,7 @@ class CommonLayout extends StatelessWidget {
     Widget? nextPage;
     switch (index) {
       case 0:
-        nextPage = const EventSelectionHome();  // あとからポスト，ランキング画面に変更
+        nextPage = EventSelectionHome(groupId: groupId ?? "");   // あとからポスト，ランキング画面に変更
         break;
       case 1:
         // IDがない場合
@@ -190,18 +196,29 @@ class CommonLayout extends StatelessWidget {
 
   // 管理者ボタンが押された時の処理
   void _onLeaderPressed(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const GroupListPage()),
-    );
-    debugPrint('管理者ボタンが押されました');
+    // 管理者のときだけ遷移を許可
+    if (myRole == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: groupId)),
+      );
+      debugPrint('管理者ページへ移動');
+    } else {
+      // 利用者のとき
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('閲覧権限がありません（管理者のみ利用可能）')
+        ),
+      );
+      debugPrint('利用者のため遷移不可');
+    }
   }
 
   // 利用者ボタンが押された時の処理
   void _onMemberPressed(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const EventSelectionHome()),
+      MaterialPageRoute(builder: (context) => EventSelectionHome(groupId: groupId ?? "")),
     );
     debugPrint('利用者ボタンが押されました');
   }

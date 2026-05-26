@@ -157,7 +157,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                     backgroundColor: Colors.deepOrangeAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(0),
-                      side: const BorderSide(color: Colors.black, width: 2),
+                      side: const BorderSide(color: Colors.black, width: 3),
                     ),
                   ),
                 ),

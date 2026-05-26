@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'common_layout.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // qrコード表示用
 import 'package:flutter/services.dart'; // コピー用
+import 'return_button.dart';
 
 class QrcodePage extends StatefulWidget {
   final String eventId;
@@ -32,34 +33,14 @@ class _QrcodePageState extends State<QrcodePage> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 要素を画面内に均等に配置する
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 16),
             // 戻るボタン
-            const SizedBox(height: 5),
-            Align(
-              alignment: Alignment.topLeft, // 左上に表示
-              child: Container(
-                margin: const EdgeInsets.only(top: 10, left: 5),
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(0),
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context); // memberstatus_pageに戻る
-                    debugPrint('1画面戻る');
-                  },
-                ),
-              ),
-            ),
+            ReturnButton(onTap: () {
+              Navigator.pop(context);
+              debugPrint('1画面戻る');
+            }),
 
             const SizedBox(height: 10),
 
