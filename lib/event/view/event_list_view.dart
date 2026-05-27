@@ -71,7 +71,7 @@ class _EventListPageState extends State<EventListPage> {
     final arrivalTime = _formatTime(event.arrivalTime);
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (!mounted) return;
         if (myRole == 0) {
           setState(() {
@@ -79,6 +79,23 @@ class _EventListPageState extends State<EventListPage> {
             selectedEventTitle = event.title;
           });
           debugPrint('${event.title}の管理者ページへ移動');
+
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MemberStatusPage(
+                eventId: event.eventId,
+                eventTitle: event.title,
+                arrivalTime: arrivalTime,
+                password: event.password,
+              ),
+            ),
+          );
+
+          if (mounted) {
+            _viewModel.loadData();
+            debugPrint('イベント一覧のデータを最新に更新（リフレッシュ）');
+          }
         } else {
           debugPrint('${event.title}の利用者ページへ移動');
         }
@@ -216,14 +233,18 @@ class _EventListPageState extends State<EventListPage> {
               height: 50,
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CreateEventPage(groupId: widget.groupId),
                     ),
                   );
-                  debugPrint('イベント作成ページへ移動');
+                  
+                  if (mounted) {
+                    _viewModel.loadData();
+                    debugPrint('イベント一覧をリフレッシュ');
+                  }
                 },
                 icon: const Icon(Icons.add, color: Colors.black),
                 label: const Text(
