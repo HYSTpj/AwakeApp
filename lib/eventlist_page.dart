@@ -173,8 +173,6 @@ class _EventListPageState extends State<EventListPage> {
                               });
 
                               debugPrint('${event['title']}の管理者ページへ移動');
-                            } else {
-                              // 利用者の時
                               /*
                         Navigator.push(
                           context,
