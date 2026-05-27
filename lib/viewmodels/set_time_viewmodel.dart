@@ -84,7 +84,7 @@ class SetTimeViewModel extends ChangeNotifier {
         wakeupTime!.hour,
         wakeupTime!.minute,
       );
-      final departureTimeDay = DateTime(
+        DateTime departureTimeDay = DateTime(
         arrivalTime.year,
         arrivalTime.month,
         arrivalTime.day,
