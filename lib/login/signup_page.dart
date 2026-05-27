@@ -43,10 +43,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             );
 
             if (!context.mounted) return;
-            Navigator.pop(context); // 成功したら戻る
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('アカウントが作成されました')),
             );
+            Navigator.pop(context); // 成功したら戻る
           } on FirebaseAuthException catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(e.message ?? '失敗しました')),
