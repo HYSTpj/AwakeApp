@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 import '../widgets/statusbutton.dart';
+import '../utils/alarm_id.dart';
+
+import 'package:alarm/alarm.dart';
 
 class MemberCheckInViewModel extends ChangeNotifier {
   final String eventId;
@@ -36,7 +39,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
     }
 
     try {
-      final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(groupId).get();
+      final groupDoc = await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .get();
       if (groupDoc.exists) {
         groupName = groupDoc.data()?['group_name'] ?? 'Unknown Group';
       }
@@ -48,7 +54,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
 
     var report = await _eventRepository.getEventReport(eventId, _userId!);
     if (report == null) {
-      _reportId = await _eventRepository.createReportIfNotExist(eventId, _userId!);
+      _reportId = await _eventRepository.createReportIfNotExist(
+        eventId,
+        _userId!,
+      );
       report = await _eventRepository.getEventReport(eventId, _userId!);
     } else {
       _reportId = report['report_id'];
@@ -102,9 +111,12 @@ class MemberCheckInViewModel extends ChangeNotifier {
   Future<void> toggleWakeUp() async {
     if (_reportId == null || isWakeUpPressed) return;
     isWakeUpPressed = true;
-    notifyListeners(); // まずUIだけ反応させる
-    
+
+    // 起床アラームを停止
+    await Alarm.stop(getAlarmId(eventId, 'wakeup'));
     await _eventRepository.updateWakeupTime(_reportId!);
+
+    notifyListeners(); // まずUIだけ反応させる
     await loadData();
   }
 
@@ -112,9 +124,15 @@ class MemberCheckInViewModel extends ChangeNotifier {
   Future<void> toggleDeparture() async {
     if (_reportId == null || isDeparturePressed) return;
     isDeparturePressed = true;
+
+    // 出発アラームを停止
+    await Alarm.stop(getAlarmId(eventId, 'departure'));
+    await _eventRepository.stopAlarmAndUpdateStatus(
+      eventId: eventId,
+      phase: 'departure',
+    );
+
     notifyListeners(); // まずUIだけ反応させる
-    
-    await _eventRepository.updateDepartureTime(_reportId!);
     await loadData();
   }
 

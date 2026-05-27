@@ -62,9 +62,7 @@ class _EventListPageState extends State<EventListPage> {
 
     return FutureBuilder<List<dynamic>>(
       // 作業終わるまで置き換えておく画面作成
-      
       future: _pageDataFuture, // 先に予約しておいたデータ取得の作業を呼び出す
-
       builder: (context, snapshot) {
         // 状況(snapshot)に合わせて作る画面作成
 
@@ -175,8 +173,6 @@ class _EventListPageState extends State<EventListPage> {
                               });
 
                               debugPrint('${event['title']}の管理者ページへ移動');
-                            } else {
-                              // 利用者の時
                               /*
                         Navigator.push(
                           context,
