@@ -78,5 +78,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- 背景での音声再生と通知の処理用 (Alarmパッケージ用) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>
