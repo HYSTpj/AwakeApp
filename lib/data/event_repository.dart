@@ -157,7 +157,10 @@ class EventRepository {
   }
 
   Future<void> updateEventParticipants(String eventId, List<String> participants) async {
-    await _db.collection('events').doc(eventId).update({
+    await _db
+        .collection('events')
+        .doc(eventId)
+        .update({
       'participants': participants,
       'update_at': FieldValue.serverTimestamp(),
     });

@@ -191,7 +191,6 @@ class _EventListPageState extends State<EventListPage> {
                                 selectedEventTitle = event['title'];
                               });
                               debugPrint('${event['title']}の管理者ページへ移動');
-
                               await Future.delayed(Duration.zero); // 画面遷移が落ち着くのを待つ
 
                               // 詳細画面から戻ってきた瞬間に、一覧のデータをFirestoreから再取得して、詳細画面へ渡すデータも最新状態にリフレッシュ
