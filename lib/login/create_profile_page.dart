@@ -78,13 +78,23 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
     try {
       // 画像があればFirebase StorageにアップロードしてURLを取得
+      String avatarUrl = '';
+      if (_pickedImage != null) {
+        final url = await _profilesRepository.uploadProfileImage(
+          uid: user.uid,
+          image: _pickedImage,
+        );
+        if (url != null) {
+          avatarUrl = url;
+        }
+      }
+
       await _profilesRepository.setProfile(
         uid: user.uid,
         nickname: name,
-        avatarUrl: '', // 画像URLは後で保存するので空でOK
+        avatarUrl: avatarUrl,
       );
       debugPrint("保存に成功しました！");
-
       if (!mounted) return;
       Navigator.push(
         context,
