@@ -349,7 +349,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         // 3. 次の画面（参加者選択ページ）へ遷移
                         if (!context.mounted) return;
                         if (eventId != null) {
-                          Navigator.push(
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => SelectParticipantsPage(
@@ -358,6 +358,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
                               ),
                             ),
                           );
+                          // SelectParticipantsPageから戻ってきたら、自分も閉じる
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
                         }
                       },
                       child: Container(
