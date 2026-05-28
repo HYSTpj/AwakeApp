@@ -51,8 +51,21 @@ class _EventListPageState extends State<EventListPage> {
 
   // 時間変換処理
   String _time(dynamic timestamp) {
-    if (timestamp != null && timestamp is Timestamp) {
-      return DateFormat("M/dd HH:mm").format(timestamp.toDate());
+    if (timestamp == null) return 'No decided yet';
+
+    try {
+      // Timestamp型の場合
+      if (timestamp is Timestamp) {
+        return DateFormat("M/dd HH:mm").format(timestamp.toDate());
+      }
+      
+      // 文字列の場合
+      if (timestamp is String) {
+        final parsedDate = DateTime.parse(timestamp);
+        return DateFormat("M/dd HH:mm").format(parsedDate);
+      }
+    } catch (e) {
+      debugPrint('時間変換エラー: $e');
     }
     return 'No decided yet';
   }
@@ -110,15 +123,22 @@ class _EventListPageState extends State<EventListPage> {
                   height: 50,
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      // 前の画面（イベント作成➔参加者選択）が全部終わって戻ってくるのを await で待つ
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (contet) => CreateEventPage(groupId: widget.groupId)  // group_idも渡す,
-                          ),
+                          builder: (context) => CreateEventPage(groupId: widget.groupId),
+                        ),
                       );
-                           
-                      debugPrint('イベント作成ページへ移動');
+                      
+                      // 画面が戻ってきたらデータを再取得して画面を更新
+                      if (mounted) {
+                        setState(() {
+                          _loadData();
+                        });
+                        debugPrint('イベント一覧をリフレッシュ');
+                      }
                     },
                     icon: const Icon(Icons.add, color: Colors.black),
                     label: const Text(
@@ -167,12 +187,20 @@ class _EventListPageState extends State<EventListPage> {
                               // 管理者の時
 
                               setState(() {
-                                // ビルドやり直してイベント管理者ページへ移動
                                 selectedEventId = event['event_id'];
                                 selectedEventTitle = event['title'];
                               });
-
                               debugPrint('${event['title']}の管理者ページへ移動');
+
+                              await Future.delayed(Duration.zero); // 画面遷移が落ち着くのを待つ
+
+                              // 詳細画面から戻ってきた瞬間に、一覧のデータをFirestoreから再取得して、詳細画面へ渡すデータも最新状態にリフレッシュ
+                              if (mounted) {
+                                setState(() {
+                                  _loadData(); // 一覧のデータを再読込
+                                });
+                                debugPrint('データを最新に更新');
+                              }
                               /*
                         Navigator.push(
                           context,
