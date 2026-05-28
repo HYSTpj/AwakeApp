@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'common_layout.dart';
 import 'data/event_repository.dart';
-import 'eventlist_page.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 
 class UserTile extends StatelessWidget {
-  final String name;
+  final String nickname;
   final String userId;
+  final String avatarUrl;
   final bool isAttending;
   final VoidCallback? onToggle;
 
   const UserTile({
     super.key,
-    required this.name,
+    required this.nickname,
     required this.userId,
+    required this.avatarUrl,
     this.isAttending = false,
     this.onToggle,
   });
@@ -33,9 +34,20 @@ class UserTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF7ED),
               shape: BoxShape.circle,
-              border: Border.all(width: 3, color: Colors.black),
+            ),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey,
+              backgroundImage: avatarUrl.isNotEmpty
+                  ? NetworkImage(avatarUrl) // 画像がある時は写真を表示
+                  : null,
+              child: avatarUrl.isEmpty
+                  ? const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 24,
+                    )
+                  : null,
             ),
           ),
           const SizedBox(width: 16),
@@ -44,7 +56,7 @@ class UserTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(nickname, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text('@$userId', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontSize: 12)),
               ],
             ),
@@ -98,11 +110,15 @@ Future<void> _loadMembers() async {
       final members = await _repository.getGroupMembers(widget.groupId);
       setState(() {
         _allMembers = members;
+        _selectedMembers = {};
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('メンバー取得エラー: $e');
-      setState(() => _isLoading = false);
+      setState(() {
+        _selectedMembers = {};
+        _isLoading = false;
+      });
     }
   }
 
@@ -120,13 +136,8 @@ Future<void> _loadMembers() async {
 
       if (!mounted) return;
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EventListPage(groupId: widget.groupId),
-        ), // ここは実際のクラス名に合わせてください
-        (route) => false,
-      );
+      Navigator.pop(context);
+      Navigator.pop(context);
     } catch (e) {
       debugPrint('保存エラー: $e');
       if (mounted) {
@@ -227,13 +238,15 @@ Future<void> _loadMembers() async {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: _allMembers.map((member) {
-                  final memberName = member['name'] ?? 'No Name';
+                  final memberName = member['nickname'] ?? 'No Name';
                   final memberId = member['uid'] ?? '';
+                  final memberAvatar = member['avatar_url'] ?? '';
                   final isSelected = _selectedMembers.contains(memberId); 
                   
                   return UserTile(
-                    name: memberName,
+                    nickname: memberName,
                     userId: memberId,
+                    avatarUrl: memberAvatar,
                     isAttending: isSelected,
                     onToggle: () {
                       // ボタンが押された時の処理
