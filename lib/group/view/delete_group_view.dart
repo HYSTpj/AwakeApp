@@ -76,7 +76,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       if (!mounted) return;
       
       if (success) {
-        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
+        Navigator.pushReplacement(context, MaterialPageRoute(  // 新しい画面へ進む
           builder: (context) => const GroupListPage()
         ),);
 
