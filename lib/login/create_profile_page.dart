@@ -86,8 +86,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       debugPrint("保存に成功しました！");
 
       if (!mounted) return;
-      // 次の画面へ遷移
-      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const GroupListPage()),
