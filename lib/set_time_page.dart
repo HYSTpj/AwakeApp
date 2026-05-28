@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'viewmodels/set_time_viewmodel.dart';
 import 'common_layout.dart';
 import 'return_button.dart';
-import 'save_changes_page.dart';
 
 class SetTimePage extends StatefulWidget {
   final String groupId;
@@ -258,29 +257,7 @@ class _SetTimePageState extends State<SetTimePage> {
                           : () async {
                               final success = await _viewModel.saveChanges(widget.arrivalTime);
                               if (success && context.mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SaveChangesPage(
-                                      eventId: widget.eventId,
-                                      wakeupTime: DateTime(
-                                        widget.arrivalTime.year,
-                                        widget.arrivalTime.month,
-                                        widget.arrivalTime.day,
-                                        _viewModel.wakeupTime!.hour,
-                                        _viewModel.wakeupTime!.minute,
-                                      ),
-                                      departureTime: DateTime(
-                                        widget.arrivalTime.year,
-                                        widget.arrivalTime.month,
-                                        widget.arrivalTime.day,
-                                        _viewModel.departureTime!.hour,
-                                        _viewModel.departureTime!.minute,
-                                      ),
-                                      arrivalTime: widget.arrivalTime,
-                                    ),
-                                  ),
-                                );
+                                Navigator.pop(context);
                                 debugPrint('保存画面へ移動');
                               }
                             },
