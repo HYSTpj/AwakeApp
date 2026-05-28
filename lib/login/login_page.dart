@@ -33,11 +33,18 @@ class _LoginPageState extends State<LoginPage> {
             passwordController: passwordController,
             
             onLoginPressed: () async {
+              if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
+                );
+                return;
+              }
+
               try {
                 // ★ここを確実に controller.text で取得するようにします
                 await FirebaseAuth.instance.signInWithEmailAndPassword(
                   email: emailController.text.trim(),
-                  password: passwordController.text.trim(),
+                  password: passwordController.text, // trim()を削除
                 );
                 debugPrint("ログイン成功");
                 if (!context.mounted) return;
@@ -45,8 +52,16 @@ class _LoginPageState extends State<LoginPage> {
                   context,
                   MaterialPageRoute(builder: (context) => const GroupListPage()),
                 );
-              } catch (e) {
+              } on FirebaseAuthException catch (e) {
                 debugPrint("ログイン失敗: $e");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.message ?? 'ログインに失敗しました')),
+                );
+              } catch (e) {
+                debugPrint("予期せぬエラー: $e");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('エラーが発生しました')),
+                );
               }
             },
 
