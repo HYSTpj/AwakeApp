@@ -51,8 +51,9 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // ダイアログを閉じる
-                  Navigator.of(context).pop(); // 元の画面へ戻る
+                  final navigator = Navigator.of(context);
+                  navigator.pop(); // ダイアログを閉じる
+                  navigator.pop(); // 元の画面へ戻る
                 },
                 child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
@@ -143,7 +144,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                       if (!ctx.mounted) return;
 
                       if (reportId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(ctx).showSnackBar(
                           const SnackBar(
                             content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                             backgroundColor: Colors.red,

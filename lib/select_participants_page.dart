@@ -108,6 +108,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
 Future<void> _loadMembers() async {
     try {
       final members = await _repository.getGroupMembers(widget.groupId);
+      if (!mounted) return;
       setState(() {
         _allMembers = members;
         _selectedMembers = {};
@@ -115,6 +116,7 @@ Future<void> _loadMembers() async {
       });
     } catch (e) {
       debugPrint('メンバー取得エラー: $e');
+      if (!mounted) return;
       setState(() {
         _selectedMembers = {};
         _isLoading = false;
@@ -136,8 +138,9 @@ Future<void> _loadMembers() async {
 
       if (!mounted) return;
 
-      Navigator.pop(context);
-      Navigator.pop(context);
+      final navigator = Navigator.of(context);
+      navigator.pop();
+      navigator.pop();
     } catch (e) {
       debugPrint('保存エラー: $e');
       if (mounted) {
