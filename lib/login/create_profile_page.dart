@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'screen/create_account_body.dart';
 import 'package:flutter_application_1/data/profiles_repository.dart';
-import '../grouplist_page.dart';
+import '../group/view/group_list_view.dart';
 
 class CreateAccountProfile extends StatefulWidget {
   const CreateAccountProfile({super.key});
