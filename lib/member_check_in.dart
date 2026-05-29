@@ -5,9 +5,6 @@ import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'data/group_repository.dart';
-
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
@@ -28,35 +25,18 @@ class MemberCheckInPage extends StatefulWidget {
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
   late final MemberCheckInViewModel _viewModel;
-  late String _currentGroupId; // 現在表示中のグループID
-  List<Map<String, dynamic>> _myGroups = [];  // 所属グループ全リスト
 
   @override
   void initState() {
     super.initState();
-    _currentGroupId = widget.groupId; // 初期値
     _viewModel = MemberCheckInViewModel(
       eventId: widget.eventId,
-      groupId: _currentGroupId,
+      groupId: widget.groupId,
     );
     _initializeData();
   }
 
   Future<void> _initializeData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      try {
-        final groups = await GroupRepository().getGroups(uid);
-        if (mounted) {
-          setState(() {
-            _myGroups = groups;
-          });
-        }
-      } catch (e) {
-        debugPrint('Group load error: $e');
-      }
-    }
-
     final errorMessage = await _viewModel.loadData();
     
     // Copilot指摘解決: もしログインエラー（未認証状態）が返ってきたら、強制的にダイアログを出して戻る
@@ -95,12 +75,12 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: _myGroups.any((g) => g['group_id'] == _currentGroupId) ? _currentGroupId : null,
+          value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
           isExpanded: true,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
-          items: _myGroups.map((group) {
+          items: _viewModel.myGroups.map((group) {
             return DropdownMenuItem<String>(
               value: group['group_id'],
               child: Text(
@@ -110,7 +90,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             );
           }).toList(),
           onChanged: (String? newGroupId) {
-            if (newGroupId != null && newGroupId != _currentGroupId) {
+            if (newGroupId != null && newGroupId != _viewModel.groupId) {
               // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
               Navigator.pop(context);
             }

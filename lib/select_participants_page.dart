@@ -141,7 +141,6 @@ Future<void> _loadMembers() async {
       if (!mounted) return;
 
       Navigator.pop(context);
-      Navigator.pop(context);
     } catch (e) {
       debugPrint('保存エラー: $e');
       if (mounted) {

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 import '../widgets/statusbutton.dart';
 import '../utils/alarm_id.dart';
+import '../data/group_repository.dart';
 
 import 'package:alarm/alarm.dart';
 
@@ -11,6 +12,7 @@ class MemberCheckInViewModel extends ChangeNotifier {
   final String eventId;
   String groupId;
   final EventRepository _eventRepository;
+  List<Map<String, dynamic>> myGroups = [];
 
   String? _userId;
   String? _reportId;
@@ -36,6 +38,12 @@ class MemberCheckInViewModel extends ChangeNotifier {
       errorMessage = 'ログイン情報が見つかりません。再度ログインしてください。';
       notifyListeners();
       return errorMessage;
+    }
+
+    try{
+      myGroups = await GroupRepository().getGroups(_userId!);
+    } catch (e) {
+      debugPrint('Group load error: $e');
     }
 
     try {
