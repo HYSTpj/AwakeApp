@@ -138,9 +138,7 @@ Future<void> _loadMembers() async {
 
       if (!mounted) return;
 
-      final navigator = Navigator.of(context);
-      navigator.pop();
-      navigator.pop();
+      Navigator.pop(context);
     } catch (e) {
       debugPrint('保存エラー: $e');
       if (mounted) {

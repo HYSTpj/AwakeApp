@@ -64,6 +64,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
+  Widget _buildGroupDropdown() {
+    return Container(
+      width: 362,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
+          items: _viewModel.myGroups.map((group) {
+            return DropdownMenuItem<String>(
+              value: group['group_id'],
+              child: Text(
+                group['group_name'] ?? 'Unnamed Group',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newGroupId) {
+            if (newGroupId != null && newGroupId != _viewModel.groupId) {
+              // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
+              Navigator.pop(context);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _viewModel.dispose();
@@ -124,7 +159,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GroupNameDropdown(groupName: _viewModel.groupName),
+                  _buildGroupDropdown(),
                   const SizedBox(height: 24),
                   CurrentStatusPanel(status: _viewModel.selectedStatus),
                   const SizedBox(height: 16),
@@ -174,44 +209,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     );
   }
 }
-
-class GroupNameDropdown extends StatelessWidget {
-  final String groupName;
-  
-  const GroupNameDropdown({super.key, required this.groupName});
-
-  @override
-  Widget build(BuildContext context) {
-    const borderColor = Color(0xFF1A1C1C);
-    
-    return Container(
-      width: 362,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: borderColor, width: 4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            groupName,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: borderColor,
-              letterSpacing: 0.5,
-            ),
-          ),
-          Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
-        ],
-      ),
-    );
-  }
-}
-
 
 class CurrentStatusPanel extends StatelessWidget {
   const CurrentStatusPanel({super.key, required this.status});
