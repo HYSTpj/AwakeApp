@@ -154,7 +154,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                       }
 
                       final res = await Navigator.push<bool>(
-                        context,
+                        ctx,
                         MaterialPageRoute(
                           builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
                         ),
