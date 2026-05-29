@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 
 class LateReportViewModel extends ChangeNotifier {
@@ -32,9 +33,10 @@ class LateReportViewModel extends ChangeNotifier {
   LateReportViewModel({
     required this.reportId,
     required this.eventId,
-    required this.userId,
+    String? userId,
     EventRepository? eventRepository,
-  }) : _eventRepository = eventRepository ?? EventRepository() {
+  })  : userId = userId ?? FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
+        _eventRepository = eventRepository ?? EventRepository() {
     _fetchLocation();
   }
 

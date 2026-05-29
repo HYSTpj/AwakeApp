@@ -26,7 +26,6 @@ class _LateReportPageState extends State<LateReportPage> {
     _viewModel = LateReportViewModel(
       reportId: widget.reportId,
       eventId: widget.eventId,
-      userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
     );
     _reasonController.addListener(() {
       _viewModel.setReason(_reasonController.text);

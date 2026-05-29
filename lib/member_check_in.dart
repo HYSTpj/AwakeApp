@@ -138,16 +138,15 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   ReportLateButton(
                     onTap: () async {
                       final reportId = await _viewModel.getOrCreateReportId();
+                      if (!mounted) return;
 
                       if (reportId == null) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                         return;
                       }
 
