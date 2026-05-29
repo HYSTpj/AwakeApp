@@ -1,5 +1,7 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+// Use a conditional import for platform File access so this file stays web-safe.
+import '../utils/platform_file_io.dart'
+  if (dart.library.html) '../utils/platform_file_stub.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
@@ -142,7 +144,8 @@ class LateReportViewModel extends ChangeNotifier {
         final bytes = await evidencePhoto!.readAsBytes();
         await ref.putData(bytes);
       } else {
-        await ref.putFile(File(evidencePhoto!.path));
+        final file = platformFile(evidencePhoto!.path);
+        await ref.putFile(file);
       }
       final downloadUrl = await ref.getDownloadURL();
 
