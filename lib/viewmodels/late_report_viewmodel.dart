@@ -16,6 +16,9 @@ class LateReportViewModel extends ChangeNotifier {
   final String userId;
   final EventRepository _eventRepository;
 
+  final Future<void> Function(LateReportViewModel)? mockFetchLocation;
+  final Future<String> Function(String eventId, String userId, XFile photo)? mockUploadPhoto;
+
   XFile? evidencePhoto;
   bool isUploading = false;
   String? errorMessage;
@@ -37,9 +40,15 @@ class LateReportViewModel extends ChangeNotifier {
     required this.eventId,
     String? userId,
     EventRepository? eventRepository,
+    this.mockFetchLocation,
+    this.mockUploadPhoto,
   })  : userId = userId ?? FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
         _eventRepository = eventRepository ?? EventRepository() {
-    _fetchLocation();
+    if (mockFetchLocation != null) {
+      mockFetchLocation!(this);
+    } else {
+      _fetchLocation();
+    }
   }
 
   Future<void> _fetchLocation() async {
@@ -133,21 +142,26 @@ class LateReportViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('late_reports')
-          .child(eventId)
-          .child(fileName);
-
-      if (kIsWeb) {
-        final bytes = await evidencePhoto!.readAsBytes();
-        await ref.putData(bytes);
+      String downloadUrl;
+      if (mockUploadPhoto != null) {
+        downloadUrl = await mockUploadPhoto!(eventId, userId, evidencePhoto!);
       } else {
-        final file = platformFile(evidencePhoto!.path);
-        await ref.putFile(file);
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('late_reports')
+            .child(eventId)
+            .child(fileName);
+
+        if (kIsWeb) {
+          final bytes = await evidencePhoto!.readAsBytes();
+          await ref.putData(bytes);
+        } else {
+          final file = platformFile(evidencePhoto!.path);
+          await ref.putFile(file);
+        }
+        downloadUrl = await ref.getDownloadURL();
       }
-      final downloadUrl = await ref.getDownloadURL();
 
       await _eventRepository.updateLateReport(
         reportId,
