@@ -163,12 +163,7 @@ class MemberCheckInViewModel extends ChangeNotifier {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return null;
 
-    final existing = await _eventRepository.getEventReport(eventId, uid);
-    if (existing != null) {
-      _reportId = existing['report_id'] as String?;
-    } else {
-      _reportId = await _eventRepository.createReportIfNotExist(eventId, uid);
-    }
+    _reportId = await _eventRepository.createReportIfNotExist(eventId, uid);
     return _reportId;
   }
 }
