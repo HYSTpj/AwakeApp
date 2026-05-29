@@ -103,6 +103,7 @@ dev_dependencies:
 
   drift_dev: ^2.14.1
   build_runner: ^2.4.8
+  flutter_launcher_icons: ^0.14.4
 
 # このファイルの汎用 Dart 部分に関する情報については，次のページを参照
 # https://dart.dev/tools/pub/pubspec
@@ -146,3 +147,9 @@ flutter:
   #
   # パッケージ依存関係のフォントの詳細については，以下を参照
   # https://flutter.dev/to/font-from-package
+
+# Configuration for flutter_launcher_icons
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/AndroidIcon.png"

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
 
-
 // アカウント作成画面
 class CreateAccountPage extends StatefulWidget { 
   const CreateAccountPage({super.key});
@@ -23,7 +22,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       super.dispose();
     }
     
-
     // 画面のベース（アプリの見た目の骨組み）作成
     @override
     Widget build(BuildContext context) {
@@ -43,7 +41,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
+
             if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('アカウントが作成されました')),
+            );
             Navigator.pop(context); // 成功したら戻る
           } on FirebaseAuthException catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
