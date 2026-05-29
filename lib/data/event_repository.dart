@@ -8,7 +8,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventRepository {
   EventRepository();
-  final _db = FirebaseFirestore.instance;
+  // Lazily access the Firestore instance to avoid forcing initialization
+  // during object construction (helps tests that subclass/mock this class).
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // イベント作成
   Future<String?> setEvent({
