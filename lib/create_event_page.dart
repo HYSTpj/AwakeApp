@@ -111,6 +111,7 @@ class CreateEventPage extends StatefulWidget {
 class _CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   DateTime _scheduledTime = DateTime.now();
 
   GoogleMapController? _mapController;
@@ -196,6 +197,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
+    _passwordController.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -284,6 +286,22 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   const _LabelText('DATE'),
                   _PickerButton(label: _dateLabel, onTap: _pickDate),
 
+                  // CHECK-IN PASSWORD の入力欄
+                  const _LabelText('CHECK-IN PASSWORD'),
+                  const SizedBox(height: 4),
+                  _InputBox(
+                    child: TextField(
+                      controller: _passwordController,
+                      textAlignVertical: TextAlignVertical.center,
+                      style: _kValueStyle,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter backup numeric passcode...',
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+
                   // 場所
                   const _LabelText('Location'),
                   const SizedBox(height: 4),
@@ -331,7 +349,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     child: InkWell(
                       onTap: () async {
                         // 1. 入力チェック
-                        if (_nameController.text.isEmpty || _locationController.text.isEmpty) {
+                        if (_nameController.text.isEmpty || _locationController.text.isEmpty || _passwordController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Please fill in all fields.')),
                           );
@@ -345,7 +363,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                           destinationName: _locationController.text, // 目的地名として使用
                           location: '${_selectedLocation.latitude},${_selectedLocation.longitude}', // 座標を文字列で保存
                           qrcodeId: 'dummy_qr', // 必要に応じて生成ロジックを追加
-                          password: 'default_password', 
+                          password: _passwordController.text.trim(), 
                           arrivalTime: _scheduledTime.toIso8601String(), // 文字列型で保存
                           status: 'planning',
                         );
@@ -364,10 +382,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                               ),
                             ),
                           );
-                          // SelectParticipantsPageから戻ってきたら、自分も閉じる
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                          }
                         }
                       },
                       child: Container(
