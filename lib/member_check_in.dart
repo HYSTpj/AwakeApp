@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
 import 'late_report_page.dart';
-import 'data/event_repository.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
@@ -139,12 +137,13 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   const SizedBox(height: 16),
                   ReportLateButton(
                     onTap: () async {
-                      final user = FirebaseAuth.instance.currentUser;
-                      if (user == null) {
+                      final reportId = await _viewModel.getOrCreateReportId();
+
+                      if (reportId == null) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('ログインが必要です', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                              content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -152,21 +151,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                         return;
                       }
 
-                      String? reportId;
-                      final repo = EventRepository();
-                      final existing = await repo.getEventReport(widget.eventId, user.uid);
-                      if (existing != null) {
-                        reportId = existing['report_id'] as String?;
-                      } else {
-                        reportId = await repo.createReportIfNotExist(widget.eventId, user.uid);
-                      }
-
-                      if (reportId == null) return;
-
                       final res = await Navigator.push<bool>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => LateReportPage(reportId: reportId!, eventId: widget.eventId),
+                          builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
                         ),
                       );
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'viewmodels/late_report_viewmodel.dart';
 import 'common_layout.dart';
 
@@ -20,8 +19,6 @@ class LateReportPage extends StatefulWidget {
 class _LateReportPageState extends State<LateReportPage> {
   late final LateReportViewModel _viewModel;
   final TextEditingController _reasonController = TextEditingController();
-  final String currentUserName = FirebaseAuth.instance.currentUser?.displayName 
-      ?? 'user_${FirebaseAuth.instance.currentUser?.uid.substring(0, 4) ?? 'anon'}';
 
   @override
   void initState() {
@@ -116,7 +113,7 @@ class _LateReportPageState extends State<LateReportPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('@$currentUserName', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: borderColor, overflow: TextOverflow.ellipsis)),
+                                  Text('@${_viewModel.currentUserName}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: borderColor, overflow: TextOverflow.ellipsis)),
                                   Text(_viewModel.locationName.split(',').first, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: orangeColor, overflow: TextOverflow.ellipsis)),
                                 ],
                               ),

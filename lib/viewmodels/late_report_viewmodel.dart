@@ -22,6 +22,13 @@ class LateReportViewModel extends ChangeNotifier {
   double? latitude;
   double? longitude;
 
+  // View用のユーザー名取得ゲッター（MVVM移行）
+  String get currentUserName {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'anon';
+    return user.displayName ?? 'user_${user.uid.substring(0, 4)}';
+  }
+
   LateReportViewModel({
     required this.reportId,
     required this.eventId,
