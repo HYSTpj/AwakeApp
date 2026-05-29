@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'viewmodels/late_report_viewmodel.dart';
 import 'common_layout.dart';
@@ -146,7 +148,9 @@ class _LateReportPageState extends State<LateReportPage> {
                           ? Stack(
                               fit: StackFit.expand,
                               children: [
-                                Image.file(_viewModel.evidencePhoto!, fit: BoxFit.cover),
+                                kIsWeb 
+                                    ? Image.network(_viewModel.evidencePhoto!.path, fit: BoxFit.cover)
+                                    : Image.file(File(_viewModel.evidencePhoto!.path), fit: BoxFit.cover),
                                 if (_viewModel.isUploading)
                                   Container(
                                     color: const Color(0x80000000),

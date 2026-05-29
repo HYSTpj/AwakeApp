@@ -14,7 +14,7 @@ class LateReportViewModel extends ChangeNotifier {
   final String userId;
   final EventRepository _eventRepository;
 
-  File? evidencePhoto;
+  XFile? evidencePhoto;
   bool isUploading = false;
   String? errorMessage;
   String reasonText = '';
@@ -95,7 +95,7 @@ class LateReportViewModel extends ChangeNotifier {
       );
 
       if (pickedFile != null) {
-        evidencePhoto = File(pickedFile.path);
+        evidencePhoto = pickedFile;
         errorMessage = null;
         notifyListeners();
       }
@@ -138,7 +138,12 @@ class LateReportViewModel extends ChangeNotifier {
           .child(eventId)
           .child(fileName);
 
-      await ref.putFile(evidencePhoto!);
+      if (kIsWeb) {
+        final bytes = await evidencePhoto!.readAsBytes();
+        await ref.putData(bytes);
+      } else {
+        await ref.putFile(File(evidencePhoto!.path));
+      }
       final downloadUrl = await ref.getDownloadURL();
 
       await _eventRepository.updateLateReport(
