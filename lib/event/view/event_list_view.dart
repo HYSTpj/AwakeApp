@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/event/view/edit_event_view.dart';
 import 'package:intl/intl.dart';
 
 import '../../memberstatus_page.dart';
@@ -170,7 +171,24 @@ class _EventListPageState extends State<EventListPage> {
                       color: Colors.grey,
                       size: 30,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      final didUpdate = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditEventPage(
+                            event: event,
+                            groupId: widget.groupId,
+                            myRole: myRole,
+                          ),
+                        ),
+                      );
+
+                      if (didUpdate == true && mounted) {
+                        setState(() {
+                          _viewModel.loadData();
+                        });
+                        debugPrint('イベント設定変更につき一覧をリフレッシュ');
+                      }
                       debugPrint('イベント設定ページへ移動');
                     },
                   ),
