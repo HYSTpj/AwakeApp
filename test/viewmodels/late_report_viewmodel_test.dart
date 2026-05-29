@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:awake_app/viewmodels/late_report_viewmodel.dart';
-import 'package:awake_app/data/event_repository.dart';
+import 'package:flutter_application_1/viewmodels/late_report_viewmodel.dart';
+import 'package:flutter_application_1/data/event_repository.dart';
 
 // Fake Repository to prevent actual Firestore calls
 class FakeEventRepository extends EventRepository {
