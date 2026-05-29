@@ -3,13 +3,10 @@
 */
 
 import 'package:flutter/material.dart';
-import 'login_header_screen.dart'; 
-<<<<<<< HEAD
+import 'login_header_screen.dart';
 import '../../group/view/group_list_view.dart';
-=======
 import 'package:flutter/foundation.dart';
 import 'dart:io';
->>>>>>> 33b125b009bde8470e0d5d4b3d90b0f16e32fc2a
 
 Widget createAccountBody(
   BuildContext context,
