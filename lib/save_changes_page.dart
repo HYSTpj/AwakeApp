@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'common_layout.dart';
-import 'grouplist_page.dart';
+import 'group/view/group_list_view.dart';
 
 class SaveChangesPage extends StatefulWidget {
   final String eventId;

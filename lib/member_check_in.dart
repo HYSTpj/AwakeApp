@@ -136,7 +136,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   const SizedBox(height: 16),
                   ReportLateButton(
                     onTap: () {
-                      // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                      // ボタンがタップされたときの処理を実装する
                     },
                   ),
                 ],
