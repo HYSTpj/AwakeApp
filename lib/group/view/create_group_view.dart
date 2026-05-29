@@ -5,6 +5,7 @@ import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
 import '../../return_button.dart';
 import 'group_list_view.dart';
+import 'package:flutter/services.dart';
 
 /// グループ作成ページ
 class CreateGroupPage extends StatefulWidget {
@@ -56,21 +57,79 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       if (!mounted) return;
       
       if (success) {
-        Navigator.pushReplacement(context, MaterialPageRoute(  // 新しい画面へ進む
-          builder: (context) => const GroupListPage()
-        ),);
+        final generatedGroupId = viewModel.newGroupId ?? 'UNKNOWN_ID';
 
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          const SnackBar(
-            content: Text('Created a new group.')
-          ),
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFFF8F6F6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFF1A1C1C), width: 3),
+              ),
+              title: const Text('Created a new group.', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Share this ID with your friends to let them join:'),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      generatedGroupId,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrangeAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: Colors.black, width: 2),
+                    ),
+                  ),
+                  onPressed: () async {
+                    // クリップボードにIDをコピー
+                    await Clipboard.setData(ClipboardData(text: generatedGroupId));
+                  },
+                  child: const Text('COPY ID & CLOSE', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const GroupListPage()),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Created a new group.')),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          SnackBar(
-            content: Text(viewModel.errorMessage ?? 'An error has occurred.')
-          ),
-        );
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+            SnackBar(
+              content: Text(viewModel.errorMessage ?? 'An error has occurred.')
+            ),
+          );
+        }
       }
     }  catch (e) {
       debugPrint("エラーあり");

@@ -21,16 +21,18 @@ abstract class BaseGroupViewModel extends ChangeNotifier {
 
 class CreateGroupViewModel extends BaseGroupViewModel {
   final GroupRepository _repository;
+  String? newGroupId; 
 
   CreateGroupViewModel(this._repository);
 
-  // Viewからの命令を受けて実行(加入に成功したか失敗したかを出力)
+  // Viewからの命令を受けて実行
   Future<bool> createGroup(
     String userId,
     String groupName
   ) async {
     setLoading(true);
     setError(null); // エラークリア
+    newGroupId = null;
 
     final trimmedName = groupName.trim();
 
@@ -48,7 +50,7 @@ class CreateGroupViewModel extends BaseGroupViewModel {
         setLoading(false);
         return false;
       }
-      await _repository.setGroup(
+      newGroupId = await _repository.setGroup(
         userId: userId,
         groupName: groupName.trim()
       );
