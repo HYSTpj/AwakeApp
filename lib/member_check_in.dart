@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
+import 'late_report_page.dart';
+import 'data/event_repository.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
@@ -135,8 +138,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   CheckInButton(isPressed: _viewModel.isCheckInPressed, onTap: _handleCheckIn),
                   const SizedBox(height: 16),
                   ReportLateButton(
-                    onTap: () {
-                      // ボタンがタップされたときの処理を実装する
+                    onTap: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('ログインが必要です', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+
+                      String? reportId;
+                      final repo = EventRepository();
+                      final existing = await repo.getEventReport(widget.eventId, user.uid);
+                      if (existing != null) {
+                        reportId = existing['report_id'] as String?;
+                      } else {
+                        reportId = await repo.createReportIfNotExist(widget.eventId, user.uid);
+                      }
+
+                      if (reportId == null) return;
+
+                      final res = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LateReportPage(reportId: reportId!, eventId: widget.eventId),
+                        ),
+                      );
+
+                      if (res == true) {
+                        await _viewModel.loadData();
+                      }
                     },
                   ),
                 ],

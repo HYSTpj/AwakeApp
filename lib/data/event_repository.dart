@@ -278,6 +278,22 @@ class EventRepository {
     });
   }
 
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId,
+    String reason,
+    String photoUrl,
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
   // アラーム停止時に、フェーズに応じたステータスへ更新する
   Future<void> stopAlarmAndUpdateStatus({
     required String eventId,
