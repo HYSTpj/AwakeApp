@@ -26,6 +26,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
   // メモリを解放するための関数
   void dispose() {
     _controller.dispose();  // _controller内を掃除
+    viewModel.dispose();
     super.dispose();  // 親クラスでも掃除
   }
 
