@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import 'package:vibration/vibration.dart';
-import 'services/alarm_service.dart';
-import 'services/vibration_service.dart';
 import 'login/login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
@@ -73,8 +71,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final EventRepository _eventRepository = EventRepository();
-  final AlarmService _alarmService = RealAlarmService();
-  final VibrationService _vibrationService = RealVibrationService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
   bool _isDialogShowing = false;
@@ -86,7 +82,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _ringingSubscription = _alarmService.ringing.listen((AlarmSet alarmSet) {
+    _ringingSubscription = Alarm.ringing.listen((AlarmSet alarmSet) {
       final currentIds = alarmSet.alarms.map((a) => a.id).toSet();
       final newIds = currentIds.difference(_lastRingingIds);
       for (final id in newIds) {
@@ -173,6 +169,11 @@ class _MyAppState extends State<MyApp> {
     _stopCustomVibration();
 
     final hasAmplitude = await Vibration.hasAmplitudeControl() ?? false;
+
+    if (_isStoppingAlarm) {
+      return;
+    }
+
     _currentVibrationIntensity = 50;
     int secondsElapsed = 0;
 
@@ -209,41 +210,6 @@ class _MyAppState extends State<MyApp> {
     _ringingSubscription?.cancel();
     _stopCustomVibration();
     super.dispose();
-  }
-
-  Future<void> _startGradualVibration() async {
-    _stopCustomVibration();
-
-    final hasAmplitude = await _vibrationService.hasAmplitudeControl() ?? false;
-    _currentVibrationIntensity = 50;
-    int secondsElapsed = 0;
-
-    _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-      if (hasAmplitude) {
-        await _vibrationService.vibrate(
-          duration: 1000,
-          amplitude: _currentVibrationIntensity,
-        );
-
-        secondsElapsed += 2;
-
-        if (secondsElapsed >= 30) {
-          secondsElapsed = 0;
-          if (_currentVibrationIntensity < 255) {
-            _currentVibrationIntensity = (_currentVibrationIntensity + 50).clamp(50, 255);
-            debugPrint('バイブレーション強度が $_currentVibrationIntensity に上昇しました。');
-          }
-        }
-      } else {
-        await _vibrationService.vibrate(duration: 1000);
-      }
-    });
-  }
-
-  void _stopCustomVibration() {
-    _vibrationTimer?.cancel();
-    _vibrationTimer = null;
-    _vibrationService.cancel();
   }
 
   // デザインシステム設定
