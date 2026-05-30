@@ -108,7 +108,7 @@ class SetTimeViewModel extends ChangeNotifier {
         dateTime: wakeupTimeDay,
         assetAudioPath: 'assets/alarm.mp3',
         loopAudio: true,
-        vibrate: false,
+        vibrate: true,
         volumeSettings: VolumeSettings.fade(
           volume: 1.0,
           fadeDuration: const Duration(minutes: 1),
