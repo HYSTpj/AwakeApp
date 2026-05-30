@@ -84,8 +84,10 @@ class _EventListPageState extends State<EventListPage> {
             context,
             MaterialPageRoute(
               builder: (context) => MemberStatusPage(
+                groupId: widget.groupId,
                 eventId: event.eventId,
                 eventTitle: event.title,
+                myRole: myRole,
                 arrivalTime: arrivalTime,
                 password: event.password,
               ),
@@ -217,8 +219,10 @@ class _EventListPageState extends State<EventListPage> {
       );
 
       return MemberStatusPage(
+        groupId: widget.groupId,
         eventId: selectedEvent.eventId,
         eventTitle: selectedEventTitle ?? selectedEvent.title,
+        myRole: myRole,
         arrivalTime: _formatTime(selectedEvent.arrivalTime),
         password: selectedEvent.password,
       );

@@ -260,7 +260,7 @@ class CommonLayout extends StatelessWidget {
     if (myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: groupId)),
+        MaterialPageRoute(builder: (context) => const GroupListPage()),
       );
       debugPrint('管理者ページへ移動');
     } else {
@@ -286,10 +286,7 @@ class CommonLayout extends StatelessWidget {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => EventSelectionHome(
-        groupId: groupId ?? "", 
-        myRole: myRole!
-      )),
+      MaterialPageRoute(builder: (context) => const EventSelectionHome()),
     );
     debugPrint('利用者ボタンが押されました');
   }
