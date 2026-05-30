@@ -9,7 +9,14 @@ void main() {
     // Inject a test view model to avoid Firebase dependency during build
     final vm = SetTimeViewModel(eventId: 'test');
     await tester.pumpWidget(MaterialApp(
-      home: SetTimePage(eventId: 'test', arrivalTime: DateTime(2023, 1, 1, 9, 0), viewModel: vm),
+      home: SetTimePage(
+        groupId: 'test',
+        eventId: 'test',
+        eventTitle: 'test',
+        myRole: 0,
+        arrivalTime: DateTime(2023, 1, 1, 9, 0), 
+        viewModel: vm
+      ),
     ));
     await tester.pumpAndSettle();
 

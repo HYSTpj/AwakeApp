@@ -112,7 +112,12 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
-        builder: (context) => const QRScannerPage(),
+        builder: (context) => QRScannerPage(
+          groupId: widget.groupId,
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          myRole: 1,
+        ),
       ),
     );
 

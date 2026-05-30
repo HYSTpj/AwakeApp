@@ -6,15 +6,19 @@ import 'qrcode_page.dart';
 import 'memberpost_page.dart';
 
 class MemberStatusPage extends StatefulWidget {
+  final String groupId;
   final String eventId;
   final String eventTitle;
+  final int myRole;
   final String arrivalTime;
   final String password;
 
   const MemberStatusPage({
     super.key,
+    required this.groupId,
     required this.eventId,
     required this.eventTitle,
+    required this.myRole,
     required this.arrivalTime,
     required this.password,
   });
@@ -131,8 +135,10 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => QrcodePage(
+                          groupId: widget.groupId,
                           eventId: widget.eventId,
                           eventTitle: widget.eventTitle,
+                          myRole: widget.myRole,
                           arrivalTime: widget.arrivalTime,
                           password: widget.password,
                         ),
@@ -157,7 +163,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                     backgroundColor: Colors.deepOrangeAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(0),
-                      side: const BorderSide(color: Colors.black, width: 2),
+                      side: const BorderSide(color: Colors.black, width: 3),
                     ),
                   ),
                 ),
@@ -304,6 +310,10 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                                       builder: (context) => MemberPostPage(
                                         member: member,
                                         report: report,
+                                        groupId: widget.groupId,
+                                        eventId: widget.eventId,
+                                        eventTitle: widget.eventTitle,
+                                        myRole: widget.myRole,
                                       ),
                                     ),
                                   );

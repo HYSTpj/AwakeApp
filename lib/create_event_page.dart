@@ -96,10 +96,12 @@ class _PickerButton extends StatelessWidget {
 
 class CreateEventPage extends StatefulWidget {
   final String groupId; 
+  final int myRole;
 
   const CreateEventPage({
     super.key,
     required this.groupId,
+    required this.myRole
   });
 
   @override
@@ -201,6 +203,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      groupId: widget.groupId,
+      myRole: widget.myRole,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
