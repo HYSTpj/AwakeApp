@@ -359,8 +359,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                               builder: (context) => SelectParticipantsPage(
                                 eventId: eventId,
                                 groupId: widget.groupId,
-                                eventTitle: _nameController.text,
-                                myRole: widget.myRole,
                               ),
                             ),
                           );

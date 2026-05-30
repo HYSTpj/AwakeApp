@@ -230,7 +230,6 @@ class CommonLayout extends StatelessWidget {
             eventId: eventId!, 
             eventTitle: eventTitle!, 
             groupId: groupId!, 
-            myRole: myRole!,
           );
         }
         break;

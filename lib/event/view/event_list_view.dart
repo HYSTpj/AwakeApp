@@ -237,7 +237,10 @@ class _EventListPageState extends State<EventListPage> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CreateEventPage(groupId: widget.groupId),
+                      builder: (context) => CreateEventPage(
+                        groupId: widget.groupId,
+                        myRole: _viewModel.myRole ?? 1,
+                      ),
                     ),
                   );
                   
