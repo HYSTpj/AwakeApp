@@ -7,7 +7,8 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
-
+import 'group/view/group_list_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 const _kLabelStyle = TextStyle(
@@ -216,7 +217,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
             Padding(
               padding: const EdgeInsets.only(left: 14, top: 9),
               child: InkWell(
-                onTap: () => Navigator.pop(context),
+                onTap: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupListPage(initialGroupId: widget.groupId)
+                  ),
+                ),
                 child: Container(
                   width: 42,
                   height: 42,
@@ -368,6 +374,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
                           status: 'planning',
                         );
 
+                        if (eventId != null) {
+                          await FirebaseFirestore.instance
+                              .collection('events')
+                              .doc(eventId)
+                              .update({
+                            'password': _passwordController.text.trim(),
+                          });
+                          debugPrint('Firestoreに生のパスワードの保存を完了');
+                        }
+
                         // 3. 次の画面（参加者選択ページ）へ遷移
                         if (!context.mounted) return;
                         if (eventId != null) {
@@ -382,6 +398,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
                               ),
                             ),
                           );
+
+                          // 参加者画面から戻ってきたらpop
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            debugPrint('イベント作成・参加者選択がすべて完了したため一覧へ戻ります');
+                          }
                         }
                       },
                       child: Container(

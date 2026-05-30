@@ -355,10 +355,15 @@ class EventRepository {
 
   // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
   Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
+    if (eventId == scannedQr) {
+      return true;
+    }
+    
+    // バックアップ用：念のためFirestoreのqrcode_idとも照合（古いデータ用）
     final eventDoc = await _db.collection('events').doc(eventId).get();
     if (eventDoc.exists) {
       final data = eventDoc.data();
-      if (data != null && data['qrcode_id'] == scannedQr) {
+      if (data != null && (data['qrcode_id'] == scannedQr || eventId == scannedQr)) {
         return true;
       }
     }
