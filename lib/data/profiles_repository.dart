@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 // profiles ドキュメント
 class ProfilesRepository {
@@ -52,7 +53,7 @@ class ProfilesRepository {
       final downloadUrl = await storageRef.getDownloadURL();
       return downloadUrl;
     } catch (e) {
-      print('画像アップロードエラー: $e');
+      debugPrint('画像アップロードエラー: $e');
       return null;
     }
   }
