@@ -1,3 +1,5 @@
+// つかってないから消す
+
 import 'package:flutter/material.dart';
 //import 'package:flutter_application_1/ranking/widgets/ranking_list.dart';
 

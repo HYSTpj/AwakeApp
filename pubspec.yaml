@@ -105,7 +105,7 @@ flutter:
   # アプリケーションにアセットを追加するには，次のようにアセットセクションを追加
   # カタツムリの画像をアセットとして追加
   assets:
-      - assets/katatsumuri.png  
+      - assets/katatsumuri.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

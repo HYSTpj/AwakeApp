@@ -72,6 +72,46 @@ class EventRepository {
         .doc(eventId).delete();
     }
   
+  // グループの全懺悔投稿をイベント名付きで取得する関数
+  Future<List<Map<String, dynamic>>> getGroupAllZange(String groupId) async {
+    // 1. 指定されたグループIDのレポートを最新順に取得
+    final reportsSnapshot = await _db
+        .collection("event_reports")
+        .where("group_id", isEqualTo: groupId)
+        .orderBy("updated_at", descending: true) // 新着順
+        .get();
+
+    final zangeFutures = reportsSnapshot.docs.map((doc) async {
+      final reportData = doc.data();
+      final userId = reportData['user_id'];
+      final eventId = reportData['event_id'];
+
+      // 2. ユーザーのプロフィールを取得
+      final userDoc = await _db.collection('profiles').doc(userId).get();
+      
+      // 3. 【追加】イベント名を取得するために、eventsコレクションを調べる
+      final eventDoc = await _db.collection('events').doc(eventId).get();
+
+      if (userDoc.exists) {
+        final profileData = userDoc.data()!;
+        
+        // 画面表示に必要なデータを全部一つのMapに詰め込む
+        profileData['user_id'] = userId;
+        profileData['status'] = reportData['status'] ?? '遅刻確定';
+        profileData['reason'] = reportData['reason'] ?? '理由が未入力です';
+        profileData['late_photo_url'] = reportData['late_photo_url'] ?? '';
+        
+        // 【重要】イベント名をデータに合流させる（なければ「不明なイベント」）
+        profileData['event_name'] = eventDoc.exists ? (eventDoc.data()?['event_name'] ?? 'イベント') : 'イベント';
+
+        return profileData;
+      }
+      return null;
+    }).toList();
+
+    final results = await Future.wait(zangeFutures);
+    return results.whereType<Map<String, dynamic>>().toList();
+  }
 
   // メンバーリストの取得
   Future<List<Map<String, dynamic>>> getEventMembers(String eventId) async {

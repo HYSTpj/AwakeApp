@@ -81,6 +81,7 @@ class _RankingListState extends State<RankingList> {
                           Container(
                             width: 140,
                             height: 140,
+                            clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
                               color: const Color.fromARGB(71, 253, 173, 132),
                               shape: BoxShape.circle,
@@ -98,14 +99,28 @@ class _RankingListState extends State<RankingList> {
                             children: [
                               Image.asset('assets/katatsumuri.png', width: 40, height: 40),
                               const SizedBox(width: 8),
-                              Text(
-                                user1.nickname, // 💡 Firebaseから取った1位のユーザー名
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              )
+                              
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start, // 左揃えにします
+                                children: [
+                                  Text(
+                                    user1.nickname, // 💡 1位のユーザー名
+                                    style: const TextStyle(
+                                      fontSize: 40,
+                                      fontFamily: 'Space Grotesk',
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  Text(
+                                    user1.uid, // 💡 user1.id から user1.uid に修正（RankingUserの定義に合わせる）
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           const SizedBox(height: 16),
@@ -202,8 +217,8 @@ class _RankingListState extends State<RankingList> {
 
             /* 2位と3位のカード */
             // 💡 それぞれデータが存在するときだけ、名前と遅刻回数（〇〇DAYS）を渡して表示する
-            if (user2 != null) _buildSubRankRow('#2', user2.nickname, '${user2.lateCount} DAYS', user2.avatarUrl),
-            if (user3 != null) _buildSubRankRow('#3', user3.nickname, '${user3.lateCount} DAYS', user3.avatarUrl),
+            if (user2 != null) _buildSubRankRow('#2', user2.uid, user2.nickname, '${user2.lateCount} DAYS', user2.avatarUrl),
+            if (user3 != null) _buildSubRankRow('#3', user3.uid, user3.nickname, '${user3.lateCount} DAYS', user3.avatarUrl),
           ],
         );
       },
@@ -215,7 +230,7 @@ class _RankingListState extends State<RankingList> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F0F0),
+        color: const Color(0xFFEC5B13),
         border: Border.all(color: borderColor, width: borderWidth),
       ),
       child: Column(
@@ -235,7 +250,7 @@ class _RankingListState extends State<RankingList> {
   }
 
   // 2位と3位のカードを作るためのパーツ
-  Widget _buildSubRankRow(String rankNum, String username, String streakDays, String avatarUrl) {
+  Widget _buildSubRankRow(String rankNum, String userid, String username, String streakDays, String avatarUrl) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(12),
@@ -273,6 +288,7 @@ class _RankingListState extends State<RankingList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(username, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(userid, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -281,7 +297,7 @@ class _RankingListState extends State<RankingList> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F0F0),
+              color: const Color(0xFFEC5B13),
               border: Border.all(color: borderColor, width: borderWidth),
             ),
             child: Text(
