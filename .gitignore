@@ -23,6 +23,10 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
+# Local VS Code settings (environment-specific)
+.vscode/c_cpp_properties.json
+.vscode/settings.json
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -51,6 +55,5 @@ app.*.map.json
 /ios/Runner/AppDelegate.swift
 /ios/Runner/GoogleService-Info.plist
 /lib/data/firebase_options.dart
-/macos/Runner/GoogleService-Info.plist
 /android/app/google-services.json
 /ios/Runner/GoogleService-Info.plist

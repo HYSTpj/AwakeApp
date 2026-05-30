@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'screen/create_account_body.dart';
 import 'package:flutter_application_1/data/profiles_repository.dart';
-import '../grouplist_page.dart';
+import '../group/view/group_list_view.dart';
 
 class CreateAccountProfile extends StatefulWidget {
   const CreateAccountProfile({super.key});
@@ -78,13 +78,23 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
     try {
       // 画像があればFirebase StorageにアップロードしてURLを取得
+      String avatarUrl = '';
+      if (_pickedImage != null) {
+        final url = await _profilesRepository.uploadProfileImage(
+          uid: user.uid,
+          image: _pickedImage,
+        );
+        if (url != null) {
+          avatarUrl = url;
+        }
+      }
+
       await _profilesRepository.setProfile(
         uid: user.uid,
         nickname: name,
-        avatarUrl: '', // 画像URLは後で保存するので空でOK
+        avatarUrl: avatarUrl,
       );
-
-      // 次の画面へ遷移
+      debugPrint("保存に成功しました！");
       if (!mounted) return;
       Navigator.push(
         context,
@@ -92,6 +102,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       );
 
     } catch (e) {
+      if (!context.mounted) return;
       _showSnackBar('プロファイルの保存に失敗しました: $e');
     }
   }

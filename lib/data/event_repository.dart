@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class EventRepository {
   EventRepository();
-  final _db = FirebaseFirestore.instance;
+  // Lazily access the Firestore instance to avoid forcing initialization
+  // during object construction (helps tests that subclass/mock this class).
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // イベント作成
   Future<String?> setEvent({
@@ -19,8 +21,7 @@ class EventRepository {
     required String qrcodeId,
     required String password,
     required String arrivalTime,
-    required String status
-
+    required String status,
   }) async {
     final eventDoc = _db.collection('events').doc();
     final String eventId = eventDoc.id; // 自動生成されたドキュメントid
@@ -37,7 +38,7 @@ class EventRepository {
       'location': location,
       'qrcode_id': qrcodeId,
       'password_hash': hashedPassword, // ハッシュ化されたパスワードを保存
-      'password_salt': salt,           // 生成したソルトも一緒に保存
+      'password_salt': salt, // 生成したソルトも一緒に保存
       'arrival_time': arrivalTime,
       'status': status,
       'created_at': FieldValue.serverTimestamp(), // Googleサーバーの正確な時間を取得
@@ -65,7 +66,7 @@ class EventRepository {
 
   // イベント削除
   Future<void> deleteEvent({
-    required String eventId // 同じイベント名でも削除されないように
+    required String eventId, // 同じイベント名でも削除されないように
   }) async {
     await _db
         .collection("events")
@@ -168,26 +169,55 @@ class EventRepository {
   // グループに所属するメンバー一覧を取得
   Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
     final snapshot = await _db
-        .collection('users')
+        .collection('groups_memberships')
         .where('group_id', isEqualTo: groupId)
         .get();
 
-    return snapshot.docs.map((doc) {
+    final profileFutures = snapshot.docs.map((doc) async {
       final data = doc.data();
-      data['uid'] = doc.id; // ドキュメントIDをuidとして利用
-      return data;
+      final userId = data['user_id'] ?? '';
+      
+      if (userId.isEmpty) return null;
+
+      final profileDoc = await _db.collection('profiles').doc(userId).get();
+      
+      if (profileDoc.exists) {
+        final profileData = profileDoc.data()!;
+        return {
+          'nickname': profileData['nickname'] ?? 'No Name', 
+          'uid': userId,
+          'avatar_url': profileData['avatar_url'] ?? '', 
+        };
+      } else {
+        return {
+          'nickname': 'Member (${userId.substring(0, math.min(4, userId.length))})',
+          'uid': userId,
+          'avatar_url': '',
+        };
+      }
     }).toList();
+
+    final results = await Future.wait(profileFutures);
+    return results.whereType<Map<String, dynamic>>().toList();
   }
 
   Future<void> updateEventParticipants(String eventId, List<String> participants) async {
-    await _db
-        .collection('events')
-        .doc(eventId)
-        .update({
-      'participants': participants,
-      'update_at': FieldValue.serverTimestamp(),
-    });
-  }
+  await _db
+      .collection('events')
+      .doc(eventId)
+      .update({
+    'participants': participants,
+    'update_at': FieldValue.serverTimestamp(),
+  });
+
+  // 選ばれた参加者全員分のステータスを自動生成
+  final List<Future<String>> createReportFutures = participants.map((uid) {
+    return createReportIfNotExist(eventId, uid);
+  }).toList();
+
+  // 全員分の生成処理が非同期で完了するのをしっかり待つ
+  await Future.wait(createReportFutures);
+}
 
   // --- event_reports 関連 ---
 
@@ -226,13 +256,16 @@ class EventRepository {
   }
 
   // レポートの取得
-  Future<Map<String, dynamic>?> getEventReport(String eventId, String userId) async {
+  Future<Map<String, dynamic>?> getEventReport(
+    String eventId,
+    String userId,
+  ) async {
     final report = await _db
-      .collection("event_reports")
-      .where("event_id", isEqualTo: eventId)
-      .where("user_id", isEqualTo: userId)
-      .get();
-    
+        .collection("event_reports")
+        .where("event_id", isEqualTo: eventId)
+        .where("user_id", isEqualTo: userId)
+        .get();
+
     if (report.docs.isNotEmpty) {
       final data = report.docs.first.data();
       data['report_id'] = report.docs.first.id;
@@ -290,6 +323,53 @@ class EventRepository {
     });
   }
 
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId,
+    String reason,
+    String photoUrl,
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // アラーム停止時に、フェーズに応じたステータスへ更新する
+  Future<void> stopAlarmAndUpdateStatus({
+    required String eventId,
+    required String phase,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final report = await getEventReport(eventId, user.uid);
+    if (report == null) {
+      return;
+    }
+
+    final reportId = report['report_id'] as String?;
+    if (reportId == null) {
+      return;
+    }
+
+    if (phase == 'wakeup') {
+      await updateWakeupTime(reportId);
+      return;
+    }
+
+    if (phase == 'departure') {
+      await updateDepartureTime(reportId);
+      return;
+    }
+  }
+
   // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
   Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
     final eventDoc = await _db.collection('events').doc(eventId).get();
@@ -309,11 +389,12 @@ class EventRepository {
       final data = eventDoc.data();
       if (data != null) {
         // 新しい仕様: ハッシュ化パスワードの照合
-        if (data.containsKey('password_hash') && data.containsKey('password_salt')) {
+        if (data.containsKey('password_hash') &&
+            data.containsKey('password_salt')) {
           final savedHash = data['password_hash'] as String;
           final savedSalt = data['password_salt'] as String;
           final inputHash = _hashPassword(inputPassword, savedSalt);
-          
+
           if (inputHash == savedHash) {
             return true;
           }
