@@ -143,22 +143,21 @@ class CommonLayout extends StatelessWidget {
           child: FutureBuilder<Map<String, dynamic>?>(
             future: ProfilesRepository().getProfile(uid: currentUser.uid),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError || !snapshot.hasData) {
-                return const CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                );
+              // エラーか、データが何も存在しないときだけグレーのアイコンにする
+              if (snapshot.hasError) {
+                return const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white));
               }
 
-              final profileData = snapshot.data ?? {};
-              final String? avatarUrl = profileData['avatar_url'];
+              // データの取得が終わるまでは、前回のキャッシュやローカルデータで先に描画
+              final profileData = snapshot.data;
+              final String avatarUrl = (profileData != null) ? (profileData['avatar_url'] ?? '') : '';
 
               return CircleAvatar(
                 backgroundColor: Colors.grey,
-                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                backgroundImage: avatarUrl.isNotEmpty
                     ? NetworkImage(avatarUrl)
                     : null,
-                child: (avatarUrl == null || avatarUrl.isEmpty)
+                child: avatarUrl.isEmpty
                     ? const Icon(Icons.person, color: Colors.white)
                     : null,
               );
