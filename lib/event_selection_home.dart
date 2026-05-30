@@ -322,7 +322,15 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     final departureTime = event['planned_departure_time'] ?? event['departureTime'];
     
     String meetingTimeStr = '-- : --   '; // default fallback
-    if (arrivalTime != null && arrivalTime is Timestamp) {
+    
+    if (arrivalTime is String && arrivalTime.isNotEmpty) {
+      try {
+        final parsedDate = DateTime.parse(arrivalTime);
+        meetingTimeStr = DateFormat("hh:mm a").format(parsedDate);
+      } catch (e) {
+        debugPrint('カードの集合時間パースエラー: $e');
+      }
+    } else if (arrivalTime != null && arrivalTime is Timestamp) {
       meetingTimeStr = DateFormat("hh:mm a").format(arrivalTime.toDate());
     }
 
@@ -385,7 +393,13 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                     final arrivalTime = event['arrival_time'];
                     DateTime arrivalDateTime = DateTime.now();
 
-                    if (arrivalTime is Timestamp) {
+                    if (arrivalTime is String && arrivalTime.isNotEmpty) {
+                      try {
+                        arrivalDateTime = DateTime.parse(arrivalTime);
+                      } catch (e) {
+                        debugPrint('時刻パースエラー: $e');
+                      }
+                    } else if (arrivalTime is Timestamp) {
                       arrivalDateTime = arrivalTime.toDate();
                     } else if (arrivalTime is DateTime) {
                       arrivalDateTime = arrivalTime;
