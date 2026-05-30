@@ -104,6 +104,14 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                   onPressed: () async {
                     // クリップボードにIDをコピー
                     await Clipboard.setData(ClipboardData(text: generatedGroupId));
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GroupListPage(),
+                        ),
+                      );
+                    }
                   },
                   child: const Text('COPY ID & CLOSE', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
