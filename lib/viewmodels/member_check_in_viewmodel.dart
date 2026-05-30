@@ -165,9 +165,18 @@ class MemberCheckInViewModel extends ChangeNotifier {
     }
     return false;
   }
-  
+  // 遅刻報告用のreportIdを取得または新規生成する（View側のRepository直接呼び出しを回避するためのMVVM移行）
+  Future<String?> getOrCreateReportId() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+
+    _reportId = await _eventRepository.createReportIfNotExist(eventId, uid);
+    return _reportId;
+  }
+
   Future<void> updateGroupId(String newGroupId) async {
     groupId = newGroupId;
     await loadData();
   }
 }
+

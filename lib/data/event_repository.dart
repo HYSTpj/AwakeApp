@@ -8,7 +8,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventRepository {
   EventRepository();
-  final _db = FirebaseFirestore.instance;
+  // Lazily access the Firestore instance to avoid forcing initialization
+  // during object construction (helps tests that subclass/mock this class).
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // イベント作成
   Future<String?> setEvent({
@@ -274,6 +276,22 @@ class EventRepository {
   Future<void> updateOversleptStatus(String reportId) async {
     await _db.collection("event_reports").doc(reportId).update({
       "status": 2, // overslept
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId,
+    String reason,
+    String photoUrl,
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
       "updated_at": FieldValue.serverTimestamp(),
     });
   }
