@@ -126,7 +126,13 @@ class CommonLayout extends StatelessWidget {
 
   ///AppBarの右側
   List<Widget> _buildRightIcons() {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    // Firebase が初期化されていないテスト環境などで例外が出ないようガードする
+    User? currentUser;
+    try {
+      currentUser = FirebaseAuth.instance.currentUser;
+    } catch (e) {
+      currentUser = null;
+    }
 
     if (currentUser == null) {
       return [
