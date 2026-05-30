@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/group_data.dart';
 import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
-import 'return_button.dart';
+import '../../return_button.dart';
 import 'group_list_view.dart';
 
 /// グループ脱退ページ
@@ -43,17 +43,47 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     // 確認ダイアログを表示
     final confirmed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('confirmation'),
-        content: const Text('Are you really going to leave this group?'),
+        backgroundColor: const Color(0xFFF8F6F6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF1A1C1C), width: 3),
+        ),
+        title: const Text(
+          'Confirmation', 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1A1C1C)),
+        ),
+        content: const Text(
+          'Are you really going to leave this group?',
+          style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+        ),
         actions: [
-          TextButton(
+          // キャンセルボタン
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: Colors.black, width: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('cancel'),
+            child: const Text('CANCEL', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          TextButton(
+          
+          const SizedBox(width: 8), // ボタン間の微調整
+          
+          // デリート（脱退確定）ボタン
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrangeAccent,
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.black, width: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('delete'),
+            child: const Text('DELETE', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -77,7 +107,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       if (!mounted) return;
       
       if (success) {
-        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
+        Navigator.pushReplacement(context, MaterialPageRoute(  // 新しい画面へ進む
           builder: (context) => const GroupListPage()
         ),);
 

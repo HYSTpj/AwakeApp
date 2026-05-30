@@ -143,22 +143,21 @@ class CommonLayout extends StatelessWidget {
           child: FutureBuilder<Map<String, dynamic>?>(
             future: ProfilesRepository().getProfile(uid: currentUser.uid),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError || !snapshot.hasData) {
-                return const CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                );
+              // エラーか、データが何も存在しないときだけグレーのアイコンにする
+              if (snapshot.hasError) {
+                return const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white));
               }
 
-              final profileData = snapshot.data ?? {};
-              final String? avatarUrl = profileData['avatar_url'];
+              // データの取得が終わるまでは、前回のキャッシュやローカルデータで先に描画
+              final profileData = snapshot.data;
+              final String avatarUrl = (profileData != null) ? (profileData['avatar_url'] ?? '') : '';
 
               return CircleAvatar(
                 backgroundColor: Colors.grey,
-                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                backgroundImage: avatarUrl.isNotEmpty
                     ? NetworkImage(avatarUrl)
                     : null,
-                child: (avatarUrl == null || avatarUrl.isEmpty)
+                child: avatarUrl.isEmpty
                     ? const Icon(Icons.person, color: Colors.white)
                     : null,
               );
@@ -230,6 +229,7 @@ class CommonLayout extends StatelessWidget {
             eventId: eventId!, 
             eventTitle: eventTitle!, 
             groupId: groupId!, 
+            myRole: myRole!,
           );
         }
         break;
@@ -260,7 +260,7 @@ class CommonLayout extends StatelessWidget {
     if (myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const GroupListPage()),
+        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: groupId)),
       );
       debugPrint('管理者ページへ移動');
     } else {
@@ -286,7 +286,10 @@ class CommonLayout extends StatelessWidget {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const EventSelectionHome()),
+      MaterialPageRoute(builder: (context) => EventSelectionHome(
+        groupId: groupId ?? "", 
+        myRole: myRole!
+      )),
     );
     debugPrint('利用者ボタンが押されました');
   }

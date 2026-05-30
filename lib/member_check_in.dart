@@ -10,12 +10,14 @@ class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final int myRole;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    required this.myRole
   });
 
   @override
@@ -78,6 +80,8 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         child: DropdownButton<String>(
           value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
           isExpanded: true,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
           items: _viewModel.myGroups.map((group) {
             return DropdownMenuItem<String>(
@@ -116,7 +120,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
           groupId: widget.groupId,
           eventId: widget.eventId,
           eventTitle: widget.eventTitle,
-          myRole: 1,
+          myRole: widget.myRole,
         ),
       ),
     );
@@ -157,6 +161,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          groupId: widget.groupId,
+          myRole: widget.myRole,
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24),

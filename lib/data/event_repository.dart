@@ -57,11 +57,37 @@ class EventRepository {
             .where("group_id", isEqualTo: groupId)
             .get();
 
-    return events.docs.map((doc) {
+    // 現在ログインしている自分のユーザーIDを取得
+    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    // 取得したイベントごとにevent_reportsを調べる
+    final mergedEventFutures = events.docs.map((doc) async {
       final data = doc.data();
-      data['event_id'] = doc.id; // ドキュメントIDをデータに含める
+      final eventId = doc.id;
+      data['event_id'] = eventId;
+
+      if (currentUserId.isNotEmpty) {
+        // 自分のレポートを検索
+        final reportSnapshot = await _db
+            .collection("event_reports")
+            .where("event_id", isEqualTo: eventId)
+            .where("user_id", isEqualTo: currentUserId)
+            .limit(1)
+            .get();
+
+        // もしすでに起床・出発時間が保存されていたら合体
+        if (reportSnapshot.docs.isNotEmpty) {
+          final reportData = reportSnapshot.docs.first.data();
+          data['planned_wakeup_time'] = reportData['planned_wakeup_time'];
+          data['planned_departure_time'] = reportData['planned_departure_time'];
+        }
+      }
       return data;
     }).toList();
+
+    // 全員分の非同期結合処理が完全に終わるのを待ってリストで返す
+    final List<Map<String, dynamic>> results = await Future.wait(mergedEventFutures);
+    return results;
   }
 
   // イベント削除
@@ -372,10 +398,15 @@ class EventRepository {
 
   // QRコード検証: 読み取った値が該当イベントのqrcode_idと一致するか確認
   Future<bool> verifyEventQRCode(String eventId, String scannedQr) async {
+    if (eventId == scannedQr) {
+      return true;
+    }
+    
+    // バックアップ用：念のためFirestoreのqrcode_idとも照合（古いデータ用）
     final eventDoc = await _db.collection('events').doc(eventId).get();
     if (eventDoc.exists) {
       final data = eventDoc.data();
-      if (data != null && data['qrcode_id'] == scannedQr) {
+      if (data != null && (data['qrcode_id'] == scannedQr || eventId == scannedQr)) {
         return true;
       }
     }
