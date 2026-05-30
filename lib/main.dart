@@ -8,9 +8,6 @@ import '../data/firebase_options.dart';
 // Supabaseを利用するためのパッケージ
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// テスト
-import 'ranking/ranking_page.dart';
-
 
 void main() async {
   // Flutterを初期化
@@ -68,7 +65,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 最初に表示する画面
-      home: const RankingPage()
+      home: const LoginPage()
     );
   }
 }
