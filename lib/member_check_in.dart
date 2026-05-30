@@ -4,22 +4,18 @@ import 'common_layout.dart';
 import 'widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import 'viewmodels/member_check_in_viewmodel.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'data/group_repository.dart';
+import 'late_report_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
-  final int myRole;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
-    required this.myRole
   });
 
   @override
@@ -28,41 +24,25 @@ class MemberCheckInPage extends StatefulWidget {
 
 class _MemberCheckInPageState extends State<MemberCheckInPage> {
   late final MemberCheckInViewModel _viewModel;
-  late String _currentGroupId; // 現在表示中のグループID
-  List<Map<String, dynamic>> _myGroups = [];  // 所属グループ全リスト
 
   @override
   void initState() {
     super.initState();
-    _currentGroupId = widget.groupId; // 初期値
     _viewModel = MemberCheckInViewModel(
       eventId: widget.eventId,
-      groupId: _currentGroupId,
+      groupId: widget.groupId,
     );
     _initializeData();
   }
 
   Future<void> _initializeData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      try {
-        final groups = await GroupRepository().getGroups(uid);
-        if (mounted) {
-          setState(() {
-            _myGroups = groups;
-          });
-        }
-      } catch (e) {
-        debugPrint('Group load error: $e');
-      }
-    }
-
     final errorMessage = await _viewModel.loadData();
-    
-    // Copilot指摘解決: もしログインエラー（未認証状態）が返ってきたら、強制的にダイアログを出して戻る
-    if (errorMessage != null && mounted) {
+    // If there's an error (e.g. not authenticated), show a dialog and return.
+    if (errorMessage != null) {
+      final ctx = context;
+      if (!ctx.mounted) return;
       await showDialog<void>(
-        context: context,
+        context: ctx,
         barrierDismissible: false, // 周りをタップして閉じられないようにブロック
         builder: (context) {
           return AlertDialog(
@@ -71,8 +51,9 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // ダイアログを閉じる
-                  Navigator.of(context).pop(); // 元の画面へ戻る
+                  final navigator = Navigator.of(context);
+                  navigator.pop(); // ダイアログを閉じる
+                  navigator.pop(); // 元の画面へ戻る
                 },
                 child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
@@ -95,12 +76,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: _myGroups.any((g) => g['group_id'] == _currentGroupId) ? _currentGroupId : null,
+          value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
           isExpanded: true,
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(12),
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
-          items: _myGroups.map((group) {
+          items: _viewModel.myGroups.map((group) {
             return DropdownMenuItem<String>(
               value: group['group_id'],
               child: Text(
@@ -110,7 +89,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
             );
           }).toList(),
           onChanged: (String? newGroupId) {
-            if (newGroupId != null && newGroupId != _currentGroupId) {
+            if (newGroupId != null && newGroupId != _viewModel.groupId) {
               // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
               Navigator.pop(context);
             }
@@ -133,12 +112,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
-        builder: (context) => QRScannerPage(
-          groupId: widget.groupId,
-          eventId: widget.eventId,
-          eventTitle: widget.eventTitle,
-          myRole: widget.myRole,
-        ),
+        builder: (context) => const QRScannerPage(),
       ),
     );
 
@@ -148,25 +122,25 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       
       if (type == null || value == null) return;
 
+      final ctx = context;
       final isValid = await _viewModel.verifyAndCheckIn(type, value);
+      if (!ctx.mounted) return;
 
-      if (mounted) {
-        if (isValid) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+      if (isValid) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          const SnackBar(
+            content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -178,10 +152,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
-          eventId: widget.eventId,
-          eventTitle: widget.eventTitle,
-          groupId: widget.groupId,
-          myRole: widget.myRole,
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -203,8 +173,31 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                   CheckInButton(isPressed: _viewModel.isCheckInPressed, onTap: _handleCheckIn),
                   const SizedBox(height: 16),
                   ReportLateButton(
-                    onTap: () {
-                      // TODO: REPORT LATEボタンがタップされたときの処理を実装する
+                    onTap: () async {
+                      final ctx = context;
+                      final reportId = await _viewModel.getOrCreateReportId();
+                      if (!ctx.mounted) return;
+
+                      if (reportId == null) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(
+                            content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      final res = await Navigator.push<bool>(
+                        ctx,
+                        MaterialPageRoute(
+                          builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
+                        ),
+                      );
+
+                      if (res == true) {
+                        await _viewModel.loadData();
+                      }
                     },
                   ),
                 ],

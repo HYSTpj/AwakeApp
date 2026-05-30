@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/grouplist_page.dart';
+import '../group/view/group_list_view.dart';
 import 'signup_page.dart'; // アカウント作成画面への遷移に必要
 import 'screen/login_body.dart'; // ログイン画面のUIを定義したファイル
 

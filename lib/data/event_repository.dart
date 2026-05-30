@@ -8,7 +8,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventRepository {
   EventRepository();
-  final _db = FirebaseFirestore.instance;
+  // Lazily access the Firestore instance to avoid forcing initialization
+  // during object construction (helps tests that subclass/mock this class).
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // イベント作成
   Future<String?> setEvent({
@@ -55,37 +57,11 @@ class EventRepository {
             .where("group_id", isEqualTo: groupId)
             .get();
 
-    // 現在ログインしている自分のユーザーIDを取得
-    final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-    // 取得したイベントごとにevent_reportsを調べる
-    final mergedEventFutures = events.docs.map((doc) async {
+    return events.docs.map((doc) {
       final data = doc.data();
-      final eventId = doc.id;
-      data['event_id'] = eventId;
-
-      if (currentUserId.isNotEmpty) {
-        // 自分のレポートを検索
-        final reportSnapshot = await _db
-            .collection("event_reports")
-            .where("event_id", isEqualTo: eventId)
-            .where("user_id", isEqualTo: currentUserId)
-            .limit(1)
-            .get();
-
-        // もしすでに起床・出発時間が保存されていたら合体
-        if (reportSnapshot.docs.isNotEmpty) {
-          final reportData = reportSnapshot.docs.first.data();
-          data['planned_wakeup_time'] = reportData['planned_wakeup_time'];
-          data['planned_departure_time'] = reportData['planned_departure_time'];
-        }
-      }
+      data['event_id'] = doc.id; // ドキュメントIDをデータに含める
       return data;
     }).toList();
-
-    // 全員分の非同期結合処理が完全に終わるのを待ってリストで返す
-    final List<Map<String, dynamic>> results = await Future.wait(mergedEventFutures);
-    return results;
   }
 
   // イベント削除
@@ -183,22 +159,22 @@ class EventRepository {
   }
 
   Future<void> updateEventParticipants(String eventId, List<String> participants) async {
-    await _db
-        .collection('events')
-        .doc(eventId)
-        .update({
-      'participants': participants,
-      'update_at': FieldValue.serverTimestamp(),
-    });
+  await _db
+      .collection('events')
+      .doc(eventId)
+      .update({
+    'participants': participants,
+    'update_at': FieldValue.serverTimestamp(),
+  });
 
-    // 選ばれた参加者全員分のステータスを自動生成
-    final List<Future<String>> createReportFutures = participants.map((uid) {
-      return createReportIfNotExist(eventId, uid);
-    }).toList();
+  // 選ばれた参加者全員分のステータスを自動生成
+  final List<Future<String>> createReportFutures = participants.map((uid) {
+    return createReportIfNotExist(eventId, uid);
+  }).toList();
 
-    // 全員分の生成処理が非同期で完了するのをしっかり待つ
-    await Future.wait(createReportFutures);
-  }
+  // 全員分の生成処理が非同期で完了するのをしっかり待つ
+  await Future.wait(createReportFutures);
+}
 
   // --- event_reports 関連 ---
 
@@ -300,6 +276,22 @@ class EventRepository {
   Future<void> updateOversleptStatus(String reportId) async {
     await _db.collection("event_reports").doc(reportId).update({
       "status": 2, // overslept
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId,
+    String reason,
+    String photoUrl,
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
       "updated_at": FieldValue.serverTimestamp(),
     });
   }

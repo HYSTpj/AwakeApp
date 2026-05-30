@@ -1403,7 +1403,7 @@ PODS:
     - gRPC-Core/Privacy (= 1.69.0)
   - gRPC-Core/Interface (1.69.0)
   - gRPC-Core/Privacy (1.69.0)
-  - GTMSessionFetcher/Core (5.3.0)
+  - GTMSessionFetcher/Core (5.2.0)
   - image_picker_ios (0.0.1):
     - Flutter
   - leveldb-library (1.22.6)
@@ -1448,7 +1448,7 @@ PODS:
     - sqlite3/session
   - url_launcher_ios (0.0.1):
     - Flutter
-  - vibration (1.7.5):
+  - vibration (3.0.0):
     - Flutter
 
 DEPENDENCIES:
@@ -1569,7 +1569,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
-  GTMSessionFetcher: 127211aeec0b1e904fc49f4f6f895dcc535b0ecf
+  GTMSessionFetcher: 904bdd2a82c635bcd6f44edf94cc8775c5d1d6e6
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
   mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
@@ -1580,7 +1580,7 @@ SPEC CHECKSUMS:
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: b3e120efe9a82017e5552a620f696589ed4f62ab
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
-  vibration: 8e2f50fc35bb736f9eecb7dd9f7047fbb6a6e888
+  vibration: ca8104a8875b9c493e15b21b04e456befd0ff6eb
 
 PODFILE CHECKSUM: 53a6aebc29ccee84c41f92f409fc20cd4ca011f1
 

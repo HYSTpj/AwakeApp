@@ -4,23 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 import 'common_layout.dart';
-import 'create_add_delete.dart';
+import '../group/view/create_add_delete_view.dart';
 import 'member_check_in.dart';
 import '../data/group_repository.dart';
 import '../data/event_repository.dart';
-import 'set_time_page.dart';
 
 import 'package:flutter/services.dart'; // 招待コードをコピーするためにインポート
 
 class EventSelectionHome extends StatefulWidget {
-  final String groupId; // grouplist_pageのドロップダウンで指定されたgroup_id
-  final int myRole;
-
-  const EventSelectionHome({
-    super.key,
-    required this.groupId,
-    required this.myRole
-  });
+  const EventSelectionHome({super.key});
 
   @override
   State<EventSelectionHome> createState() => _EventSelectionHomeState();
@@ -32,7 +24,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   List<Map<String, dynamic>> _myGroups = [];
   bool _isLoadingGroups = true;
   Future<List<Map<String, dynamic>>>? _eventsFuture;
-  int myRole = 1;
 
   @override
   void initState() {
@@ -54,9 +45,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           _myGroups = groups;
           _isLoadingGroups = false;
           if (groups.isNotEmpty) {
-            selectedGroupId = widget.groupId;
+            selectedGroupId = groups.first['group_id'];
             _eventsFuture = EventRepository().getEvents(selectedGroupId!);
-            _loadRole(selectedGroupId!);
           }
         });
       }
@@ -66,27 +56,9 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     }
   }
 
-  // グループのroleをロード
-  Future<void> _loadRole(String gId) async {
-    final uid = user?.uid;
-    if (uid == null) return;
-    try {
-      final role = await GroupRepository().getRole(id: uid, groupId: gId);
-      if (mounted) {
-        setState(() {
-          myRole = role ?? 1;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading role: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
-      groupId: selectedGroupId,
-      myRole: myRole,
       body: Column(
         children: [
           _buildGroupDropdown(),
@@ -180,7 +152,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
               setState(() {
                 selectedGroupId = newGroupId;
                 _eventsFuture = EventRepository().getEvents(newGroupId);
-                _loadRole(newGroupId);
               });
             }
           },
@@ -318,22 +289,10 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     final title = event['title'] ?? 'NO TITLE';
     final location = event['destination_name'] ?? 'SECTOR 7G - COMMAND CENTER';
     final arrivalTime = event['arrival_time'];
-    final wakeupTime = event['planned_wakeup_time'] ?? event['wakeupTime'];
-    final departureTime = event['planned_departure_time'] ?? event['departureTime'];
     
-    String meetingTimeStr = '-- : --   '; // default fallback
+    String meetingTimeStr = '08:15 AM'; // default fallback
     if (arrivalTime != null && arrivalTime is Timestamp) {
       meetingTimeStr = DateFormat("hh:mm a").format(arrivalTime.toDate());
-    }
-
-    String wakeupTimeStr = '-- : --   '; 
-    if (wakeupTime != null && wakeupTime is Timestamp) {
-      wakeupTimeStr = DateFormat("hh:mm a").format(wakeupTime.toDate());
-    }
-
-    String departureTimeStr = '-- : --   '; 
-    if (departureTime != null && departureTime is Timestamp) {
-      departureTimeStr = DateFormat("hh:mm a").format(departureTime.toDate());
     }
 
     return Container(
@@ -369,52 +328,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                 ),
               ),
               const SizedBox(width: 16),
-              // 設定ボタン
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFF1A1C1C), width: 3),
-                ),
-                child: IconButton(
-                  constraints: const BoxConstraints(),
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.settings, color: Color(0xFF1A1C1C), size: 24),
-                  onPressed: () async {
-                    final arrivalTime = event['arrival_time'];
-                    DateTime arrivalDateTime = DateTime.now();
-
-                    if (arrivalTime is Timestamp) {
-                      arrivalDateTime = arrivalTime.toDate();
-                    } else if (arrivalTime is DateTime) {
-                      arrivalDateTime = arrivalTime;
-                    }
-
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SetTimePage(
-                          groupId: widget.groupId,
-                          eventId: event['event_id'],
-                          eventTitle: event['title'],
-                          myRole: widget.myRole,
-                          arrivalTime: arrivalDateTime,
-                        ),
-                      ),
-                    );
-
-                    // 最新時間をリフレッシュ
-                    if (mounted && selectedGroupId != null) {
-                      setState(() {
-                        _eventsFuture = EventRepository().getEvents(selectedGroupId!);
-                      });
-                      debugPrint('時間をリフレッシュ');
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
               // Arrow Button
               InkWell(
                 onTap: () {
@@ -425,7 +338,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                         eventId: event['event_id'],
                         eventTitle: title,
                         groupId: selectedGroupId ?? '',
-                        myRole: widget.myRole,
                       ),
                     ),
                   );
@@ -466,9 +378,9 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           ),
           const SizedBox(height: 20),
           // Time Schedule Lines
-          _buildTimeRow('WAKE-UP', wakeupTimeStr, Colors.black),
+          _buildTimeRow('WAKE-UP', '06:30 AM', Colors.black),
           _buildDivider(),
-          _buildTimeRow('DEPARTURE', departureTimeStr, const Color(0xFFFF5C00)),
+          _buildTimeRow('DEPARTURE', '07:15 AM', const Color(0xFFFF5C00)),
           _buildDivider(),
           _buildTimeRow('MEETING', meetingTimeStr, Colors.black),
         ],

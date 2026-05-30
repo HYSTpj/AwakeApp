@@ -83,14 +83,10 @@ class UserTile extends StatelessWidget {
 class SelectParticipantsPage extends StatefulWidget {
   final String eventId;
   final String groupId; 
-  final String eventTitle;
-  final int myRole;
   const SelectParticipantsPage({
     super.key,
     required this.groupId,
     required this.eventId,
-    required this.eventTitle,
-    required this.myRole,
   });
 
   @override
@@ -112,6 +108,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
 Future<void> _loadMembers() async {
     try {
       final members = await _repository.getGroupMembers(widget.groupId);
+      if (!mounted) return;
       setState(() {
         _allMembers = members;
         _selectedMembers = {};
@@ -119,6 +116,7 @@ Future<void> _loadMembers() async {
       });
     } catch (e) {
       debugPrint('メンバー取得エラー: $e');
+      if (!mounted) return;
       setState(() {
         _selectedMembers = {};
         _isLoading = false;
@@ -141,7 +139,6 @@ Future<void> _loadMembers() async {
       if (!mounted) return;
 
       Navigator.pop(context);
-      Navigator.pop(context);
     } catch (e) {
       debugPrint('保存エラー: $e');
       if (mounted) {
@@ -159,10 +156,6 @@ Future<void> _loadMembers() async {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
-      groupId: widget.groupId,
-      eventId: widget.eventId,
-      eventTitle: widget.eventTitle,
-      myRole: widget.myRole,
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
       : SingleChildScrollView(
