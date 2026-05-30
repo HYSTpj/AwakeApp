@@ -48,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
                 );
                 debugPrint("ログイン成功");
                 if (!context.mounted) return;
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const GroupListPage()),
                 );

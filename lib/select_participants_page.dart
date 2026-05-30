@@ -83,10 +83,14 @@ class UserTile extends StatelessWidget {
 class SelectParticipantsPage extends StatefulWidget {
   final String eventId;
   final String groupId; 
+  final String eventTitle;
+  final int myRole;
   const SelectParticipantsPage({
     super.key,
     required this.groupId,
     required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
   });
 
   @override
@@ -155,6 +159,10 @@ Future<void> _loadMembers() async {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      groupId: widget.groupId,
+      eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      myRole: widget.myRole,
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
       : SingleChildScrollView(

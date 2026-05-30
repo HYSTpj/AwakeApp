@@ -9,7 +9,7 @@ import 'package:alarm/alarm.dart';
 
 class MemberCheckInViewModel extends ChangeNotifier {
   final String eventId;
-  final String groupId;
+  String groupId;
   final EventRepository _eventRepository;
 
   String? _userId;
@@ -156,5 +156,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+  
+  Future<void> updateGroupId(String newGroupId) async {
+    groupId = newGroupId;
+    await loadData();
   }
 }

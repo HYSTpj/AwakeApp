@@ -3,12 +3,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'common_layout.dart';
 import 'package:intl/intl.dart'; //DateFormatを使用するために追加
+import 'return_button.dart';
 
 class MemberPostPage extends StatelessWidget {
   final Map<String, dynamic> member; // 名前やアイコン用
   final Map<String, dynamic> report; // 理由や写真用
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
 
-  const MemberPostPage({super.key, required this.member, required this.report});
+  const MemberPostPage({
+    super.key,
+    required this.member,
+    required this.report,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+  });
 
   // 位置情報を文字に変換する関数
   String _formatLocation(dynamic location) {
@@ -29,36 +42,21 @@ class MemberPostPage extends StatelessWidget {
     }
 
     return CommonLayout(
+      groupId: groupId,
+      eventId: eventId,
+      eventTitle: eventTitle,
+      myRole: myRole,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 16),
             // 戻るボタン
-            const SizedBox(height: 5),
-            Align(
-              alignment: Alignment.topLeft, // 左上に表示
-              child: Container(
-                margin: const EdgeInsets.only(top: 10, left: 5),
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(0),
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context); // grouplist_pageに戻る
-                    debugPrint('1画面戻る');
-                  },
-                ),
-              ),
-            ),
+            ReturnButton(onTap: () {
+              Navigator.pop(context);
+              debugPrint('1画面戻る');
+            }),
 
             const SizedBox(height: 10),
             // ユーザー情報（アイコンと名前）
