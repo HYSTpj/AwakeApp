@@ -1,5 +1,8 @@
 // Firestoreからデータベースを取得するためのパッケージ
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 // profiles ドキュメント
 class ProfilesRepository {
@@ -26,6 +29,33 @@ class ProfilesRepository {
       .set(profile);
   }
   // 8.保存完了 (成功 => 戻り値void, 失敗 => error)
+
+  // アイコン画像のアップロード
+  Future<String?> uploadProfileImage({
+    required String uid,
+    required dynamic image, // File または Uint8List が渡される
+  }) async {
+    try {
+      // Firebase Storageの保存先パスを作成（例: profiles/ユーザーID.jpg）
+      final storageRef = FirebaseStorage.instance.ref().child('profiles/$uid.jpg');
+      
+      // 画像データ（File または Web用のUint8List）をアップロード
+      if (image is File) {
+        await storageRef.putFile(image);
+      } else if (image is Uint8List) {
+        await storageRef.putData(image);
+      } else {
+        return null; // サポートされていない形式の場合は何もしない
+      }
+      
+      // アップロードした画像のURLを取得して返す
+      final downloadUrl = await storageRef.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('画像アップロードエラー: $e');
+      return null;
+    }
+  }
 
   // プロフィール更新
   Future<void> updateProfile({

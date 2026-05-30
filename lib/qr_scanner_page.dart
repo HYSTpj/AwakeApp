@@ -4,7 +4,18 @@ import 'common_layout.dart';
 import 'passcode_entry_page.dart';
 
 class QRScannerPage extends StatefulWidget {
-  const QRScannerPage({super.key});
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
+
+  const QRScannerPage({
+    super.key,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+  });
 
   @override
   State<QRScannerPage> createState() => _QRScannerPageState();
@@ -25,6 +36,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
     const borderColor = Color(0xFF1A1C1C);
 
     return CommonLayout(
+      groupId: widget.groupId,
+      eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      myRole: widget.myRole,
       body: Container(
         color: const Color(0xFFF9FAFA), // ほんのりグレーがかった白
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -142,7 +157,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   // パスコード入力画面を push で開き、結果を受け取る
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PasscodeEntryPage()),
+                    MaterialPageRoute(builder: (context) => PasscodeEntryPage(
+                      groupId: widget.groupId,
+                      eventId: widget.eventId,
+                      eventTitle: widget.eventTitle,
+                      myRole: widget.myRole,
+                    )),
                   );
                   
                   if (!context.mounted) return;

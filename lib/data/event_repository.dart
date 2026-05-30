@@ -8,7 +8,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventRepository {
   EventRepository();
-  final _db = FirebaseFirestore.instance;
+  // Lazily access the Firestore instance to avoid forcing initialization
+  // during object construction (helps tests that subclass/mock this class).
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // イベント作成
   Future<String?> setEvent({
@@ -124,26 +126,55 @@ class EventRepository {
   // グループに所属するメンバー一覧を取得
   Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
     final snapshot = await _db
-        .collection('users')
+        .collection('groups_memberships')
         .where('group_id', isEqualTo: groupId)
         .get();
 
-    return snapshot.docs.map((doc) {
+    final profileFutures = snapshot.docs.map((doc) async {
       final data = doc.data();
-      data['uid'] = doc.id; // ドキュメントIDをuidとして利用
-      return data;
+      final userId = data['user_id'] ?? '';
+      
+      if (userId.isEmpty) return null;
+
+      final profileDoc = await _db.collection('profiles').doc(userId).get();
+      
+      if (profileDoc.exists) {
+        final profileData = profileDoc.data()!;
+        return {
+          'nickname': profileData['nickname'] ?? 'No Name', 
+          'uid': userId,
+          'avatar_url': profileData['avatar_url'] ?? '', 
+        };
+      } else {
+        return {
+          'nickname': 'Member (${userId.substring(0, math.min(4, userId.length))})',
+          'uid': userId,
+          'avatar_url': '',
+        };
+      }
     }).toList();
+
+    final results = await Future.wait(profileFutures);
+    return results.whereType<Map<String, dynamic>>().toList();
   }
 
-  Future<void> updateEventParticipants(
-    String eventId,
-    List<String> participants,
-  ) async {
-    await _db.collection('events').doc(eventId).update({
-      'participants': participants,
-      'update_at': FieldValue.serverTimestamp(),
-    });
-  }
+  Future<void> updateEventParticipants(String eventId, List<String> participants) async {
+  await _db
+      .collection('events')
+      .doc(eventId)
+      .update({
+    'participants': participants,
+    'update_at': FieldValue.serverTimestamp(),
+  });
+
+  // 選ばれた参加者全員分のステータスを自動生成
+  final List<Future<String>> createReportFutures = participants.map((uid) {
+    return createReportIfNotExist(eventId, uid);
+  }).toList();
+
+  // 全員分の生成処理が非同期で完了するのをしっかり待つ
+  await Future.wait(createReportFutures);
+}
 
   // --- event_reports 関連 ---
 
@@ -245,6 +276,22 @@ class EventRepository {
   Future<void> updateOversleptStatus(String reportId) async {
     await _db.collection("event_reports").doc(reportId).update({
       "status": 2, // overslept
+      "updated_at": FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 遅刻(Late)ステータスと各種データの更新
+  Future<void> updateLateReport(
+    String reportId,
+    String reason,
+    String photoUrl,
+    GeoPoint location,
+  ) async {
+    await _db.collection("event_reports").doc(reportId).update({
+      "status": 5, // late
+      "late_reason": reason,
+      "photo_url": photoUrl,
+      "location": location,
       "updated_at": FieldValue.serverTimestamp(),
     });
   }

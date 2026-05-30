@@ -2,7 +2,18 @@ import 'package:flutter/material.dart';
 import 'common_layout.dart';
 
 class PasscodeEntryPage extends StatefulWidget {
-  const PasscodeEntryPage({super.key});
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
+
+  const PasscodeEntryPage({
+    super.key,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+  });
 
   @override
   State<PasscodeEntryPage> createState() => _PasscodeEntryPageState();
@@ -38,6 +49,10 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
     const orangeColor = Color(0xFFFF5C00);
 
     return CommonLayout(
+      groupId: widget.groupId,
+      eventId: widget.eventId,
+      eventTitle: widget.eventTitle,
+      myRole: widget.myRole,
       body: Container(
         color: const Color(0xFFF9FAFA), // slightly off-white background
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),

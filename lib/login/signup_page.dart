@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Firebaseの認証機能
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
-
+import 'create_profile_page.dart'; // プロフィール作成画面
 
 // アカウント作成画面
 class CreateAccountPage extends StatefulWidget { 
@@ -23,7 +23,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       super.dispose();
     }
     
-
     // 画面のベース（アプリの見た目の骨組み）作成
     @override
     Widget build(BuildContext context) {
@@ -43,8 +42,17 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               email: emailController.text.trim(),
               password: passwordController.text,
             );
+
             if (!context.mounted) return;
-            Navigator.pop(context); // 成功したら戻る
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('アカウントが作成されました')),
+            );
+            
+            // 成功したらプロフィール設定画面へ遷移
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CreateAccountProfile()),
+            );
           } on FirebaseAuthException catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(e.message ?? '失敗しました')),

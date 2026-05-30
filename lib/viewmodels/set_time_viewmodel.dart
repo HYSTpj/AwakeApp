@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alarm/alarm.dart';
+import '../services/alarm_service.dart';
 import '../domain/entities/event_report.dart';
 import '../domain/repositories/i_event_report_repository.dart';
 import '../data/repositories/event_report_repository_impl.dart';
@@ -17,8 +18,14 @@ class SetTimeViewModel extends ChangeNotifier {
   String? errorMessage;
   bool isSaving = false;
 
-  SetTimeViewModel({required this.eventId, IEventReportRepository? repository})
-    : _repository = repository;
+  final AlarmService _alarmService;
+
+  SetTimeViewModel({
+    required this.eventId,
+    IEventReportRepository? repository,
+    AlarmService? alarmService,
+  })  : _repository = repository,
+        _alarmService = alarmService ?? RealAlarmService();
 
   Future<void> loadTime() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -70,20 +77,30 @@ class SetTimeViewModel extends ChangeNotifier {
 
     try {
       final repository = _repository ?? EventReportRepositoryImpl();
-      final wakeupTimeDay = DateTime(
+      DateTime wakeupTimeDay = DateTime(
         arrivalTime.year,
         arrivalTime.month,
         arrivalTime.day,
         wakeupTime!.hour,
         wakeupTime!.minute,
       );
-      final departureTimeDay = DateTime(
+      DateTime departureTimeDay = DateTime(
         arrivalTime.year,
         arrivalTime.month,
         arrivalTime.day,
         departureTime!.hour,
         departureTime!.minute,
       );
+
+      // もし起床時間が到着時間より後になっていたら、前日の夜に修正
+      if (wakeupTimeDay.isAfter(arrivalTime)) {
+        wakeupTimeDay = wakeupTimeDay.subtract(const Duration(days: 1));
+      }
+
+      // 出発時間も同様
+      if (departureTimeDay.isAfter(arrivalTime)) {
+        departureTimeDay = departureTimeDay.subtract(const Duration(days: 1));
+      }
 
       // まずローカルでアラームの登録を行う
       final wakeupSettings = AlarmSettings(
@@ -125,8 +142,8 @@ class SetTimeViewModel extends ChangeNotifier {
       );
 
       try {
-        await Alarm.set(alarmSettings: wakeupSettings);
-        await Alarm.set(alarmSettings: departureSettings);
+        await _alarmService.setAlarm(alarmSettings: wakeupSettings);
+        await _alarmService.setAlarm(alarmSettings: departureSettings);
       } catch (e) {
         isSaving = false;
         errorMessage = "アラームの登録に失敗しました。";
@@ -149,8 +166,8 @@ class SetTimeViewModel extends ChangeNotifier {
         return reportId != null;
       } catch (e) {
         // 保存に失敗した場合は、設定したアラームをキャンセル(ロールバック)する
-        await Alarm.stop(getAlarmId(eventId, 'wakeup'));
-        await Alarm.stop(getAlarmId(eventId, 'departure'));
+        await _alarmService.stop(getAlarmId(eventId, 'wakeup'));
+        await _alarmService.stop(getAlarmId(eventId, 'departure'));
 
         isSaving = false;
         errorMessage = "保存に失敗しました。";
@@ -161,6 +178,7 @@ class SetTimeViewModel extends ChangeNotifier {
       isSaving = false;
       errorMessage = "予期せぬエラーが発生しました。";
       notifyListeners();
+      
       return false;
     }
   }
