@@ -15,7 +15,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/event_repository.dart';
 
 class RankingPage extends StatefulWidget {
-  const RankingPage({super.key});
+  final String groupId;
+  final int myRole;
+
+  const RankingPage({
+    super.key,
+    required this.groupId,
+    required this.myRole,
+  });
 
   @override
   State<RankingPage> createState() => RankingPageState();
@@ -25,7 +32,6 @@ class RankingPageState extends State<RankingPage> {
 
   // groupIdの取得
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
-  String? selectedGroupId = "fqdEWek2Yl9ru5KULJJC";  // 今選択中のグループID
 
   // データベース用のインスタンス（仮）
   final _dbService = EventRepository();
@@ -70,6 +76,8 @@ class RankingPageState extends State<RankingPage> {
   Widget build(BuildContext context) {
     
     return CommonLayout( // 共通レイアウトを使用
+      groupId: widget.groupId,
+      myRole: widget.myRole,
       body: Stack(
           children: [
             SingleChildScrollView(
@@ -124,18 +132,9 @@ class RankingPageState extends State<RankingPage> {
                           ),
 
                             // ランキングリストを表示するウィジェット
-                            selectedGroupId == null
-                              ? const Padding(
-                                  padding: EdgeInsets.all(32.0),
-                                  child: Text(
-                                    'Please select a group.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                                  ),
-                                )
-                              : RankingList(
-                                key: ValueKey(selectedGroupId),
-                                groupId: selectedGroupId!,
+                            RankingList(
+                                key: ValueKey(widget.groupId),
+                                groupId: widget.groupId,
                               ),
                           ],
                       ),
@@ -144,12 +143,9 @@ class RankingPageState extends State<RankingPage> {
                   const SizedBox(height: 16),
 
                   // 遅刻投稿の表示
-                  if (selectedGroupId == null)
-                    const SizedBox.shrink() // グループ未選択時はなにも表示しない
-                  else
-                    FutureBuilder<List<Map<String, dynamic>>>(
+                  FutureBuilder<List<Map<String, dynamic>>>(
                       
-                      future: _dbService.getGroupAllZange(selectedGroupId!),
+                      future: _dbService.getGroupAllZange(widget.groupId),
 
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {

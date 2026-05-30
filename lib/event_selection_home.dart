@@ -59,6 +59,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      groupId: selectedGroupId,
+      myRole: 1,
       body: Column(
         children: [
           _buildGroupDropdown(),

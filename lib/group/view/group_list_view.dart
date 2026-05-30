@@ -62,6 +62,8 @@ class _GroupListPageState extends State<GroupListPage> {
 
     return CommonLayout(
       // 共通レイアウトを使用
+      groupId: selectedGroupId,
+      myRole: 0,
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator()) // ロード中はくるくるを出す
           : Column(
