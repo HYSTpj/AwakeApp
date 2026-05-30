@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 // profiles ドキュメント
