@@ -8,10 +8,13 @@ import '../view_model/group_view_model.dart';
 import '../../common_layout.dart';
 import 'create_add_delete_view.dart';
 import '../../event/view/event_list_view.dart'; // イベント一覧表示画面できたらインポート
+import '../../event_selection_home.dart';
 
 /// グループリストページ
 class GroupListPage extends StatefulWidget {
-  const GroupListPage({super.key});
+  final String? initialGroupId;
+
+  const GroupListPage({super.key, this.initialGroupId});
 
   @override
   State<GroupListPage> createState() => _GroupListPageState();
@@ -24,6 +27,7 @@ class _GroupListPageState extends State<GroupListPage> {
   final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
 
   String? selectedGroupId;
+  int? myRole;
 
   // 初期化
   @override
@@ -31,8 +35,25 @@ class _GroupListPageState extends State<GroupListPage> {
     super.initState();
 
     viewModel.addListener(_onViewModelUpdated);
+    _initializeScreen();
+  }
+
+  // 初期化時にグループIDが引き継がれていたら自動ロードする処理
+  Future<void> _initializeScreen() async {
     if (user != null) {
-      viewModel.getGroups(user!.uid);
+      await viewModel.getGroups(user!.uid);
+    }
+    
+    // 利用者画面からグループIDが渡されてきていたら、自動でそのグループをセットする
+    if (widget.initialGroupId != null && mounted) {
+      final String uid = user?.uid ?? "";
+      final int? role = await repository.getRole(id: uid, groupId: widget.initialGroupId!);
+      
+      setState(() {
+        selectedGroupId = widget.initialGroupId;
+        myRole = role;
+      });
+      debugPrint("利用者画面からグループ $selectedGroupId (役割: $myRole) を引き継ぎ");
     }
   }
 
@@ -62,6 +83,8 @@ class _GroupListPageState extends State<GroupListPage> {
 
     return CommonLayout(
       // 共通レイアウトを使用
+      groupId: selectedGroupId,
+      myRole: myRole,
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator()) // ロード中はくるくるを出す
           : Column(
@@ -139,7 +162,7 @@ class _GroupListPageState extends State<GroupListPage> {
                           ),
                         ),
                       ],
-                      onChanged: (String? value) {
+                      onChanged: (String? value) async {
                         if (value == null) return;
                         if (value == 'create_add_delete') {
                           Navigator.push(
@@ -147,9 +170,33 @@ class _GroupListPageState extends State<GroupListPage> {
                             MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
                           );
                         } else {
+
+                          final String uid = user?.uid ?? "";
+
+                          // myGroupsから選択されたグループのデrータを探す
+                          final int? role = await repository.getRole(id: uid, groupId: value);
+
+                          if (!context.mounted) return;
+
+                          if (role == 1) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EventSelectionHome(
+                                  groupId: value,
+                                  myRole: role!
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
                           setState(() {
                             selectedGroupId = value;
+                            myRole = role;
                           });
+
+                          debugPrint("グループ $value (役割: $myRole) を選択");
                         }
                       },
                     ),
@@ -161,9 +208,7 @@ class _GroupListPageState extends State<GroupListPage> {
                       ? const Center(
                           child: Text('Select group'),
                         ) // グループが選ばれていない時
-                      : EventListPage(
-                          groupId: selectedGroupId!,
-                        ), // グループが選ばれている時
+                      : EventListPage(groupId: selectedGroupId!, myRole: myRole!) // 管理者
                 ),
               ],
             ),
