@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
-import 'services/alarm_service.dart';
-import 'services/vibration_service.dart';
+import 'package:vibration/vibration.dart';
 import 'login/login_page.dart'; // ログインページのインポート
 
 // Firebaseを利用するためのパッケージ
@@ -72,8 +71,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final EventRepository _eventRepository = EventRepository();
-  final AlarmService _alarmService = RealAlarmService();
-  final VibrationService _vibrationService = RealVibrationService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
   bool _isDialogShowing = false;
@@ -85,7 +82,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _ringingSubscription = _alarmService.ringing.listen((AlarmSet alarmSet) {
+    _ringingSubscription = Alarm.ringing.listen((AlarmSet alarmSet) {
       final currentIds = alarmSet.alarms.map((a) => a.id).toSet();
       final newIds = currentIds.difference(_lastRingingIds);
       for (final id in newIds) {
@@ -128,27 +125,27 @@ class _MyAppState extends State<MyApp> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrangeAccent,
                   ),
-                  onPressed: () async {
-                    if (_isStoppingAlarm) {
-                      return;
-                    }
-
-                    _isStoppingAlarm = true;
-                    Navigator.of(context).pop();
-
-                    _stopCustomVibration();
-                    await _alarmService.stop(alarmSettings.id);
-                    if (eventId != null) {
-                      try {
-                        await _eventRepository.stopAlarmAndUpdateStatus(
-                          eventId: eventId,
-                          phase: alarmData?['phase'] as String? ?? '',
-                        );
-                      } catch (e) {
-                        debugPrint('アラーム停止後のステータス更新に失敗: $e');
+                    onPressed: () async {
+                      if (_isStoppingAlarm) {
+                        return;
                       }
-                    }
-                  },
+
+                      _isStoppingAlarm = true;
+                      Navigator.of(context).pop();
+
+                      _stopCustomVibration();
+                      await Alarm.stop(alarmSettings.id);
+                      if (eventId != null) {
+                        try {
+                          await _eventRepository.stopAlarmAndUpdateStatus(
+                            eventId: eventId,
+                            phase: alarmData?['phase'] as String? ?? '',
+                          );
+                        } catch (e) {
+                          debugPrint('アラーム停止後のステータス更新に失敗: $e');
+                        }
+                      }
+                    },
                   child: const Text(
                     'ストップ',
                     style: TextStyle(
@@ -168,23 +165,21 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  @override
-  void dispose() {
-    _ringingSubscription?.cancel();
-    _stopCustomVibration();
-    super.dispose();
-  }
-
   Future<void> _startGradualVibration() async {
     _stopCustomVibration();
 
-    final hasAmplitude = await _vibrationService.hasAmplitudeControl() ?? false;
+    final hasAmplitude = await Vibration.hasAmplitudeControl() ?? false;
+
+    if (_isStoppingAlarm) {
+      return;
+    }
+
     _currentVibrationIntensity = 50;
     int secondsElapsed = 0;
 
     _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (hasAmplitude) {
-        await _vibrationService.vibrate(
+        Vibration.vibrate(
           duration: 1000,
           amplitude: _currentVibrationIntensity,
         );
@@ -199,7 +194,7 @@ class _MyAppState extends State<MyApp> {
           }
         }
       } else {
-        await _vibrationService.vibrate(duration: 1000);
+        Vibration.vibrate(duration: 1000);
       }
     });
   }
@@ -207,7 +202,14 @@ class _MyAppState extends State<MyApp> {
   void _stopCustomVibration() {
     _vibrationTimer?.cancel();
     _vibrationTimer = null;
-    _vibrationService.cancel();
+    Vibration.cancel();
+  }
+
+  @override
+  void dispose() {
+    _ringingSubscription?.cancel();
+    _stopCustomVibration();
+    super.dispose();
   }
 
   // デザインシステム設定
