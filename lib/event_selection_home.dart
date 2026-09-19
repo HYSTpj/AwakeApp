@@ -32,11 +32,12 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   List<Map<String, dynamic>> _myGroups = [];
   bool _isLoadingGroups = true;
   Future<List<Map<String, dynamic>>>? _eventsFuture;
-  int myRole = 1;
+  late int myRole; // initStateでwidget.myRoleを入れる
 
   @override
   void initState() {
     super.initState();
+    myRole = widget.myRole; // 渡されたロールで即座に初期化
     _loadGroups();
   }
 
