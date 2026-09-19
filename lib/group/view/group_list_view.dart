@@ -51,7 +51,7 @@ class _GroupListPageState extends State<GroupListPage> {
       
       setState(() {
         selectedGroupId = widget.initialGroupId;
-        myRole = role;
+        myRole = role ?? 1; // nullでクラッシュを防ぐ
       });
       debugPrint("利用者画面からグループ $selectedGroupId (役割: $myRole) を引き継ぎ");
     }
@@ -193,7 +193,7 @@ class _GroupListPageState extends State<GroupListPage> {
 
                           setState(() {
                             selectedGroupId = value;
-                            myRole = role;
+                            myRole = role ?? 1; // nullでクラッシュを防ぐ
                           });
 
                           debugPrint("グループ $value (役割: $myRole) を選択");
