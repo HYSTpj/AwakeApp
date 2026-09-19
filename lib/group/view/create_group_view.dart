@@ -59,88 +59,83 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       if (success) {
         final generatedGroupId = viewModel.newGroupId ?? 'UNKNOWN_ID';
 
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              backgroundColor: const Color(0xFFF8F6F6),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Color(0xFF1A1C1C), width: 3),
-              ),
-              title: const Text('Created a new group.', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Share this ID with your friends to let them join:'),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: SelectableText(
-                      generatedGroupId,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
-                    ),
+        // 成功ダイアログを表示
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFFF8F6F6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFF1A1C1C), width: 3),
+            ),
+            title: const Text('Created a new group.', style: TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Share this ID with your friends to let them join:'),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black, width: 2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
-              ),
-              actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepOrangeAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: Colors.black, width: 2),
-                    ),
+                  child: SelectableText(
+                    generatedGroupId,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
                   ),
-                  onPressed: () async {
-                    // クリップボードにIDをコピー
-                    await Clipboard.setData(ClipboardData(text: generatedGroupId));
-                    if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const GroupListPage(),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text('COPY ID & CLOSE', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrangeAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: const BorderSide(color: Colors.black, width: 2),
+                  ),
+                ),
+                onPressed: () async {
+                  // クリップボードにIDをコピーしてダイアログを閉じる
+                  await Clipboard.setData(ClipboardData(text: generatedGroupId));
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                },
+                child: const Text('COPY ID & CLOSE', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+
+        // ダイアログを閉じた後に画面遷移し、成功メッセージを表示
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const GroupListPage()),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Created a new group.')),
           );
         }
-      }
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const GroupListPage()),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Created a new group.')),
-        );
       } else {
-        if(mounted) {
-          ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+        // success が false のときはエラーメッセージを表示
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(viewModel.errorMessage ?? 'An error has occurred.')
+              content: Text(viewModel.errorMessage ?? 'An error has occurred.'),
             ),
           );
         }
       }
-    }  catch (e) {
-      debugPrint("エラーあり");
+    } catch (e) {
+      debugPrint("エラーあり: $e");
     }
   }
 
