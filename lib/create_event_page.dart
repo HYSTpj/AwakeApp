@@ -7,7 +7,6 @@ import 'package:flutter/gestures.dart';
 import 'common_layout.dart';
 import 'select_participants_page.dart';
 import 'data/event_repository.dart';
-import 'group/view/group_list_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
