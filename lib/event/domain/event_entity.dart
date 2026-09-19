@@ -73,4 +73,16 @@ class EventEntity {
 
 abstract class EventRepository {
   Future<List<EventEntity>> getEvents(String groupId);
+  
+  Future<List<Map<String, dynamic>>> getGroupMembers(String groupId);
+
+  Future<Map<String, dynamic>?> getEventById(String eventId);
+  
+  Future<void> updateEventDetails({
+    required String eventId,
+    required String title,
+    required String destinationName,
+    required String arrivalTime,
+    required List<String> participants,
+  });
 }
