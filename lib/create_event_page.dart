@@ -217,12 +217,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
             Padding(
               padding: const EdgeInsets.only(left: 14, top: 9),
               child: InkWell(
-                onTap: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GroupListPage(initialGroupId: widget.groupId)
-                  ),
-                ),
+                onTap: () => Navigator.pop(context),
                 child: Container(
                   width: 42,
                   height: 42,
