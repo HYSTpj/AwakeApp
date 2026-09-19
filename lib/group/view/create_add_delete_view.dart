@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common_layout.dart';
-import 'return_button.dart';
+import '../../return_button.dart';
 import 'create_group_view.dart';
 import 'add_group_view.dart';
 import 'delete_group_view.dart';
@@ -13,37 +13,39 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(  // 共通レイアウトを使用
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 戻るボタン
+              ReturnButton(onTap: () {
+                Navigator.pop(context);
+                debugPrint('1画面戻る');
+              }),
 
-            const SizedBox(height: 16),
-            // 戻るボタン
-            ReturnButton(onTap: () {
-              Navigator.pop(context);
-              debugPrint('1画面戻る');
-            }),
+              // 余白
+              const SizedBox(height: 40), 
 
-            const Spacer(), // 真ん中に押し出す
+              // グループ新規作成ボタン
+              _createButton(context),
 
-            // グループ新規作成ボタン
-            _createButton(context),
+              const SizedBox(height: 32),
 
-            const SizedBox(height: 50,),  // ボタン同士の隙間
+              // グループ参加ボタン
+              _addButton(context),
 
-            // グループ参加ボタン
-            _addButton(context),
+              const SizedBox(height: 32),
 
-            const SizedBox(height: 50,),  // ボタン同士の隙間
+              // グループ脱退ボタン
+              _deleteButton(context),
 
-            // グループ脱退ボタン
-            _deleteButton(context),
-
-            const Spacer(), // 真ん中に押し出す
-          ],
-        )
+              const SizedBox(height: 40), 
+            ],
+          ),
+        ),
       ),
     );
   }

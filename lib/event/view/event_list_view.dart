@@ -9,8 +9,13 @@ import '../domain/event_entity.dart';
 
 class EventListPage extends StatefulWidget {
   final String groupId;
+  final int myRole;
 
-  const EventListPage({super.key, required this.groupId});
+  const EventListPage({
+    super.key,
+    required this.groupId,
+    required this.myRole,
+  });
 
   @override
   State<EventListPage> createState() => _EventListPageState();
@@ -80,23 +85,14 @@ class _EventListPageState extends State<EventListPage> {
           });
           debugPrint('${event.title}の管理者ページへ移動');
 
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MemberStatusPage(
-                groupId: widget.groupId,
-                eventId: event.eventId,
-                eventTitle: event.title,
-                myRole: myRole,
-                arrivalTime: arrivalTime,
-                password: event.password,
-              ),
-            ),
-          );
+          await Future.delayed(Duration.zero); // 画面遷移が落ち着くのを待つ
 
+          // データを再取得して最新状態にリフレッシュ
           if (mounted) {
-            _viewModel.loadData();
-            debugPrint('イベント一覧のデータを最新に更新（リフレッシュ）');
+            setState(() {
+              _viewModel.loadData(); // 一覧のデータを再読込
+            });
+            debugPrint('データを最新に更新');
           }
         } else {
           debugPrint('${event.title}の利用者ページへ移動');
@@ -201,7 +197,7 @@ class _EventListPageState extends State<EventListPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final myRole = _viewModel.myRole ?? 1;
+    final myRole = _viewModel.myRole;
     final events = _viewModel.events;
 
     if (selectedEventId != null) {
@@ -222,7 +218,7 @@ class _EventListPageState extends State<EventListPage> {
         groupId: widget.groupId,
         eventId: selectedEvent.eventId,
         eventTitle: selectedEventTitle ?? selectedEvent.title,
-        myRole: myRole,
+        myRole: widget.myRole,
         arrivalTime: _formatTime(selectedEvent.arrivalTime),
         password: selectedEvent.password,
       );
@@ -243,13 +239,17 @@ class _EventListPageState extends State<EventListPage> {
                     MaterialPageRoute(
                       builder: (context) => CreateEventPage(
                         groupId: widget.groupId,
-                        myRole: _viewModel.myRole ?? 1,
+                        myRole: widget.myRole,
                       ),
                     ),
                   );
-                  
+                  debugPrint('イベント作成ページへ移動');
+
+                  // 画面が戻ってきたらデータを再取得して画面を更新
                   if (mounted) {
-                    _viewModel.loadData();
+                    setState(() {
+                      _viewModel.loadData();
+                    });
                     debugPrint('イベント一覧をリフレッシュ');
                   }
                 },
@@ -277,7 +277,7 @@ class _EventListPageState extends State<EventListPage> {
               ? const Center(child: Text('No events found for this group.'))
               : ListView.builder(
                   itemCount: events.length,
-                  itemBuilder: (context, index) => _buildEventTile(events[index], myRole),
+                  itemBuilder: (context, index) => _buildEventTile(events[index], myRole!),
                 ),
         ),
       ],
