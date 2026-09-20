@@ -104,6 +104,7 @@ dev_dependencies:
   drift_dev: ^2.14.1
   build_runner: ^2.4.8
   flutter_launcher_icons: ^0.14.4
+  mocktail: ^1.0.5
 
 # このファイルの汎用 Dart 部分に関する情報については，次のページを参照
 # https://dart.dev/tools/pub/pubspec
