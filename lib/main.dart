@@ -18,6 +18,10 @@ import 'database/database.dart';
 import 'data/event_repository.dart';
 import 'data/repositories/room_repository.dart';
 
+// 追加: 認証リポジトリとViewModel
+import 'data/repositories/auth_repository.dart';
+import 'presentation/views/auth_view_model.dart';
+
 void main() async {
   // Flutterを初期化
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,19 +43,28 @@ void main() async {
 
   // Supabaseを初期化
   await Supabase.initialize(
-    url: 'https://nnxfbifnaebzfapgbfkr.supabase.co', // Project URL
-    anonKey: 'sb_publishable_eldYHgMllFya3mprP7AMXw_SJrK6bkv', // Anon Key
+    url: 'https://ysfdiozvtqpozurtqaor.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZmRpb3p2dHFwb3p1cnRxYW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODU3NTMsImV4cCI6MjEwNTU2MTc1M30.WUNe9uDyfC1kv9Akt5Z9Ac4KZ7Afw7WlJjV6P0fRWrY',
   );
 
   //DriftDBとrepositoryのインスタンス化
   final database = AwakeDatabase(openConnection());
   final roomRepository = RoomRepository(database);
 
+  // Supabase認証Repositoryの生成
+  final authRepository = SupabaseAuthRepository(Supabase.instance.client);
+
   runApp(
     MultiProvider(
       providers: [
         Provider<AwakeDatabase>.value(value: database),
         Provider<RoomRepository>.value(value: roomRepository),
+
+        // AuthRepository と AuthViewModel
+        Provider<AuthRepository>.value(value: authRepository),
+        ChangeNotifierProvider<AuthViewModel>(
+          create: (_) => AuthViewModel(authRepository),
+        ),
       ],
       child: const MyApp(),
     ),
