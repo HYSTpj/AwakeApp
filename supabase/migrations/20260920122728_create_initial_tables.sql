@@ -48,24 +48,6 @@ CREATE TABLE public.groups (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
-
--- 所属しているグループのみ閲覧可能
-CREATE POLICY "Users can view groups they belong to"
-    ON public.groups FOR SELECT
-    TO authenticated
-    USING (
-        id IN (
-            SELECT gm.group_id FROM public.groups_memberships gm WHERE gm.user_id = auth.uid()
-        )
-    );
-
--- 認証済みユーザーなら誰でも新規グループ作成可能
-CREATE POLICY "Authenticated users can create groups"
-    ON public.groups FOR INSERT
-    TO authenticated
-    WITH CHECK (true);
-
 
 -- ====================================================
 -- 3. groups_memberships テーブル (中間テーブル)
@@ -110,6 +92,26 @@ CREATE POLICY "Users can leave group or admin can remove"
                 AND gm.role = 0 -- 0: admin
         )
     );
+
+
+-- groups テーブルの RLS（groups_memberships 参照のためここに配置）
+ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
+
+-- 所属しているグループのみ閲覧可能
+CREATE POLICY "Users can view groups they belong to"
+    ON public.groups FOR SELECT
+    TO authenticated
+    USING (
+        id IN (
+            SELECT gm.group_id FROM public.groups_memberships gm WHERE gm.user_id = auth.uid()
+        )
+    );
+
+-- 認証済みユーザーなら誰でも新規グループ作成可能
+CREATE POLICY "Authenticated users can create groups"
+    ON public.groups FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
 
 
 -- ====================================================
