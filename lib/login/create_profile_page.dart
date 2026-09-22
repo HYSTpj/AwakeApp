@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screen/create_account_body.dart';
-import 'package:flutter_application_1/data/profiles_repository.dart';
 import '../group/view/group_list_view.dart';
 
 class CreateAccountProfile extends StatefulWidget {
@@ -16,10 +14,15 @@ class CreateAccountProfile extends StatefulWidget {
 
 class _CreateAccountProfileState extends State<CreateAccountProfile> {
   final TextEditingController _userNameController = TextEditingController();
-  dynamic _pickedImage;
+  File? _pickedImage;
   final ImagePicker _picker = ImagePicker();
-  final bool _isLoading = false; // 処理中のぐるぐる表示用
-  final ProfilesRepository _profilesRepository = ProfilesRepository();                                                                                                                              
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _userNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,30 +43,21 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-
-  // -- 画像選択の処理 --
-  void _pickImage() async {
+  // 画像選択の処理
+  Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      if (kIsWeb) {
-        // Webの場合：バイトデータとして読み込む
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _pickedImage = bytes; 
-        });
-      } else {
-        // スマホの場合：従来通りFileとして扱う
-        setState(() {
-          _pickedImage = File(pickedFile.path);
-        });
-      }
+      setState(() {
+        _pickedImage = File(pickedFile.path);
+      });
     }
   }
 
-  // アカウント作成の処理(Firebaseへの保存など)
+  // アカウント作成の処理(Supabaseへの保存など)
   Future<void> _handleCreateAccount() async {
     final String name = _userNameController.text.trim();
-    final user = FirebaseAuth.instance.currentUser;
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
 
     if (name.isEmpty) {
       _showSnackBar('ユーザー名を入力してください');
@@ -76,43 +70,57 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
-      // 画像があればFirebase StorageにアップロードしてURLを取得
-      String avatarUrl = '';
+      // 画像があればSupabase StorageにアップロードしてURLを取得
+      String? avatarUrl;
       if (_pickedImage != null) {
-        final url = await _profilesRepository.uploadProfileImage(
-          uid: user.uid,
-          image: _pickedImage,
+        final filePath = '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        await client.storage.from('avatars').upload(
+          filePath,
+          _pickedImage!,
+          fileOptions: const FileOptions(
+            contentType: 'image/jpeg',
+            upsert: true,
+          ),
         );
-        if (url != null) {
-          avatarUrl = url;
-        }
+
+        avatarUrl = client.storage.from('avatars').getPublicUrl(filePath);
       }
 
-      await _profilesRepository.setProfile(
-        uid: user.uid,
-        nickname: name,
-        avatarUrl: avatarUrl,
-      );
-      debugPrint("保存に成功しました！");
+      // profiles テーブルの更新 (upsert)
+      final updateData = <String, dynamic>{
+        'id': user.id,
+        'nickname': name,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      if (avatarUrl != null) {
+        updateData['avatar_url'] = avatarUrl;
+      }
+
+      await client.from('profiles').upsert(updateData);
+
+      debugPrint("プロフィール保存に成功しました");
       if (!mounted) return;
-      Navigator.push(
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const GroupListPage()),
       );
-
     } catch (e) {
-      if (!context.mounted) return;
+      debugPrint("プロファイル保存エラー: $e");
+      if (!mounted) return;
       _showSnackBar('プロファイルの保存に失敗しました: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   void _returnToLogin() {
     Navigator.pop(context); // ログイン画面に戻る
   }
-
-  //　ローディング状態の処理
-  /*void _isLoading() {
-
-  }*/
 }

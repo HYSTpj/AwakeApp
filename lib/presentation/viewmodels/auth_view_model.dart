@@ -44,7 +44,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> signUp({
     required String email,
     required String password,
-    required String nickname,
+    String? nickname,
   }) async {
     _state = _state.copyWith(isLoading: true, clearError: true);
     notifyListeners();

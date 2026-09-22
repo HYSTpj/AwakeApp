@@ -7,7 +7,7 @@ abstract class AuthRepository {
   Future<Profile> signUp({
     required String email,
     required String password,
-    required String nickname,
+    String? nickname,
   });
 
   // メールアドレスとパスワードでサインインする
@@ -42,7 +42,7 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Profile> signUp({
     required String email,
     required String password,
-    required String nickname,
+    String? nickname,
   }) async {
     // ユーザー作成時、raw_user_meta_data に nickname を保持させる
     // （DB側の handle_new_user トリガーで profiles に自動挿入される）

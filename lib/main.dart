@@ -7,20 +7,20 @@ import 'services/alarm_service.dart';
 import 'services/vibration_service.dart';
 import 'login/login_page.dart'; // ログインページのインポート
 
-// Firebaseを利用するためのパッケージ
-import 'package:firebase_core/firebase_core.dart';
-import 'data/firebase_options.dart';
-
 // Supabaseを利用するためのパッケージ
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'database/database.dart';
-import 'data/event_repository.dart';
-import 'data/repositories/room_repository.dart';
 
-// 追加: 認証リポジトリとViewModel
+// リポジトリ
+import 'data/repositories/room_repository.dart';
 import 'data/repositories/auth_repository.dart';
-import 'presentation/views/auth_view_model.dart';
+import 'data/repositories/admin_event_repository.dart';
+import 'data/repositories/member_event_repository.dart';
+
+// ViewModel
+import 'presentation/viewmodels/auth_view_model.dart';
+import 'presentation/viewmodels/admin_event_view_model.dart';
 
 void main() async {
   // Flutterを初期化
@@ -28,31 +28,22 @@ void main() async {
   // Alarmを初期化
   await Alarm.init();
 
-  try {
-    // Firebaseを初期化
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    if (e.toString().contains('duplicate-app')) {
-      debugPrint('初期化済み');
-    } else {
-      rethrow;
-    }
-  }
-
   // Supabaseを初期化
   await Supabase.initialize(
     url: 'https://ysfdiozvtqpozurtqaor.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZmRpb3p2dHFwb3p1cnRxYW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODU3NTMsImV4cCI6MjEwNTU2MTc1M30.WUNe9uDyfC1kv9Akt5Z9Ac4KZ7Afw7WlJjV6P0fRWrY',
   );
 
-  //DriftDBとrepositoryのインスタンス化
+  final client = Supabase.instance.client;
+
+  // Drift DB
   final database = AwakeDatabase(openConnection());
   final roomRepository = RoomRepository(database);
 
-  // Supabase認証Repositoryの生成
-  final authRepository = SupabaseAuthRepository(Supabase.instance.client);
+  // Supabase Repositories
+  final authRepository = SupabaseAuthRepository(client);
+  final adminEventRepository = SupabaseAdminEventRepository(client);
+  final memberEventRepository = SupabaseMemberEventRepository(client);
 
   runApp(
     MultiProvider(
@@ -60,13 +51,20 @@ void main() async {
         Provider<AwakeDatabase>.value(value: database),
         Provider<RoomRepository>.value(value: roomRepository),
 
-        // AuthRepository と AuthViewModel
+        // 各種リポジトリ
         Provider<AuthRepository>.value(value: authRepository),
+        Provider<AdminEventRepository>.value(value: adminEventRepository),
+        Provider<MemberEventRepository>.value(value: memberEventRepository),
+
+        // 共通 ViewModel
         ChangeNotifierProvider<AuthViewModel>(
           create: (_) => AuthViewModel(authRepository),
         ),
+        ChangeNotifierProvider<AdminEventViewModel>(
+          create: (_) => AdminEventViewModel(adminEventRepository),
+        ),
       ],
-      child: const MyApp(),
+      child: MyApp(memberEventRepository: memberEventRepository),
     ),
   );
 
@@ -76,7 +74,9 @@ void main() async {
 
 // アプリ全体の設定
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final MemberEventRepository memberEventRepository;
+
+  const MyApp({super.key, required this.memberEventRepository});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -84,7 +84,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  final EventRepository _eventRepository = EventRepository();
   final AlarmService _alarmService = RealAlarmService();
   final VibrationService _vibrationService = RealVibrationService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
@@ -125,6 +124,7 @@ class _MyAppState extends State<MyApp> {
         ? null
         : jsonDecode(payload) as Map<String, dynamic>;
     final eventId = alarmData?['eventId'] as String?;
+    final phase = alarmData?['phase'] as String? ?? '';
 
     try {
       await showDialog<void>(
@@ -151,12 +151,15 @@ class _MyAppState extends State<MyApp> {
 
                     _stopCustomVibration();
                     await _alarmService.stop(alarmSettings.id);
+
+                    // Supabase RPC経由で起床/出発の打刻処理を実行
                     if (eventId != null) {
                       try {
-                        await _eventRepository.stopAlarmAndUpdateStatus(
-                          eventId: eventId,
-                          phase: alarmData?['phase'] as String? ?? '',
-                        );
+                        if (phase == 'wakeup') {
+                          await widget.memberEventRepository.reportWakeUp(eventId);
+                        } else if (phase == 'departure') {
+                          await widget.memberEventRepository.reportDeparture(eventId);
+                        }
                       } catch (e) {
                         debugPrint('アラーム停止後のステータス更新に失敗: $e');
                       }
@@ -229,7 +232,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: _navigatorKey,
-      title: 'Flutter Demo',
+      title: 'Awake App',
       theme: ThemeData(
         // デザインタイプの有効設定
         useMaterial3: true,
