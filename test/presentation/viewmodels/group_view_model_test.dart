@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_application_1/data/repositories/group_repository.dart';
 import 'package:flutter_application_1/models/group.dart';
-import 'package:flutter_application_1/presentation/views/group_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
 
 class MockGroupRepository extends Mock implements GroupRepository {}
 

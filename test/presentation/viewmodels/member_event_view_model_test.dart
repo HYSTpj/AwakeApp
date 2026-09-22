@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_application_1/data/repositories/member_event_repository.dart';
 import 'package:flutter_application_1/models/event_report.dart';
-import 'package:flutter_application_1/presentation/views/member_event_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/member_event_view_model.dart';
 
 class MockMemberEventRepository extends Mock implements MemberEventRepository {}
 

@@ -3,7 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_application_1/data/repositories/admin_event_repository.dart';
 import 'package:flutter_application_1/models/event.dart';
 import 'package:flutter_application_1/models/profile.dart';
-import 'package:flutter_application_1/presentation/views/admin_event_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 
 class MockAdminEventRepository extends Mock implements AdminEventRepository {}
 

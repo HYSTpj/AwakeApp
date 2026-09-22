@@ -3,7 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_application_1/models/profile.dart';
-import 'package:flutter_application_1/presentation/views/auth_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
