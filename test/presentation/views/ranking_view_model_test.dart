@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_application_1/data/repositories/ranking_repository.dart';
 import 'package:flutter_application_1/models/ranking_user.dart';
-import 'package:flutter_application_1/presentation/views/ranking_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/ranking_view_model.dart';
 
 class MockRankingRepository extends Mock implements RankingRepository {}
 
