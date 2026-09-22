@@ -24,6 +24,9 @@ abstract class AuthRepository {
 
   // 現在ログイン中のユーザーID（UUID）を取得する（未ログイン時は null）
   String? get currentUserId;
+
+  // パスワード再設定メールを送信する
+  Future<void> resetPassword({required String email});
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -123,5 +126,10 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     throw const AuthException('Timed out waiting for profile creation trigger');
+  }
+
+  @override
+  Future<void> resetPassword({required String email}) async {
+    await _client.auth.resetPasswordForEmail(email);
   }
 }
