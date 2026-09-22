@@ -18,6 +18,7 @@ import 'database/database.dart';
 import 'data/event_repository.dart';
 import 'data/repositories/room_repository.dart';
 
+
 void main() async {
   // Flutterを初期化
   WidgetsFlutterBinding.ensureInitialized();
@@ -224,7 +225,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 最初に表示する画面
-      home: LoginPage(),
+      home: const LoginPage()
     );
   }
 }
