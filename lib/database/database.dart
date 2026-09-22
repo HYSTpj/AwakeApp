@@ -16,7 +16,7 @@ LazyDatabase openConnection() {
 class Profiles extends Table {
   TextColumn get id => text()();
   TextColumn get nickname => text()();
-  TextColumn get avataUrl => text()();
+  TextColumn get avatarUrl => text()();
   IntColumn get sleepPastCount => integer().withDefault(const Constant(0))();
   IntColumn get lateCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
