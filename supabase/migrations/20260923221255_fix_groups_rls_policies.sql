@@ -65,11 +65,13 @@ ON groups FOR INSERT
 TO authenticated
 WITH CHECK (true);
 
--- 閲覧: 作成直後の select() や一覧取得のため、認証済みユーザーに閲覧を許可
-CREATE POLICY "groups_select_all_auth"
+-- 閲覧: 自分が所属しているグループのみ参照可能（他人のグループは見えない）
+CREATE POLICY "groups_select_my_groups_only"
 ON groups FOR SELECT
 TO authenticated
-USING (true);
+USING (
+    id IN (SELECT get_my_group_ids())
+);
 
 -- 更新: 所属メンバーのみ更新可能
 CREATE POLICY "groups_update_members_only"
