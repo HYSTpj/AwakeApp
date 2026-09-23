@@ -1,16 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../data/group_repository.dart';
-import '../data/event_repository.dart';
-
-import 'package:intl/intl.dart'; //DateFormatを使用するために追加
+import '../../../../../data/repositories/group_repository.dart';
+import '../../../../data/repositories/admin_event_repository.dart';
+import '../../../../../models/event.dart';
 import 'memberstatus_page.dart';
 import 'create_event_page.dart';
 
 class EventListPage extends StatefulWidget {
-  final String groupId; // grouplist_pageのドロップダウンで指定されたgroup_id
+  final String groupId;
 
   const EventListPage({super.key, required this.groupId});
 
@@ -19,106 +18,114 @@ class EventListPage extends StatefulWidget {
 }
 
 class _EventListPageState extends State<EventListPage> {
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
-  Future<List<dynamic>>? _pageDataFuture;
+  final _supabase = Supabase.instance.client;
+  late final GroupRepository _groupRepository;
+  late final AdminEventRepository _adminEventRepository;
+
+  Future<Map<String, dynamic>>? _pageDataFuture;
+
+  String? selectedEventId;
+  String? selectedEventTitle;
 
   @override
   void initState() {
     super.initState();
+    _groupRepository = SupabaseGroupRepository(_supabase);
+    _adminEventRepository = SupabaseAdminEventRepository(_supabase);
     _loadData();
   }
 
   void _loadData() {
-    final String uid = user?.uid ?? "no user"; // ユーザーid取得，ログインしてない場合のエラーも書く
     _pageDataFuture = Future.wait([
-      GroupRepository().getRole(id: uid, groupId: widget.groupId),  // 自分の役割を取得する予約 snapshot.data[0]
-      EventRepository().getEvents(widget.groupId),  // イベントリストを作る予約 snapshot.data[1]
-    ]);
+      // 戻り値が null の場合はデフォルト 1
+      _groupRepository.getRole(widget.groupId),
+      _adminEventRepository.getEvents(widget.groupId),
+    ]).then((results) {
+      return {
+        'role': (results[0] as int?) ?? 1,
+        'events': results[1] as List<Event>,
+      };
+    });
   }
 
   @override
   void didUpdateWidget(EventListPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // groupIdが変わった時だけ更新
     if (oldWidget.groupId != widget.groupId) {
       setState(() {
+        selectedEventId = null;
+        selectedEventTitle = null;
         _loadData();
       });
     }
   }
 
-  String? selectedEventId; // 今どのイベントの詳細を見ているか
-  String? selectedEventTitle; // 選ばれていない時はnull
-
-  // 時間変換処理
-  String _time(dynamic timestamp) {
-    if (timestamp == null) return 'No decided yet';
+  /// 時間フォーマット処理 (DateTime / String 両対応)
+  String _formatTime(dynamic arrivalTime) {
+    if (arrivalTime == null) return 'Not decided yet';
 
     try {
-      // Timestamp型の場合
-      if (timestamp is Timestamp) {
-        return DateFormat("M/dd HH:mm").format(timestamp.toDate());
+      if (arrivalTime is DateTime) {
+        return DateFormat("M/dd HH:mm").format(arrivalTime);
       }
-      
-      // 文字列の場合
-      if (timestamp is String) {
-        final parsedDate = DateTime.parse(timestamp);
+      if (arrivalTime is String) {
+        final parsedDate = DateTime.parse(arrivalTime);
         return DateFormat("M/dd HH:mm").format(parsedDate);
       }
     } catch (e) {
       debugPrint('時間変換エラー: $e');
     }
-    return 'No decided yet';
+    return 'Not decided yet';
   }
 
   @override
   Widget build(BuildContext context) {
-
-    return FutureBuilder<List<dynamic>>(
-      // 作業終わるまで置き換えておく画面作成
-      future: _pageDataFuture, // 先に予約しておいたデータ取得の作業を呼び出す
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _pageDataFuture,
       builder: (context, snapshot) {
-        // 状況(snapshot)に合わせて作る画面作成
-
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // 待ち状態のとき
-          return const Center(
-            child: CircularProgressIndicator(),
-          ); // 読み込み中のくるくる表示
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
-          // エラーのとき
-          return Center(child: Text('${snapshot.error}'));
+          return Center(
+            child: Text('エラーが発生しました: ${snapshot.error}'),
+          );
         }
 
-        // 取得し終わったとき
-        final myRole = (snapshot.data![0] ?? 1) as int;  // int型だと教えてあげる
+        final data = snapshot.data;
+        if (data == null) {
+          return const Center(child: Text('データを読み込めませんでした'));
+        }
 
-        final myEvents = snapshot.data![1] as List;
+        final myRole = data['role'] as int;
+        final myEvents = data['events'] as List<Event>;
 
+        // 詳細画面へインラインで切り替える場合の処理
         if (selectedEventId != null) {
-          // イベント管理者ページへ飛ぶ時
           final selectedEvent = myEvents.firstWhere(
-            (e) => e['event_id'] == selectedEventId,
-          ); // 選択したイベントid保存
+            (e) => e.id == selectedEventId,
+            orElse: () => myEvents.first,
+          );
 
-          // 時間変換処理
-          String displayTime = _time(selectedEvent['arrival_time']);
+          final displayTime = _formatTime(selectedEvent.arrivalTime);
 
           return MemberStatusPage(
             groupId: widget.groupId,
             eventId: selectedEventId!,
-            eventTitle: selectedEventTitle!,
+            eventTitle: selectedEventTitle ?? selectedEvent.title,
             myRole: myRole,
             arrivalTime: displayTime,
-            password: selectedEvent['password'] ?? '',
+            password: selectedEvent.password,
           );
         }
 
         return Column(
           children: [
-            // イベント作成ボタン
-            if (myRole == 0) // 管理者にだけ表示
+            // 管理者（myRole == 0）のみイベント追加ボタンを表示
+            if (myRole == 0)
               Padding(
                 padding: const EdgeInsets.all(15),
                 child: SizedBox(
@@ -126,7 +133,6 @@ class _EventListPageState extends State<EventListPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () async {
-                      // 前の画面（イベント作成➔参加者選択）が全部終わって戻ってくるのを await で待つ
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -136,8 +142,7 @@ class _EventListPageState extends State<EventListPage> {
                           ),
                         ),
                       );
-                      
-                      // 画面が戻ってきたらデータを再取得して画面を更新
+
                       if (mounted) {
                         setState(() {
                           _loadData();
@@ -165,65 +170,33 @@ class _EventListPageState extends State<EventListPage> {
                 ),
               ),
 
-            // イベント一覧
+            // イベント一覧リスト
             Expanded(
-              // 残り画面スペース全体に表示
               child: myEvents.isEmpty
                   ? const Center(
                       child: Text('No events found for this group.'),
-                    ) // イベントがないの時
+                    )
                   : ListView.builder(
-                      // イベントがある時
-                      itemCount: myEvents.length, // いくつ表示するか
+                      itemCount: myEvents.length,
                       itemBuilder: (context, index) {
-                        // 中身設定
-
                         final event = myEvents[index];
-
-                        // 時間変換処理
-                        String arrivalTime = _time(event['arrival_time']);
+                        final arrivalTime = _formatTime(event.arrivalTime);
 
                         return GestureDetector(
                           onTap: () async {
-                            // それぞれのイベント押したとき
                             if (!mounted) return;
 
                             if (myRole == 0) {
-                              // 管理者の時
-
                               setState(() {
-                                selectedEventId = event['event_id'];
-                                selectedEventTitle = event['title'];
+                                selectedEventId = event.id;
+                                selectedEventTitle = event.title;
                               });
-                              debugPrint('${event['title']}の管理者ページへ移動');
-                              await Future.delayed(Duration.zero); // 画面遷移が落ち着くのを待つ
-
-                              // 詳細画面から戻ってきた瞬間に、一覧のデータをFirestoreから再取得して、詳細画面へ渡すデータも最新状態にリフレッシュ
-                              if (mounted) {
-                                setState(() {
-                                  _loadData(); // 一覧のデータを再読込
-                                });
-                                debugPrint('データを最新に更新');
-                              }
+                              debugPrint('${event.title} の管理者ページへ移動');
                             } else {
-                              // 利用者の時
-                              /*
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MemberCheckInPage(
-                              eventId: event['event_id'],
-                              eventTitle: event['title'],
-                              groupId: widget.groupId,
-                            ),
-                          ),
-                        );
-                        */
-                              debugPrint('${event['title']}の利用者ページへ移動');
+                              debugPrint('${event.title} の利用者ページへ移動');
                             }
                           },
                           child: Container(
-                            // イベント箱全体設定
                             margin: const EdgeInsets.symmetric(
                               horizontal: 15,
                               vertical: 8,
@@ -235,10 +208,9 @@ class _EventListPageState extends State<EventListPage> {
                               border: Border.all(color: Colors.black, width: 2),
                             ),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start, // 左よせ
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // 集合時間表示
+                                // 集合時間
                                 Row(
                                   children: [
                                     const Icon(
@@ -254,14 +226,14 @@ class _EventListPageState extends State<EventListPage> {
                                     ),
                                   ],
                                 ),
-
                                 const Divider(
                                   color: Colors.black,
                                   thickness: 2,
                                   height: 20,
-                                ), // 間の黒線追加
-                                const SizedBox(height: 10), // 隙間追加
-                                // 集合場所表示
+                                ),
+                                const SizedBox(height: 10),
+
+                                // 集合場所
                                 Row(
                                   children: [
                                     const Icon(
@@ -269,42 +241,41 @@ class _EventListPageState extends State<EventListPage> {
                                       color: Colors.deepOrangeAccent,
                                     ),
                                     const SizedBox(width: 5),
-                                    Text(
-                                      event['destination_name'] ??
-                                          'No decided yet',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Text(
+                                        event.destinationName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      overflow:
-                                          TextOverflow.ellipsis, // 長すぎたら...にする
                                     ),
                                   ],
                                 ),
-
                                 const Divider(
                                   color: Colors.black,
                                   thickness: 2,
                                   height: 20,
-                                ), // 間の黒線追加
-                                const SizedBox(height: 10), // 隙間追加
-                                // イベント名表示
+                                ),
+                                const SizedBox(height: 10),
+
+                                // イベント名 & 設定ボタン
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween, // 両サイドに位置設定
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        event['title'] ?? 'No named yet',
+                                        event.title.isNotEmpty
+                                            ? event.title
+                                            : 'No named yet',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20,
                                         ),
-                                        overflow: TextOverflow
-                                            .ellipsis, // 長すぎたら...にする
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-
-                                    // 設定ボタン
                                     Container(
                                       decoration: BoxDecoration(
                                         border: Border.all(
@@ -314,8 +285,7 @@ class _EventListPageState extends State<EventListPage> {
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                       child: IconButton(
-                                        constraints:
-                                            const BoxConstraints(), // 余計な余白を消す
+                                        constraints: const BoxConstraints(),
                                         padding: const EdgeInsets.all(4),
                                         icon: const Icon(
                                           Icons.settings,
@@ -323,14 +293,6 @@ class _EventListPageState extends State<EventListPage> {
                                           size: 30,
                                         ),
                                         onPressed: () {
-                                          /*
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (contet) => EventSettingPage()
-                                      ),
-                                    );
-                                    */
                                           debugPrint('イベント設定ページへ移動');
                                         },
                                       ),

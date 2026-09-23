@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'style/app_color.dart';
+import '../../../../style/app_color.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'common_layout.dart';
+import '../../../../common_layout.dart';
 import 'select_participants_page.dart';
-import 'data/event_repository.dart';
-
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 const _kLabelStyle = TextStyle(
@@ -95,13 +93,13 @@ class _PickerButton extends StatelessWidget {
 }
 
 class CreateEventPage extends StatefulWidget {
-  final String groupId; 
+  final String groupId;
   final int myRole;
 
   const CreateEventPage({
     super.key,
     required this.groupId,
-    required this.myRole
+    required this.myRole,
   });
 
   @override
@@ -331,41 +329,33 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     child: InkWell(
                       onTap: () async {
                         // 1. 入力チェック
-                        if (_nameController.text.isEmpty || _locationController.text.isEmpty) {
+                        if (_nameController.text.trim().isEmpty || _locationController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Please fill in all fields.')),
                           );
                           return;
                         }
 
-                        // 2. EventRepositoryを使ってFirestoreに保存
-                        final eventId = await EventRepository().setEvent(
-                          groupId: widget.groupId,
-                          title: _nameController.text,
-                          destinationName: _locationController.text, // 目的地名として使用
-                          location: '${_selectedLocation.latitude},${_selectedLocation.longitude}', // 座標を文字列で保存
-                          qrcodeId: 'dummy_qr', // 必要に応じて生成ロジックを追加
-                          password: 'default_password', 
-                          arrivalTime: _scheduledTime.toIso8601String(), // 文字列型で保存
-                          status: 'planning',
+                        // 2. 次の画面（参加者選択ページ）へ入力パラメータを渡して遷移
+                        // ※ SupabaseAdminEventRepository では、参加者確定時に RPC (create_event_with_participants) で一括生成するため
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SelectParticipantsPage(
+                              groupId: widget.groupId,
+                              title: _nameController.text.trim(),
+                              destinationName: _locationController.text.trim(),
+                              latitude: _selectedLocation.latitude,
+                              longitude: _selectedLocation.longitude,
+                              arrivalTime: _scheduledTime,
+                            ),
+                          ),
                         );
 
-                        // 3. 次の画面（参加者選択ページ）へ遷移
+                        // SelectParticipantsPage で作成が完了して true などが返ってきたら自分も閉じる
                         if (!context.mounted) return;
-                        if (eventId != null) {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SelectParticipantsPage(
-                                eventId: eventId,
-                                groupId: widget.groupId,
-                              ),
-                            ),
-                          );
-                          // SelectParticipantsPageから戻ってきたら、自分も閉じる
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                          }
+                        if (result == true) {
+                          Navigator.pop(context);
                         }
                       },
                       child: Container(

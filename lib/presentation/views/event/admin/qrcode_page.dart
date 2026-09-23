@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'common_layout.dart';
+import '../../../../common_layout.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // qrコード表示用
 import 'package:flutter/services.dart'; // コピー用
-import 'return_button.dart';
+import '../../../../widgets/return_button.dart';
 
 class QrcodePage extends StatefulWidget {
   final String groupId;

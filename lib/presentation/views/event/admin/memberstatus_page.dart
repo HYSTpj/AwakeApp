@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../data/event_repository.dart';
 import 'qrcode_page.dart';
-import 'memberpost_page.dart';
+import '../checkin/memberpost_page.dart';
 
 class MemberStatusPage extends StatefulWidget {
   final String groupId;
@@ -28,19 +27,80 @@ class MemberStatusPage extends StatefulWidget {
 }
 
 class _MemberStatusPageState extends State<MemberStatusPage> {
-  // privateに設定
-
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  final _supabase = Supabase.instance.client;
 
   int? selectedFilter; // 今選択されているフィルター
 
   late Future<List<dynamic>> _membersFuture;
+
   @override
   void initState() {
     super.initState();
-    _membersFuture = EventRepository().getEventMembers(
-      widget.eventId,
-    ); // 最初に一度だけデータを取得しにいく
+    _membersFuture = _getEventMembers(widget.eventId);
+  }
+
+  /// Supabase からイベントメンバーとレポート状態を取得し、既存UIのMap形式に整形
+  Future<List<dynamic>> _getEventMembers(String eventId) async {
+    final response = await _supabase
+        .from('event_reports')
+        .select('*, profiles ( id, nickname, avatar_url )')
+        .eq('event_id', eventId);
+
+    return (response as List<dynamic>).map((item) {
+      final rawMap = Map<String, dynamic>.from(item as Map);
+      final profile = rawMap['profiles'] != null 
+          ? Map<String, dynamic>.from(rawMap['profiles'] as Map) 
+          : null;
+
+      // Supabaseの status (文字列) を既存UIの int (0〜4) に変換
+      final rawStatus = rawMap['status'];
+      int statusInt = 0;
+      if (rawStatus is int) {
+        statusInt = rawStatus;
+      } else if (rawStatus is String) {
+        switch (rawStatus.toLowerCase()) {
+          case 'awake':
+            statusInt = 1;
+            break;
+          case 'late':
+          case 'overslept':
+            statusInt = 2;
+            break;
+          case 'moving':
+            statusInt = 3;
+            break;
+          case 'arrived':
+            statusInt = 4;
+            break;
+          case 'sleeping':
+          default:
+            statusInt = 0;
+            break;
+        }
+      }
+
+      return {
+        'user_id': rawMap['user_id'],
+        'status': statusInt,
+        'nickname': profile?['nickname'] ?? 'No name',
+        'avatar_url': profile?['avatar_url'],
+        ...rawMap,
+      };
+    }).toList();
+  }
+
+  /// メンバーごとのレポート詳細を取得
+  Future<Map<String, dynamic>?> _getMemberReport(String eventId, String userId) async {
+    final data = await _supabase
+        .from('event_reports')
+        .select()
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data == null) return null;
+    // Map<String, dynamic> に安全にキャストして返す
+    return Map<String, dynamic>.from(data as Map);
   }
 
   // ステータスボタン定義
@@ -107,14 +167,14 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
         // 取得し終わったとき
         final List<dynamic> eventMembers =
             (snapshot.data != null && snapshot.data!.isNotEmpty)
-            ? snapshot.data!
-            : [];
+                ? snapshot.data!
+                : [];
 
         final List<dynamic> filterMembers = selectedFilter == null
             ? eventMembers // フィルター未選択のとき全員表示
             : eventMembers
-                  .where((m) => m['status'] == selectedFilter)
-                  .toList(); // 選択されたフィルターと同じ値のstatusの人をリスト化
+                .where((m) => m['status'] == selectedFilter)
+                .toList(); // 選択されたフィルターと同じ値のstatusの人をリスト化
 
         final int all = eventMembers.length; // イベントメンバー人数
         final int arrived = eventMembers
@@ -215,7 +275,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
             // 見出しテキスト
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Row(
                 children: [
                   const Text(
@@ -226,7 +286,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
                   // 何人起きてるか
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.deepOrangeAccent,
                       border: Border.all(color: Colors.black, width: 1),
@@ -298,8 +358,10 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                             }
 
                             try {
-                              final report = await EventRepository()
-                                  .getMemberReport(widget.eventId, memberId);
+                              final report = await _getMemberReport(
+                                widget.eventId,
+                                memberId,
+                              );
 
                               if (context.mounted) {
                                 if (report != null) {
@@ -319,14 +381,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                                   );
                                   debugPrint('ポスト画面へ移動');
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('There are no posts yet.'),
-                                    ),
-                                  );
-                                }
-                              } else {
-                                if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('There are no posts yet.'),
@@ -354,25 +408,19 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                               children: [
                                 CircleAvatar(
                                   backgroundColor: Colors.grey,
-                                  backgroundImage:
-                                      (member['avatar_url'] != null &&
+                                  backgroundImage: (member['avatar_url'] != null &&
                                           member['avatar_url'] != "")
-                                      ? NetworkImage(
-                                          member['avatar_url'],
-                                        ) // アイコンを写真のurlにする
+                                      ? NetworkImage(member['avatar_url'])
                                       : null,
-                                  child:
-                                      (member['avatar_url'] == null ||
+                                  child: (member['avatar_url'] == null ||
                                           member['avatar_url'] == "")
                                       ? const Icon(
                                           Icons.person,
                                           color: Colors.white,
-                                        ) // 代替アイコンを使う
+                                        )
                                       : null,
                                 ),
-
                                 const SizedBox(width: 15),
-
                                 Expanded(
                                   child: Text(
                                     member['nickname'] ?? 'No name',
@@ -381,11 +429,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                                     ),
                                   ),
                                 ),
-
                                 Column(
                                   children: [
                                     Container(
-                                      // status表示
                                       padding: const EdgeInsets.all(5),
                                       decoration: BoxDecoration(
                                         border: Border.all(
@@ -403,13 +449,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                                         ),
                                       ),
                                     ),
-
-                                    /*  // ここに通知ボタン
-                              ElevatedButton(
-                                onPressed: ,
-                                child: 
-                              )
-                              */
                                   ],
                                 ),
                               ],
