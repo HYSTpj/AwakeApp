@@ -28,12 +28,12 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _avataUrlMeta = const VerificationMeta(
-    'avataUrl',
+  static const VerificationMeta _avatarUrlMeta = const VerificationMeta(
+    'avatarUrl',
   );
   @override
-  late final GeneratedColumn<String> avataUrl = GeneratedColumn<String>(
-    'avata_url',
+  late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>(
+    'avatar_url',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -91,7 +91,7 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
   List<GeneratedColumn> get $columns => [
     id,
     nickname,
-    avataUrl,
+    avatarUrl,
     sleepPastCount,
     lateCount,
     createdAt,
@@ -122,13 +122,13 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     } else if (isInserting) {
       context.missing(_nicknameMeta);
     }
-    if (data.containsKey('avata_url')) {
+    if (data.containsKey('avatar_url')) {
       context.handle(
-        _avataUrlMeta,
-        avataUrl.isAcceptableOrUnknown(data['avata_url']!, _avataUrlMeta),
+        _avatarUrlMeta,
+        avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta),
       );
     } else if (isInserting) {
-      context.missing(_avataUrlMeta);
+      context.missing(_avatarUrlMeta);
     }
     if (data.containsKey('sleep_past_count')) {
       context.handle(
@@ -174,9 +174,9 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         DriftSqlType.string,
         data['${effectivePrefix}nickname'],
       )!,
-      avataUrl: attachedDatabase.typeMapping.read(
+      avatarUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}avata_url'],
+        data['${effectivePrefix}avatar_url'],
       )!,
       sleepPastCount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -206,7 +206,7 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
 class Profile extends DataClass implements Insertable<Profile> {
   final String id;
   final String nickname;
-  final String avataUrl;
+  final String avatarUrl;
   final int sleepPastCount;
   final int lateCount;
   final DateTime createdAt;
@@ -214,7 +214,7 @@ class Profile extends DataClass implements Insertable<Profile> {
   const Profile({
     required this.id,
     required this.nickname,
-    required this.avataUrl,
+    required this.avatarUrl,
     required this.sleepPastCount,
     required this.lateCount,
     required this.createdAt,
@@ -225,7 +225,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['nickname'] = Variable<String>(nickname);
-    map['avata_url'] = Variable<String>(avataUrl);
+    map['avatar_url'] = Variable<String>(avatarUrl);
     map['sleep_past_count'] = Variable<int>(sleepPastCount);
     map['late_count'] = Variable<int>(lateCount);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -237,7 +237,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     return ProfilesCompanion(
       id: Value(id),
       nickname: Value(nickname),
-      avataUrl: Value(avataUrl),
+      avatarUrl: Value(avatarUrl),
       sleepPastCount: Value(sleepPastCount),
       lateCount: Value(lateCount),
       createdAt: Value(createdAt),
@@ -253,7 +253,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     return Profile(
       id: serializer.fromJson<String>(json['id']),
       nickname: serializer.fromJson<String>(json['nickname']),
-      avataUrl: serializer.fromJson<String>(json['avataUrl']),
+      avatarUrl: serializer.fromJson<String>(json['avatarUrl']),
       sleepPastCount: serializer.fromJson<int>(json['sleepPastCount']),
       lateCount: serializer.fromJson<int>(json['lateCount']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -266,7 +266,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'nickname': serializer.toJson<String>(nickname),
-      'avataUrl': serializer.toJson<String>(avataUrl),
+      'avatarUrl': serializer.toJson<String>(avatarUrl),
       'sleepPastCount': serializer.toJson<int>(sleepPastCount),
       'lateCount': serializer.toJson<int>(lateCount),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -277,7 +277,7 @@ class Profile extends DataClass implements Insertable<Profile> {
   Profile copyWith({
     String? id,
     String? nickname,
-    String? avataUrl,
+    String? avatarUrl,
     int? sleepPastCount,
     int? lateCount,
     DateTime? createdAt,
@@ -285,7 +285,7 @@ class Profile extends DataClass implements Insertable<Profile> {
   }) => Profile(
     id: id ?? this.id,
     nickname: nickname ?? this.nickname,
-    avataUrl: avataUrl ?? this.avataUrl,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
     sleepPastCount: sleepPastCount ?? this.sleepPastCount,
     lateCount: lateCount ?? this.lateCount,
     createdAt: createdAt ?? this.createdAt,
@@ -295,7 +295,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     return Profile(
       id: data.id.present ? data.id.value : this.id,
       nickname: data.nickname.present ? data.nickname.value : this.nickname,
-      avataUrl: data.avataUrl.present ? data.avataUrl.value : this.avataUrl,
+      avatarUrl: data.avatarUrl.present ? data.avatarUrl.value : this.avatarUrl,
       sleepPastCount: data.sleepPastCount.present
           ? data.sleepPastCount.value
           : this.sleepPastCount,
@@ -310,7 +310,7 @@ class Profile extends DataClass implements Insertable<Profile> {
     return (StringBuffer('Profile(')
           ..write('id: $id, ')
           ..write('nickname: $nickname, ')
-          ..write('avataUrl: $avataUrl, ')
+          ..write('avatarUrl: $avatarUrl, ')
           ..write('sleepPastCount: $sleepPastCount, ')
           ..write('lateCount: $lateCount, ')
           ..write('createdAt: $createdAt, ')
@@ -323,7 +323,7 @@ class Profile extends DataClass implements Insertable<Profile> {
   int get hashCode => Object.hash(
     id,
     nickname,
-    avataUrl,
+    avatarUrl,
     sleepPastCount,
     lateCount,
     createdAt,
@@ -335,7 +335,7 @@ class Profile extends DataClass implements Insertable<Profile> {
       (other is Profile &&
           other.id == this.id &&
           other.nickname == this.nickname &&
-          other.avataUrl == this.avataUrl &&
+          other.avatarUrl == this.avatarUrl &&
           other.sleepPastCount == this.sleepPastCount &&
           other.lateCount == this.lateCount &&
           other.createdAt == this.createdAt &&
@@ -345,7 +345,7 @@ class Profile extends DataClass implements Insertable<Profile> {
 class ProfilesCompanion extends UpdateCompanion<Profile> {
   final Value<String> id;
   final Value<String> nickname;
-  final Value<String> avataUrl;
+  final Value<String> avatarUrl;
   final Value<int> sleepPastCount;
   final Value<int> lateCount;
   final Value<DateTime> createdAt;
@@ -354,7 +354,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   const ProfilesCompanion({
     this.id = const Value.absent(),
     this.nickname = const Value.absent(),
-    this.avataUrl = const Value.absent(),
+    this.avatarUrl = const Value.absent(),
     this.sleepPastCount = const Value.absent(),
     this.lateCount = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -364,7 +364,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   ProfilesCompanion.insert({
     required String id,
     required String nickname,
-    required String avataUrl,
+    required String avatarUrl,
     this.sleepPastCount = const Value.absent(),
     this.lateCount = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -372,11 +372,11 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        nickname = Value(nickname),
-       avataUrl = Value(avataUrl);
+       avatarUrl = Value(avatarUrl);
   static Insertable<Profile> custom({
     Expression<String>? id,
     Expression<String>? nickname,
-    Expression<String>? avataUrl,
+    Expression<String>? avatarUrl,
     Expression<int>? sleepPastCount,
     Expression<int>? lateCount,
     Expression<DateTime>? createdAt,
@@ -386,7 +386,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (nickname != null) 'nickname': nickname,
-      if (avataUrl != null) 'avata_url': avataUrl,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
       if (sleepPastCount != null) 'sleep_past_count': sleepPastCount,
       if (lateCount != null) 'late_count': lateCount,
       if (createdAt != null) 'created_at': createdAt,
@@ -398,7 +398,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   ProfilesCompanion copyWith({
     Value<String>? id,
     Value<String>? nickname,
-    Value<String>? avataUrl,
+    Value<String>? avatarUrl,
     Value<int>? sleepPastCount,
     Value<int>? lateCount,
     Value<DateTime>? createdAt,
@@ -408,7 +408,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     return ProfilesCompanion(
       id: id ?? this.id,
       nickname: nickname ?? this.nickname,
-      avataUrl: avataUrl ?? this.avataUrl,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       sleepPastCount: sleepPastCount ?? this.sleepPastCount,
       lateCount: lateCount ?? this.lateCount,
       createdAt: createdAt ?? this.createdAt,
@@ -426,8 +426,8 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     if (nickname.present) {
       map['nickname'] = Variable<String>(nickname.value);
     }
-    if (avataUrl.present) {
-      map['avata_url'] = Variable<String>(avataUrl.value);
+    if (avatarUrl.present) {
+      map['avatar_url'] = Variable<String>(avatarUrl.value);
     }
     if (sleepPastCount.present) {
       map['sleep_past_count'] = Variable<int>(sleepPastCount.value);
@@ -452,7 +452,7 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     return (StringBuffer('ProfilesCompanion(')
           ..write('id: $id, ')
           ..write('nickname: $nickname, ')
-          ..write('avataUrl: $avataUrl, ')
+          ..write('avatarUrl: $avatarUrl, ')
           ..write('sleepPastCount: $sleepPastCount, ')
           ..write('lateCount: $lateCount, ')
           ..write('createdAt: $createdAt, ')
@@ -2677,7 +2677,7 @@ typedef $$ProfilesTableCreateCompanionBuilder =
     ProfilesCompanion Function({
       required String id,
       required String nickname,
-      required String avataUrl,
+      required String avatarUrl,
       Value<int> sleepPastCount,
       Value<int> lateCount,
       Value<DateTime> createdAt,
@@ -2688,7 +2688,7 @@ typedef $$ProfilesTableUpdateCompanionBuilder =
     ProfilesCompanion Function({
       Value<String> id,
       Value<String> nickname,
-      Value<String> avataUrl,
+      Value<String> avatarUrl,
       Value<int> sleepPastCount,
       Value<int> lateCount,
       Value<DateTime> createdAt,
@@ -2762,8 +2762,8 @@ class $$ProfilesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get avataUrl => $composableBuilder(
-    column: $table.avataUrl,
+  ColumnFilters<String> get avatarUrl => $composableBuilder(
+    column: $table.avatarUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2857,8 +2857,8 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get avataUrl => $composableBuilder(
-    column: $table.avataUrl,
+  ColumnOrderings<String> get avatarUrl => $composableBuilder(
+    column: $table.avatarUrl,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2898,8 +2898,8 @@ class $$ProfilesTableAnnotationComposer
   GeneratedColumn<String> get nickname =>
       $composableBuilder(column: $table.nickname, builder: (column) => column);
 
-  GeneratedColumn<String> get avataUrl =>
-      $composableBuilder(column: $table.avataUrl, builder: (column) => column);
+  GeneratedColumn<String> get avatarUrl =>
+      $composableBuilder(column: $table.avatarUrl, builder: (column) => column);
 
   GeneratedColumn<int> get sleepPastCount => $composableBuilder(
     column: $table.sleepPastCount,
@@ -2999,7 +2999,7 @@ class $$ProfilesTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> nickname = const Value.absent(),
-                Value<String> avataUrl = const Value.absent(),
+                Value<String> avatarUrl = const Value.absent(),
                 Value<int> sleepPastCount = const Value.absent(),
                 Value<int> lateCount = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3008,7 +3008,7 @@ class $$ProfilesTableTableManager
               }) => ProfilesCompanion(
                 id: id,
                 nickname: nickname,
-                avataUrl: avataUrl,
+                avatarUrl: avatarUrl,
                 sleepPastCount: sleepPastCount,
                 lateCount: lateCount,
                 createdAt: createdAt,
@@ -3019,7 +3019,7 @@ class $$ProfilesTableTableManager
               ({
                 required String id,
                 required String nickname,
-                required String avataUrl,
+                required String avatarUrl,
                 Value<int> sleepPastCount = const Value.absent(),
                 Value<int> lateCount = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3028,7 +3028,7 @@ class $$ProfilesTableTableManager
               }) => ProfilesCompanion.insert(
                 id: id,
                 nickname: nickname,
-                avataUrl: avataUrl,
+                avatarUrl: avatarUrl,
                 sleepPastCount: sleepPastCount,
                 lateCount: lateCount,
                 createdAt: createdAt,
