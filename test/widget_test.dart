@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_application_1/set_time_page.dart';
-import 'package:flutter_application_1/viewmodels/set_time_viewmodel.dart';
+import 'package:flutter_application_1/presentation/views/event/schedule/set_time_page.dart';
+import 'package:flutter_application_1/presentation/viewmodels/set_time_viewmodel.dart';
 import 'package:flutter/material.dart';
 
 void main() {
