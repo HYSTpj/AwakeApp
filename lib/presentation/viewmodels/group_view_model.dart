@@ -110,4 +110,12 @@ class GroupViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  // エラーメッセージをクリアする
+  void clearError() {
+    if (_state.errorMessage != null) {
+      _state = _state.copyWith(clearError: true);
+      notifyListeners();
+    }
+  }
 }

@@ -1,33 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../data/group_data.dart';
-import '../view_model/group_view_model.dart';
-import '../../common_layout.dart';
-import 'return_button.dart';
-import 'group_list_view.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../data/repositories/group_repository.dart';
+import '../../viewmodels/group_view_model.dart';
+import '../../../../../common_layout.dart';
+import '../../../widgets/return_button.dart';
 
 /// グループ作成ページ
 class CreateGroupPage extends StatefulWidget {
   const CreateGroupPage({super.key});
-  
+
   @override
   State<CreateGroupPage> createState() => _CreateGroupPageState();
 }
 
 class _CreateGroupPageState extends State<CreateGroupPage> {
+  late final GroupViewModel _viewModel;
+  bool _isLocalViewModel = false;
 
-  final repository = GroupRepositoryImpl();
-  late final viewModel = CreateGroupViewModel(repository);
-
-  final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  final _controller = TextEditingController();
 
   @override
-  // メモリを解放するための関数
+  void initState() {
+    super.initState();
+    // 祖先ツリーから GroupViewModel を取得、なければローカルで生成
+    final parentViewModel = context.read<GroupViewModel?>();
+    if (parentViewModel != null) {
+      _viewModel = parentViewModel;
+    } else {
+      _viewModel = GroupViewModel(
+        SupabaseGroupRepository(Supabase.instance.client),
+      );
+      _isLocalViewModel = true;
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();  // _controller内を掃除
-    viewModel.dispose();
-    super.dispose();  // 親クラスでも掃除
+    _controller.dispose();
+    if (_isLocalViewModel) {
+      _viewModel.dispose();
+    }
+    super.dispose();
   }
 
   /// グループ作成処理
@@ -40,8 +55,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       return;
     }
 
-    // ログインチェック
-    final user = FirebaseAuth.instance.currentUser;
+    // Supabase のログインチェック
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
@@ -50,43 +65,32 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       return;
     }
 
-    try {
-      final success = await viewModel.createGroup(user.uid, name);
+    final success = await _viewModel.createGroup(name);
 
-      if (!mounted) return;
-      
-      if (success) {
-        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
-          builder: (context) => const GroupListPage()
-        ),);
+    if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          const SnackBar(
-            content: Text('Created a new group.')
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          SnackBar(
-            content: Text(viewModel.errorMessage ?? 'An error has occurred.')
-          ),
-        );
-      }
-    }  catch (e) {
-      debugPrint("エラーあり");
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Created a new group.')),
+      );
+      // 作成完了後は一覧まで戻る
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
+      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
+        SnackBar(content: Text(errorMsg)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return CommonLayout(  // 共通レイアウトを使用
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const SizedBox(height: 16),
             // 戻るボタン
             ReturnButton(onTap: () {
@@ -99,7 +103,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             // 検索窓
             _searchBox(),
 
-            const SizedBox(height: 50,),
+            const SizedBox(height: 50),
 
             // グループ作成ボタン
             _createButton(),
@@ -116,15 +120,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,  //背景色
-        borderRadius: BorderRadius.circular(10),  // 角を丸く
+        color: Colors.white, // 背景色
+        borderRadius: BorderRadius.circular(10), // 角を丸く
+        border: Border.all(color: Colors.black, width: 2),
       ),
       child: TextField(
         controller: _controller,
         decoration: const InputDecoration(
           hintText: 'Enter new group name', // うっすら文字
           border: InputBorder.none, // 枠線
-          contentPadding: EdgeInsets.only(left: 15, top: 15),  // 余白
+          contentPadding: EdgeInsets.only(left: 15, top: 15), // 余白
         ),
       ),
     );
@@ -133,13 +138,15 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   // グループ作成ボタン
   Widget _createButton() {
     return ListenableBuilder(
-      listenable: viewModel,
+      listenable: _viewModel,
       builder: (context, _) {
+        final isLoading = _viewModel.state.isLoading;
+
         return SizedBox(
           width: 400,
           height: 80,
           child: ElevatedButton(
-            onPressed: viewModel.isLoading ? null : _newName, // ローディング中は無効
+            onPressed: isLoading ? null : _newName, // ローディング中は無効
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.black,
               backgroundColor: Colors.white,
@@ -148,7 +155,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 side: const BorderSide(color: Colors.black, width: 2),
               ),
             ),
-            child: viewModel.isLoading
+            child: isLoading
                 ? const CircularProgressIndicator() // ローディングインジケーター
                 : const Text(
                     'Create',

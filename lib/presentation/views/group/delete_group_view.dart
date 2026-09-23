@@ -1,33 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../data/group_data.dart';
-import '../view_model/group_view_model.dart';
-import '../../common_layout.dart';
-import 'return_button.dart';
-import 'group_list_view.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../data/repositories/group_repository.dart';
+import '../../viewmodels/group_view_model.dart';
+import '../../../../../common_layout.dart';
+import '../../../widgets/return_button.dart';
 
 /// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
   const DeleteGroupPage({super.key});
-  
+
   @override
   State<DeleteGroupPage> createState() => _DeleteGroupPageState();
 }
 
 class _DeleteGroupPageState extends State<DeleteGroupPage> {
+  late final GroupViewModel _viewModel;
+  bool _isLocalViewModel = false;
 
-  final repository = GroupRepositoryImpl();
-  late final viewModel = DeleteGroupViewModel(repository);
-
-  final _controller = TextEditingController();  // テキスト内の文字をリアルタイムで記録
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
+  final _controller = TextEditingController();
 
   @override
-  // メモリを解放するための関数
+  void initState() {
+    super.initState();
+    // 祖先ツリーから GroupViewModel を取得、なければローカルで生成
+    final parentViewModel = context.read<GroupViewModel?>();
+    if (parentViewModel != null) {
+      _viewModel = parentViewModel;
+    } else {
+      _viewModel = GroupViewModel(
+        SupabaseGroupRepository(Supabase.instance.client),
+      );
+      _isLocalViewModel = true;
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();  // _controller内を掃除
-    viewModel.dispose();
-    super.dispose();  // 親クラスでも掃除
+    _controller.dispose();
+    if (_isLocalViewModel) {
+      _viewModel.dispose();
+    }
+    super.dispose();
   }
 
   /// グループ脱退処理
@@ -61,53 +76,42 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
     if (confirmed != true) return;
 
-    // ログインチェック
-    final user = FirebaseAuth.instance.currentUser;
+    // Supabase のログインチェック
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please log in.')),
       );
       return;
     }
 
-    try {
-      final success = await viewModel.deleteGroup(user.uid, groupId);
+    final success = await _viewModel.deleteOrLeaveGroup(groupId);
 
-      if (!mounted) return;
-      
-      if (success) {
-        Navigator.push(context, MaterialPageRoute(  // 新しい画面へ進む
-          builder: (context) => const GroupListPage()
-        ),);
+    if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          const SnackBar(
-            content: Text('You have left the group.')
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-          SnackBar(
-            content: Text(viewModel.errorMessage ?? 'An error has occurred.')
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint("エラーあり");
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have left the group.')),
+      );
+      // 脱退完了後はグループ一覧画面まで戻る
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CommonLayout(  // 共通レイアウトを使用
-
+    return CommonLayout(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const SizedBox(height: 16),
             // 戻るボタン
             ReturnButton(onTap: () {
@@ -120,7 +124,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
             // 検索窓
             _searchBox(),
 
-            const SizedBox(height: 50,),
+            const SizedBox(height: 50),
 
             // グループ削除ボタン
             _deleteButton(),
@@ -137,15 +141,16 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,  //背景色
-        borderRadius: BorderRadius.circular(10),  // 角を丸く
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.black, width: 2),
       ),
       child: TextField(
         controller: _controller,
         decoration: const InputDecoration(
-          hintText: 'Enter groupID to leave', // うっすら文字
-          border: InputBorder.none, // 枠線
-          contentPadding: EdgeInsets.only(left: 15, top: 15),  // 余白
+          hintText: 'Enter groupID to leave',
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.only(left: 15, top: 15),
         ),
       ),
     );
@@ -154,13 +159,15 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
   // グループ削除ボタン
   Widget _deleteButton() {
     return ListenableBuilder(
-      listenable: viewModel,
+      listenable: _viewModel,
       builder: (context, _) {
+        final isLoading = _viewModel.state.isLoading;
+
         return SizedBox(
           width: 400,
           height: 80,
           child: ElevatedButton(
-            onPressed: viewModel.isLoading ? null : _deleteGroup, // ローディング中は無効
+            onPressed: isLoading ? null : _deleteGroup,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.black,
               backgroundColor: Colors.white,
@@ -169,8 +176,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
                 side: const BorderSide(color: Colors.black, width: 2),
               ),
             ),
-            child: viewModel.isLoading
-                ? const CircularProgressIndicator() // ローディングインジケーター
+            child: isLoading
+                ? const CircularProgressIndicator()
                 : const Text(
                     'Delete',
                     style: TextStyle(fontSize: 24),

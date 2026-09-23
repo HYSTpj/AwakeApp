@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart'; // 招待コードをコピーするためにインポート
-import 'package:flutter_application_1/group/domain/group_entity.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../data/group_data.dart';
-import '../view_model/group_view_model.dart';
-import '../../common_layout.dart';
+import '../../../data/repositories/group_repository.dart';
+import '../../../../models/group.dart';
+import '../../viewmodels/group_view_model.dart';
+import '../../../common_layout.dart';
 import 'create_add_delete_view.dart';
-import '../../event/view/event_list_view.dart'; // イベント一覧表示画面できたらインポート
+import '../event/event_list_view.dart'; // イベント一覧表示画面
 
-/// グループリストページ
+// グループリストページ
 class GroupListPage extends StatefulWidget {
   const GroupListPage({super.key});
 
@@ -18,11 +19,8 @@ class GroupListPage extends StatefulWidget {
 }
 
 class _GroupListPageState extends State<GroupListPage> {
-  final repository = GroupRepositoryImpl();
-  late final viewModel = GroupListViewModel(repository);
-
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
-
+  late final GroupViewModel _viewModel;
+  bool _isLocalViewModel = false;
   String? selectedGroupId;
 
   // 初期化
@@ -30,18 +28,29 @@ class _GroupListPageState extends State<GroupListPage> {
   void initState() {
     super.initState();
 
-    viewModel.addListener(_onViewModelUpdated);
-    if (user != null) {
-      viewModel.getGroups(user!.uid);
+    // 祖先ツリーに GroupViewModel が提供されているか確認し、なければ生成する
+    final parentViewModel = context.read<GroupViewModel?>();
+    if (parentViewModel != null) {
+      _viewModel = parentViewModel;
+    } else {
+      _viewModel = GroupViewModel(
+        SupabaseGroupRepository(Supabase.instance.client),
+      );
+      _isLocalViewModel = true;
     }
+
+    _viewModel.addListener(_onViewModelUpdated);
+    _viewModel.loadGroups();
   }
 
   @override
   // メモリを解放するための関数
   void dispose() {
-    viewModel.removeListener(_onViewModelUpdated);
-    viewModel.dispose();  // _controller内を掃除
-    super.dispose();  // 親クラスでも掃除
+    _viewModel.removeListener(_onViewModelUpdated);
+    if (_isLocalViewModel) {
+      _viewModel.dispose(); // _controller内を掃除
+    }
+    super.dispose();
   }
 
   void _onViewModelUpdated() {
@@ -51,19 +60,23 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   Widget build(BuildContext context) {
     // エラーメッセージを表示
-    if (viewModel.errorMessage != null) {
+    if (_viewModel.state.errorMessage != null) {
+      final message = _viewModel.state.errorMessage!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(viewModel.errorMessage!)),
+          SnackBar(content: Text(message)),
         );
-        viewModel.errorMessage = null; // 表示後クリア
+        _viewModel.clearError(); // 表示後クリア
       });
     }
 
+    final groups = _viewModel.state.groups;
+    final isLoading = _viewModel.state.isLoading;
+
     return CommonLayout(
       // 共通レイアウトを使用
-      body: viewModel.isLoading
-          ? const Center(child: CircularProgressIndicator()) // ロード中はくるくるを出す
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
           : Column(
               // 垂直に並べる
               children: [
@@ -92,14 +105,14 @@ class _GroupListPageState extends State<GroupListPage> {
                         ),
                       ),
                       items: [
-                        ...viewModel.groups.map((GroupEntity group) {
+                        ...groups.map((Group group) {
                           return DropdownMenuItem<String>(
-                            value: group.groupId,
+                            value: group.id,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  group.groupName, // 統一感を出すために大文字化
+                                  group.groupName,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
@@ -109,7 +122,7 @@ class _GroupListPageState extends State<GroupListPage> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(ClipboardData(text: group.groupId));
+                                    Clipboard.setData(ClipboardData(text: group.id));
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('copied the invitation code')),
                                     );
@@ -121,17 +134,17 @@ class _GroupListPageState extends State<GroupListPage> {
                           );
                         }),
                         // 管理用メニューの項目
-                        DropdownMenuItem<String>(
+                        const DropdownMenuItem<String>(
                           value: 'create_add_delete',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text(
                                 'CREATE OR ADD OR DELETE',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFFFF5C00), // オレンジのアクセント
+                                  color: Color(0xFFFF5C00),
                                 ),
                               ),
                               Icon(Icons.add_box, color: Color(0xFFFF5C00)),
@@ -144,7 +157,9 @@ class _GroupListPageState extends State<GroupListPage> {
                         if (value == 'create_add_delete') {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
+                            MaterialPageRoute(
+                              builder: (context) => const CreateOrAddOrDeletePage(),
+                            ),
                           );
                         } else {
                           setState(() {
