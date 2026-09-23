@@ -5,12 +5,12 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import 'services/alarm_service.dart';
 import 'services/vibration_service.dart';
-import 'login/login_page.dart'; // ログインページのインポート
+import 'presentation/views/login/login_page.dart'; // ログインページのインポート
 
 // Supabaseを利用するためのパッケージ
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'database/database.dart';
+import 'data/database/database.dart';
 
 // リポジトリ
 import 'data/repositories/room_repository.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // ViewModel
-import '../presentation/viewmodels/auth_view_model.dart';
+import '../../viewmodels/auth_view_model.dart';
 
 // 画面遷移先・UI
 import 'screen/signup_body.dart'; // アカウント作成画面のUIを定義したファイル
