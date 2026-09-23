@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'common_layout.dart';
+import '../../../../common_layout.dart';
 
 class PasscodeEntryPage extends StatefulWidget {
   final String groupId;

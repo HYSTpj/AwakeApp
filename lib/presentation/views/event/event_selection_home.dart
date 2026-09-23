@@ -1,15 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'common_layout.dart';
-import '../group/view/create_add_delete_view.dart';
-import 'member_check_in.dart';
-import '../data/group_repository.dart';
-import '../data/event_repository.dart';
-
-import 'package:flutter/services.dart'; // 招待コードをコピーするためにインポート
+import '../../../common_layout.dart';
+import '../group/create_add_delete_view.dart';
+import 'checkin/member_check_in.dart';
 
 class EventSelectionHome extends StatefulWidget {
   const EventSelectionHome({super.key});
@@ -19,7 +15,7 @@ class EventSelectionHome extends StatefulWidget {
 }
 
 class _EventSelectionHomeState extends State<EventSelectionHome> {
-  final user = FirebaseAuth.instance.currentUser;
+  final SupabaseClient _supabase = Supabase.instance.client;
   String? selectedGroupId;
   List<Map<String, dynamic>> _myGroups = [];
   bool _isLoadingGroups = true;
@@ -32,27 +28,57 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   }
 
   Future<void> _loadGroups() async {
-    final uid = user?.uid;
+    final uid = _supabase.auth.currentUser?.id;
     if (uid == null) {
       setState(() => _isLoadingGroups = false);
       return;
     }
-    
+
     try {
-      final groups = await GroupRepository().getGroups(uid);
+      // ユーザーが所属するグループ一覧を取得
+      final response = await _supabase
+          .from('group_members')
+          .select('group_id, groups ( id, name )')
+          .eq('user_id', uid);
+
+      final groups = (response as List<dynamic>).map((item) {
+        final g = item['groups'] as Map<String, dynamic>? ?? {};
+        return {
+          'group_id': item['group_id'] as String,
+          'group_name': (g['name'] ?? 'Unnamed Group') as String,
+        };
+      }).toList();
+
       if (mounted) {
         setState(() {
           _myGroups = groups;
           _isLoadingGroups = false;
           if (groups.isNotEmpty) {
             selectedGroupId = groups.first['group_id'];
-            _eventsFuture = EventRepository().getEvents(selectedGroupId!);
+            _eventsFuture = _fetchEvents(selectedGroupId!);
           }
         });
       }
     } catch (e) {
       debugPrint('Error loading groups: $e');
       if (mounted) setState(() => _isLoadingGroups = false);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchEvents(String groupId) async {
+    try {
+      final response = await _supabase
+          .from('events')
+          .select()
+          .eq('group_id', groupId)
+          .order('arrival_time', ascending: true);
+
+      return (response as List<dynamic>)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    } catch (e) {
+      debugPrint('Error loading events: $e');
+      return [];
     }
   }
 
@@ -105,9 +131,12 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                   children: [
                     Text(
                       group['group_name'] ?? 'Unnamed Group',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1A1C1C)),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1C1C),
+                      ),
                     ),
-                    // 招待コードのコピーアイコン
                     GestureDetector(
                       onTap: () {
                         Clipboard.setData(ClipboardData(text: group['group_id']));
@@ -142,7 +171,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           ],
           onChanged: (String? newGroupId) {
             if (newGroupId == null) return;
-            
+
             if (newGroupId == 'create_add_delete') {
               Navigator.push(
                 context,
@@ -151,7 +180,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             } else {
               setState(() {
                 selectedGroupId = newGroupId;
-                _eventsFuture = EventRepository().getEvents(newGroupId);
+                _eventsFuture = _fetchEvents(newGroupId);
               });
             }
           },
@@ -208,12 +237,17 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     List<Map<String, dynamic>> otherEvents = [];
 
     for (var ev in events) {
-      final arrivalTime = ev['arrival_time'];
+      final rawArrival = ev['arrival_time'];
       DateTime? dt;
-      if (arrivalTime is Timestamp) {
-        dt = arrivalTime.toDate();
+
+      if (rawArrival != null) {
+        if (rawArrival is DateTime) {
+          dt = rawArrival;
+        } else if (rawArrival is String) {
+          dt = DateTime.tryParse(rawArrival);
+        }
       }
-      
+
       if (dt != null) {
         final evDateStr = DateFormat('yyyy-MM-dd').format(dt);
         if (evDateStr == todayStr) {
@@ -288,12 +322,22 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   Widget _buildEventCard(Map<String, dynamic> event) {
     final title = event['title'] ?? 'NO TITLE';
     final location = event['destination_name'] ?? 'SECTOR 7G - COMMAND CENTER';
-    final arrivalTime = event['arrival_time'];
-    
-    String meetingTimeStr = '08:15 AM'; // default fallback
-    if (arrivalTime != null && arrivalTime is Timestamp) {
-      meetingTimeStr = DateFormat("hh:mm a").format(arrivalTime.toDate());
+    final rawArrival = event['arrival_time'];
+
+    String meetingTimeStr = '08:15 AM';
+    if (rawArrival != null) {
+      DateTime? dt;
+      if (rawArrival is DateTime) {
+        dt = rawArrival;
+      } else if (rawArrival is String) {
+        dt = DateTime.tryParse(rawArrival);
+      }
+      if (dt != null) {
+        meetingTimeStr = DateFormat("hh:mm a").format(dt);
+      }
     }
+
+    final eventId = (event['id'] ?? event['event_id'] ?? '').toString();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -335,7 +379,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => MemberCheckInPage(
-                        eventId: event['event_id'],
+                        eventId: eventId,
                         eventTitle: title,
                         groupId: selectedGroupId ?? '',
                       ),

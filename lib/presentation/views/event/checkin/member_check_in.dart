@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'common_layout.dart';
-import 'widgets/statusbutton.dart';
+import '../../../../common_layout.dart';
+import '../../../../widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
-import 'viewmodels/member_check_in_viewmodel.dart';
+import '../../../viewmodels/member_check_in_viewmodel.dart';
 import 'late_report_page.dart';
 
 class MemberCheckInPage extends StatefulWidget {

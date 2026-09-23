@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'viewmodels/late_report_viewmodel.dart';
-import 'common_layout.dart';
+import '../../../viewmodels/late_report_viewmodel.dart';
+import '../../../../common_layout.dart';
 
 class LateReportPage extends StatefulWidget {
   final String reportId;

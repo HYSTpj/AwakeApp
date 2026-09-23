@@ -1,20 +1,14 @@
 import 'package:flutter/foundation.dart';
-// Use a conditional import for platform File access so this file stays web-safe.
-import '../utils/platform_file_io.dart'
-  if (dart.library.html) '../utils/platform_file_stub.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../data/event_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LateReportViewModel extends ChangeNotifier {
   final String reportId;
   final String eventId;
   final String userId;
-  final EventRepository _eventRepository;
+  final SupabaseClient _supabase;
 
   final Future<void> Function(LateReportViewModel)? mockFetchLocation;
   final Future<String> Function(String eventId, String userId, XFile photo)? mockUploadPhoto;
@@ -30,20 +24,24 @@ class LateReportViewModel extends ChangeNotifier {
 
   // View用のユーザー名取得ゲッター（MVVM移行）
   String get currentUserName {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user == null) return 'anon';
-    return user.displayName ?? 'user_${user.uid.substring(0, 4)}';
+    final metadataName = user.userMetadata?['nickname'] ?? user.userMetadata?['name'];
+    if (metadataName != null && metadataName.toString().isNotEmpty) {
+      return metadataName.toString();
+    }
+    return 'user_${user.id.substring(0, 4)}';
   }
 
   LateReportViewModel({
     required this.reportId,
     required this.eventId,
     String? userId,
-    EventRepository? eventRepository,
+    SupabaseClient? supabaseClient,
     this.mockFetchLocation,
     this.mockUploadPhoto,
-  })  : userId = userId ?? FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
-        _eventRepository = eventRepository ?? EventRepository() {
+  })  : _supabase = supabaseClient ?? Supabase.instance.client,
+        userId = userId ?? supabaseClient?.auth.currentUser?.id ?? Supabase.instance.client.auth.currentUser?.id ?? 'unknown' {
     if (mockFetchLocation != null) {
       mockFetchLocation!(this);
     } else {
@@ -147,28 +145,29 @@ class LateReportViewModel extends ChangeNotifier {
         downloadUrl = await mockUploadPhoto!(eventId, userId, evidencePhoto!);
       } else {
         final fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('late_reports')
-            .child(eventId)
-            .child(fileName);
+        final storagePath = '$eventId/$fileName';
 
-        if (kIsWeb) {
-          final bytes = await evidencePhoto!.readAsBytes();
-          await ref.putData(bytes);
-        } else {
-          final file = platformFile(evidencePhoto!.path);
-          await ref.putFile(file);
-        }
-        downloadUrl = await ref.getDownloadURL();
+        // Web / Native 共通でバイト配列からアップロード
+        final bytes = await evidencePhoto!.readAsBytes();
+        await _supabase.storage.from('late-evidences').uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: const FileOptions(
+            contentType: 'image/jpeg',
+            upsert: true,
+          ),
+        );
+
+        downloadUrl = _supabase.storage.from('late-evidences').getPublicUrl(storagePath);
       }
 
-      await _eventRepository.updateLateReport(
-        reportId,
-        reasonText.trim(),
-        downloadUrl,
-        GeoPoint(latitude!, longitude!),
-      );
+      // Supabase の event_reports テーブルを更新
+      await _supabase.from('event_reports').update({
+        'late_reason': reasonText.trim(),
+        'photo_url': downloadUrl,
+        'location': '($latitude, $longitude)',
+        'status': 'overslept', // または 'late'
+      }).eq('id', reportId);
 
       isUploading = false;
       notifyListeners();

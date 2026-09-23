@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'common_layout.dart';
+import '../../../../common_layout.dart';
 import 'package:intl/intl.dart'; //DateFormatを使用するために追加
-import 'return_button.dart';
+import '../../../../widgets/return_button.dart';
 
 class MemberPostPage extends StatelessWidget {
   final Map<String, dynamic> member; // 名前やアイコン用
@@ -25,21 +24,48 @@ class MemberPostPage extends StatelessWidget {
 
   // 位置情報を文字に変換する関数
   String _formatLocation(dynamic location) {
-    if (location is GeoPoint) {
-      // 緯度と経度を「(35.1, 136.9)」みたいな文字にする
-      return '${location.latitude.toStringAsFixed(1)}, ${location.longitude.toStringAsFixed(1)}';
+    if (location == null) return 'Unknown';
+
+    try {
+      if (location is String) {
+        final clean = location.replaceAll('(', '').replaceAll(')', '').trim();
+        final parts = clean.split(',');
+        if (parts.length == 2) {
+          final lat = double.tryParse(parts[0].trim());
+          final lng = double.tryParse(parts[1].trim());
+          if (lat != null && lng != null) {
+            return '${lat.toStringAsFixed(1)}, ${lng.toStringAsFixed(1)}';
+          }
+        }
+        return location;
+      }
+    } catch (e) {
+      debugPrint('位置情報変換エラー: $e');
     }
-    return location?.toString() ?? 'Unknown';
+    return location.toString();
+  }
+
+  // 時間フォーマット処理 (DateTime / ISO8601 String 両対応)
+  String _formatTime(dynamic rawTime) {
+    if (rawTime == null) return '--:--';
+
+    try {
+      if (rawTime is DateTime) {
+        return DateFormat("M/dd HH:mm").format(rawTime);
+      }
+      if (rawTime is String) {
+        final parsed = DateTime.parse(rawTime);
+        return DateFormat("M/dd HH:mm").format(parsed);
+      }
+    } catch (e) {
+      debugPrint('時間変換エラー: $e');
+    }
+    return '--:--';
   }
 
   @override
   Widget build(BuildContext context) {
-    // 時間を文字に変換する処理（下のListViewと同じやり方）
-    final dynamic rawTime = report['actual_wakeup_time'];
-    String displayTime = '--:--';
-    if (rawTime != null && rawTime is Timestamp) {
-      displayTime = DateFormat("M/dd HH:mm").format(rawTime.toDate());
-    }
+    final displayTime = _formatTime(report['actual_wakeup_time']);
 
     return CommonLayout(
       groupId: groupId,
@@ -64,10 +90,10 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
-                  backgroundImage: member['avatar_url'] != null
+                  backgroundImage: (member['avatar_url'] != null && member['avatar_url'] != '')
                       ? NetworkImage(member['avatar_url'])
                       : null,
-                  child: member['avatar_url'] == null
+                  child: (member['avatar_url'] == null || member['avatar_url'] == '')
                       ? const Icon(Icons.person, color: Colors.white)
                       : null,
                 ),
@@ -80,7 +106,7 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // ★ 証拠写真（Figmaのコーヒー写真の部分）
+            // 証拠写真
             Container(
               width: double.infinity,
               height: 300,
@@ -88,17 +114,13 @@ class MemberPostPage extends StatelessWidget {
                 border: Border.all(color: Colors.black, width: 2),
                 color: Colors.white, // 画像がない時の背景色
               ),
-              // DecorationImage を使わずに、child に Image.network を入れます
-              child: report['photo_url'] != null && report['photo_url'] != ""
+              child: (report['photo_url'] != null && report['photo_url'] != "")
                   ? Image.network(
                       // photo_urlに中身がある時
                       report['photo_url'],
                       fit: BoxFit.cover,
-                      // ここが「くるくる」の魔法です！
                       loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child; // 読み込み完了なら画像を表示
-                        }
+                        if (loadingProgress == null) return child;
                         return const Center(
                           child: CircularProgressIndicator(), // 読み込み中はくるくるを表示
                         );
@@ -129,7 +151,7 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 起きた時間と場所（Figmaのタグ部分）
+            // 起きた時間と場所
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

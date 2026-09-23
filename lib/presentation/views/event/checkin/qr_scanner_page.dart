@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'common_layout.dart';
+import '../../../../common_layout.dart';
 import 'passcode_entry_page.dart';
 
 class QRScannerPage extends StatefulWidget {
