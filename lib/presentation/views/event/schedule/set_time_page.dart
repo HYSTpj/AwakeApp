@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'viewmodels/set_time_viewmodel.dart';
-import 'common_layout.dart';
-import 'return_button.dart';
+import '../../../viewmodels/set_time_viewmodel.dart';
+import '../../../../common_layout.dart';
+import '../../../../widgets/return_button.dart';
 
 class SetTimePage extends StatefulWidget {
   final String groupId;

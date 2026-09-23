@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'common_layout.dart';
-import 'group/view/group_list_view.dart';
+import '../../../../common_layout.dart';
+import '../../group/group_list_view.dart';
 
 class SaveChangesPage extends StatefulWidget {
   final String eventId;
@@ -23,8 +22,6 @@ class SaveChangesPage extends StatefulWidget {
 }
 
 class _SaveChangesPageState extends State<SaveChangesPage> {
-  final user = FirebaseAuth.instance.currentUser; // 今ログイン中のユーザー情報を取得
-
   @override
   Widget build(BuildContext context) {
     return CommonLayout(

@@ -1,46 +1,40 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alarm/alarm.dart';
-import '../services/alarm_service.dart';
-import '../domain/entities/event_report.dart';
-import '../domain/repositories/i_event_report_repository.dart';
-import '../data/repositories/event_report_repository_impl.dart';
-import '../utils/alarm_id.dart';
+
+import '../../services/alarm_service.dart';
+import '../../models/event_report.dart';
+import '../../data/repositories/member_event_repository.dart';
+import '../../utils/alarm_id.dart';
 
 class SetTimeViewModel extends ChangeNotifier {
   final String eventId;
-  final IEventReportRepository? _repository;
+  final MemberEventRepository _repository;
+  final AlarmService _alarmService;
 
   DateTime? wakeupTime;
   DateTime? departureTime;
   String? errorMessage;
   bool isSaving = false;
 
-  final AlarmService _alarmService;
-
   SetTimeViewModel({
     required this.eventId,
-    IEventReportRepository? repository,
+    MemberEventRepository? repository,
     AlarmService? alarmService,
-  })  : _repository = repository,
-        _alarmService = alarmService ?? RealAlarmService();
+    SupabaseClient? supabaseClient,
+  })  : _alarmService = alarmService ?? RealAlarmService(),
+        _repository = repository ??
+            SupabaseMemberEventRepository(
+              supabaseClient ??
+                  (Supabase.instance.isInitialized
+                      ? Supabase.instance.client
+                      : SupabaseClient('https://dummy.supabase.co', 'dummy-key')),
+            );
 
   Future<void> loadTime() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      errorMessage = "ユーザーがログインしていません。";
-      notifyListeners();
-      return;
-    }
-
     try {
-      final repository = _repository ?? EventReportRepositoryImpl();
-      final EventReport? report = await repository.getEventReport(
-        eventId,
-        user.uid,
-      );
+      final EventReport? report = await _repository.getMyReport(eventId);
 
       if (report != null) {
         wakeupTime = report.plannedWakeupTime;
@@ -64,8 +58,7 @@ class SetTimeViewModel extends ChangeNotifier {
   }
 
   Future<bool> saveChanges(DateTime arrivalTime) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || wakeupTime == null || departureTime == null) {
+    if (wakeupTime == null || departureTime == null) {
       errorMessage = '起床時刻と出発時刻を入力してください。';
       notifyListeners();
       return false;
@@ -76,7 +69,6 @@ class SetTimeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final repository = _repository ?? EventReportRepositoryImpl();
       DateTime wakeupTimeDay = DateTime(
         arrivalTime.year,
         arrivalTime.month,
@@ -145,17 +137,15 @@ class SetTimeViewModel extends ChangeNotifier {
 
       // アラーム登録成功後、Firestoreへ保存を行う
       try {
-        final String? reportId = await repository.setReport(
+        await _repository.setPlannedTimes(
           eventId: eventId,
-          userId: user.uid,
           wakeupTime: wakeupTimeDay,
           departureTime: departureTimeDay,
         );
 
         isSaving = false;
         notifyListeners();
-
-        return reportId != null;
+        return true;
       } catch (e) {
         // 保存に失敗した場合は、設定したアラームをキャンセル(ロールバック)する
         await _alarmService.stop(getAlarmId(eventId, 'wakeup'));
