@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
-import 'package:vibration/vibration.dart';
 import 'login/login_page.dart'; // ログインページのインポート
-import 'utils/vibration_intensity.dart';
+import 'services/gradual_vibration_controller.dart';
+import 'services/vibration_service.dart';
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
@@ -77,8 +77,8 @@ class _MyAppState extends State<MyApp> {
   bool _isDialogShowing = false;
   bool _isStoppingAlarm = false;
 
-  Timer? _vibrationTimer;
-  int _currentVibrationIntensity = 50;
+  final GradualVibrationController _vibrationController =
+      GradualVibrationController(vibrationService: RealVibrationService());
 
   @override
   void initState() {
@@ -166,45 +166,12 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> _startGradualVibration() async {
-    _stopCustomVibration();
-
-    final hasAmplitude = await Vibration.hasAmplitudeControl();
-
-    if (_isStoppingAlarm) {
-      return;
-    }
-
-    _currentVibrationIntensity = 50;
-    int secondsElapsed = 0;
-
-    _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-      if (hasAmplitude) {
-        Vibration.vibrate(
-          duration: 1000,
-          amplitude: _currentVibrationIntensity,
-        );
-
-        secondsElapsed += 2;
-
-        if (secondsElapsed >= 30) {
-          secondsElapsed = 0;
-          final next = nextVibrationIntensity(_currentVibrationIntensity);
-          if (next != _currentVibrationIntensity) {
-            _currentVibrationIntensity = next;
-            debugPrint('バイブレーション強度が $_currentVibrationIntensity に上昇しました。');
-          }
-        }
-      } else {
-        Vibration.vibrate(duration: 1000);
-      }
-    });
+  Future<void> _startGradualVibration() {
+    return _vibrationController.start(isCancelled: () => _isStoppingAlarm);
   }
 
   void _stopCustomVibration() {
-    _vibrationTimer?.cancel();
-    _vibrationTimer = null;
-    Vibration.cancel();
+    _vibrationController.stop();
   }
 
   @override
