@@ -5,6 +5,7 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import 'package:vibration/vibration.dart';
 import 'login/login_page.dart'; // ログインページのインポート
+import 'utils/vibration_intensity.dart';
 
 // Firebaseを利用するためのパッケージ
 import 'package:firebase_core/firebase_core.dart';
@@ -168,7 +169,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _startGradualVibration() async {
     _stopCustomVibration();
 
-    final hasAmplitude = await Vibration.hasAmplitudeControl() ?? false;
+    final hasAmplitude = await Vibration.hasAmplitudeControl();
 
     if (_isStoppingAlarm) {
       return;
@@ -188,8 +189,9 @@ class _MyAppState extends State<MyApp> {
 
         if (secondsElapsed >= 30) {
           secondsElapsed = 0;
-          if (_currentVibrationIntensity < 255) {
-            _currentVibrationIntensity = (_currentVibrationIntensity + 50).clamp(50, 255);
+          final next = nextVibrationIntensity(_currentVibrationIntensity);
+          if (next != _currentVibrationIntensity) {
+            _currentVibrationIntensity = next;
             debugPrint('バイブレーション強度が $_currentVibrationIntensity に上昇しました。');
           }
         }
