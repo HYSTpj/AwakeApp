@@ -4,10 +4,14 @@ import 'data/profiles_repository.dart';
 import 'group/view/group_list_view.dart';
 import 'create_event_page.dart';
 import 'member_check_in.dart';
-import 'ranking/ranking_screen.dart';
+import 'ranking/ranking_page.dart';
 import 'event_selection_home.dart';
 
 class CommonLayout extends StatelessWidget {
+  // テスト用にナビゲーション先を差し替えられるようにするフック
+  // テストでは `CommonLayout.pageBuilderOverride = (index, groupId: ..., myRole: ...) => MyFakePage();` のように使えます
+  static Widget Function(int index, {String? groupId, int? myRole})? pageBuilderOverride;
+
   final Widget body;  // 各画面の代入する中身
   final Widget? floatingActionButton;  // それぞれのページで使うボタン
   final String? groupId;
@@ -122,7 +126,13 @@ class CommonLayout extends StatelessWidget {
 
   ///AppBarの右側
   List<Widget> _buildRightIcons() {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    // Firebase が初期化されていないテスト環境などで例外が出ないようガードする
+    User? currentUser;
+    try {
+      currentUser = FirebaseAuth.instance.currentUser;
+    } catch (e) {
+      currentUser = null;
+    }
 
     if (currentUser == null) {
       return [
@@ -207,35 +217,44 @@ class CommonLayout extends StatelessWidget {
       }
     }
     Widget? nextPage;
-    switch (index) {
-      case 0:
-        nextPage = GroupListPage();   // あとからポスト，ランキング画面に変更
-        break;
-      case 1:
-        if (myRole == 0) {
-          // 管理者の時
-          nextPage = CreateEventPage(
+
+    // テスト時にページ生成を差し替えられるようにするフック
+    if (CommonLayout.pageBuilderOverride != null) {
+      nextPage = CommonLayout.pageBuilderOverride!(index, groupId: groupId, myRole: myRole);
+    } else {
+      switch (index) {
+        case 0:
+          nextPage = GroupListPage();   // あとからポスト，ランキング画面に変更
+          break;
+        case 1:
+          if (myRole == 0) {
+            // 管理者の時
+            nextPage = CreateEventPage(
+              groupId: groupId!,
+              myRole: myRole!
+            );
+          } else {
+            // 利用者の時
+            if (eventId == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please select event.')),
+              );
+              return;
+            }
+            nextPage = MemberCheckInPage(
+              eventId: eventId!, 
+              eventTitle: eventTitle!, 
+              groupId: groupId!, 
+            );
+          }
+          break;
+        case 2:
+          nextPage = RankingPage(
             groupId: groupId!,
             myRole: myRole!
           );
-        } else {
-          // 利用者の時
-          if (eventId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please select event.')),
-            );
-            return;
-          }
-          nextPage = MemberCheckInPage(
-            eventId: eventId!, 
-            eventTitle: eventTitle!, 
-            groupId: groupId!, 
-          );
-        }
-        break;
-      case 2:
-        nextPage = const RankingPreview();
-        break;
+          break;
+      }
     }
     if (nextPage != null) {
       Navigator.pushReplacement(

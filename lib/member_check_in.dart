@@ -157,6 +157,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
+          groupId: widget.groupId,
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          myRole: 1,
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24),
