@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:alarm/alarm.dart';
 import '../services/alarm_service.dart';
+import '../services/auth_service.dart';
 import '../domain/entities/event_report.dart';
 import '../domain/repositories/i_event_report_repository.dart';
 import '../data/repositories/event_report_repository_impl.dart';
 import '../utils/alarm_id.dart';
+import '../utils/alarm_settings_builder.dart';
 
 class SetTimeViewModel extends ChangeNotifier {
   final String eventId;
@@ -19,17 +17,20 @@ class SetTimeViewModel extends ChangeNotifier {
   bool isSaving = false;
 
   final AlarmService _alarmService;
+  final AuthService _authService;
 
   SetTimeViewModel({
     required this.eventId,
     IEventReportRepository? repository,
     AlarmService? alarmService,
+    AuthService? authService,
   })  : _repository = repository,
-        _alarmService = alarmService ?? RealAlarmService();
+        _alarmService = alarmService ?? RealAlarmService(),
+        _authService = authService ?? RealAuthService();
 
   Future<void> loadTime() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
+    final userId = _authService.currentUserId;
+    if (userId == null) {
       errorMessage = "ユーザーがログインしていません。";
       notifyListeners();
       return;
@@ -39,7 +40,7 @@ class SetTimeViewModel extends ChangeNotifier {
       final repository = _repository ?? EventReportRepositoryImpl();
       final EventReport? report = await repository.getEventReport(
         eventId,
-        user.uid,
+        userId,
       );
 
       if (report != null) {
@@ -64,8 +65,8 @@ class SetTimeViewModel extends ChangeNotifier {
   }
 
   Future<bool> saveChanges(DateTime arrivalTime) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || wakeupTime == null || departureTime == null) {
+    final userId = _authService.currentUserId;
+    if (userId == null || wakeupTime == null || departureTime == null) {
       errorMessage = '起床時刻と出発時刻を入力してください。';
       notifyListeners();
       return false;
@@ -103,34 +104,22 @@ class SetTimeViewModel extends ChangeNotifier {
       }
 
       // まずローカルでアラームの登録を行う
-      final wakeupSettings = AlarmSettings(
+      final wakeupSettings = buildAlarmSettings(
         id: getAlarmId(eventId, 'wakeup'),
         dateTime: wakeupTimeDay,
-        assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
-        payload: jsonEncode({'eventId': eventId, 'phase': 'wakeup'}),
-        notificationSettings: const NotificationSettings(
-          title: '起床時間です！',
-          body: 'チェックイン画面から起きたことを報告しましょう',
-          stopButton: 'ストップ',
-        ),
+        eventId: eventId,
+        phase: 'wakeup',
+        title: '起床時間です！',
+        body: 'チェックイン画面から起きたことを報告しましょう',
       );
 
-      final departureSettings = AlarmSettings(
+      final departureSettings = buildAlarmSettings(
         id: getAlarmId(eventId, 'departure'),
         dateTime: departureTimeDay,
-        assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
-        payload: jsonEncode({'eventId': eventId, 'phase': 'departure'}),
-        notificationSettings: const NotificationSettings(
-          title: '出発時間です！',
-          body: '忘れ物はないですか？出発を報告しましょう',
-          stopButton: 'ストップ',
-        ),
+        eventId: eventId,
+        phase: 'departure',
+        title: '出発時間です！',
+        body: '忘れ物はないですか？出発を報告しましょう',
       );
 
       try {
@@ -147,7 +136,7 @@ class SetTimeViewModel extends ChangeNotifier {
       try {
         final String? reportId = await repository.setReport(
           eventId: eventId,
-          userId: user.uid,
+          userId: userId,
           wakeupTime: wakeupTimeDay,
           departureTime: departureTimeDay,
         );

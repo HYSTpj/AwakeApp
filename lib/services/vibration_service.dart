@@ -1,14 +1,14 @@
 import 'package:vibration/vibration.dart';
 
 abstract class VibrationService {
-  Future<bool?> hasAmplitudeControl();
+  Future<bool> hasAmplitudeControl();
   Future<void> vibrate({int? duration, int? amplitude});
   Future<void> cancel();
 }
 
 class RealVibrationService implements VibrationService {
   @override
-  Future<bool?> hasAmplitudeControl() async {
+  Future<bool> hasAmplitudeControl() async {
     return await Vibration.hasAmplitudeControl();
   }
 

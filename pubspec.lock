@@ -1473,10 +1473,10 @@ packages:
     dependency: "direct main"
     description:
       name: vibration
-      sha256: "9bb06614c69260f8bd11c80fe01ed7988905cf00e3417d656c2647e41f261d87"
+      sha256: "3424f7856b971a2ce94d22be3a3abfb5b9b5984562fdedd621f4e67574be7254"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.8"
+    version: "3.2.1"
   vibration_platform_interface:
     dependency: transitive
     description:
@@ -1575,4 +1575,4 @@ packages:
     version: "2.1.0"
 sdks:
   dart: ">=3.11.1 <4.0.0"
-  flutter: ">=3.38.4"
+  flutter: ">=3.41.0"
