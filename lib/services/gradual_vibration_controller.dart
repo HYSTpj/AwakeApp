@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import '../utils/vibration_intensity.dart';
 import 'vibration_service.dart';
 
@@ -34,6 +36,10 @@ class GradualVibrationController {
   int _currentIntensity = 0;
   Duration _elapsedSinceEscalation = Duration.zero;
   bool _isRunning = false;
+  // start()/stop()が呼ばれるたびに増える世代番号。
+  // hasAmplitudeControl()の待機中にstop()（または別のstart()）が呼ばれても、
+  // 古い世代の待機はタイマーを作らないようにするための無効化トークン。
+  int _generation = 0;
 
   bool get isRunning => _isRunning;
   int get currentIntensity => _currentIntensity;
@@ -42,15 +48,23 @@ class GradualVibrationController {
   ///
   /// [isCancelled] は amplitude 制御の有無を問い合わせている間にアラームが
   /// 停止された場合、タイマー開始を取りやめるための判定に使う。
+  /// これに加えて、待機中に[stop]（または新たな[start]）が呼ばれた場合も
+  /// 世代番号の不一致により自動的に無効化される。
   Future<void> start({bool Function()? isCancelled}) async {
     stop();
+    final myGeneration = _generation;
 
     _currentIntensity = _initialIntensity;
     _elapsedSinceEscalation = Duration.zero;
 
-    final hasAmplitude = await _vibrationService.hasAmplitudeControl();
+    var hasAmplitude = false;
+    try {
+      hasAmplitude = await _vibrationService.hasAmplitudeControl();
+    } catch (e) {
+      debugPrint('バイブレーション制御の確認に失敗しました: $e');
+    }
 
-    if (isCancelled?.call() ?? false) {
+    if (myGeneration != _generation || (isCancelled?.call() ?? false)) {
       return;
     }
 
@@ -62,7 +76,11 @@ class GradualVibrationController {
   /// [tickInterval] 経過ごとの1回分の処理。
   void tick() {
     if (_hasAmplitude) {
-      _vibrationService.vibrate(duration: 1000, amplitude: _currentIntensity);
+      unawaited(
+        _vibrationService
+            .vibrate(duration: 1000, amplitude: _currentIntensity)
+            .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
+      );
 
       _elapsedSinceEscalation += _tickInterval;
       if (_elapsedSinceEscalation >= _escalationInterval) {
@@ -74,15 +92,24 @@ class GradualVibrationController {
         );
       }
     } else {
-      _vibrationService.vibrate(duration: 1000);
+      unawaited(
+        _vibrationService
+            .vibrate(duration: 1000)
+            .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
+      );
     }
   }
 
   /// バイブレーションとタイマーを止める。
   void stop() {
+    _generation++;
     _isRunning = false;
     _timer?.cancel();
     _timer = null;
-    _vibrationService.cancel();
+    unawaited(
+      _vibrationService.cancel().catchError(
+        (e) => debugPrint('バイブレーション停止に失敗しました: $e'),
+      ),
+    );
   }
 }

@@ -119,6 +119,52 @@ void main() {
       controller.stop();
     });
 
+    test('isCancelledを渡さなくても、待機中にstop()が呼ばれればタイマーを開始しない(世代の不一致による無効化)', () async {
+      final completer = Completer<bool>();
+      final service = FakeVibrationService(() => completer.future);
+      final controller = GradualVibrationController(vibrationService: service);
+
+      final startFuture = controller.start();
+      controller.stop();
+      completer.complete(true);
+      await startFuture;
+
+      expect(controller.isRunning, isFalse);
+      expect(service.vibrateCalls, isEmpty);
+    });
+
+    test('待機中に別のstart()が呼ばれた場合、古い方の待機はタイマーを開始しない', () async {
+      final firstCompleter = Completer<bool>();
+      var callCount = 0;
+      final service = FakeVibrationService(() {
+        callCount++;
+        return callCount == 1 ? firstCompleter.future : Future.value(true);
+      });
+      final controller = GradualVibrationController(vibrationService: service);
+
+      final firstStart = controller.start();
+      final secondStart = controller.start();
+      firstCompleter.complete(true);
+      await Future.wait([firstStart, secondStart]);
+
+      expect(controller.isRunning, isTrue);
+
+      controller.stop();
+    });
+
+    test('hasAmplitudeControl()が例外を投げても、未捕捉のまま伝播せずamplitudeなしとして扱う', () async {
+      final service = FakeVibrationService(
+        () => Future<bool>.error('プラットフォームエラー'),
+      );
+      final controller = GradualVibrationController(vibrationService: service);
+
+      await controller.start();
+
+      expect(controller.isRunning, isTrue);
+
+      controller.stop();
+    });
+
     test('stop()でタイマーが止まりcancel()が呼ばれる', () async {
       final service = FakeVibrationService(() async => true);
       final controller = GradualVibrationController(vibrationService: service);
