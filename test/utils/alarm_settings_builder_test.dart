@@ -6,7 +6,7 @@ import 'package:flutter_application_1/utils/alarm_settings_builder.dart';
 
 void main() {
   group('buildAlarmSettings', () {
-    test('音量が1分かけて最大音量までフェードするよう設定される', () {
+    test('音量は最初から0.8で鳴り、30秒後に最大音量まで引き上がる', () {
       final settings = buildAlarmSettings(
         id: 1,
         dateTime: DateTime(2026, 5, 14, 6, 30),
@@ -18,9 +18,11 @@ void main() {
 
       expect(
         settings.volumeSettings,
-        VolumeSettings.fade(
-          volume: 1.0,
-          fadeDuration: const Duration(minutes: 1),
+        VolumeSettings.staircaseFade(
+          fadeSteps: [
+            VolumeFadeStep(Duration.zero, 0.8),
+            VolumeFadeStep(const Duration(seconds: 30), 1.0),
+          ],
           volumeEnforced: true,
         ),
       );
