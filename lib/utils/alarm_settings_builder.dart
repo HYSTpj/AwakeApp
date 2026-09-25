@@ -30,7 +30,10 @@ AlarmSettings buildAlarmSettings({
     dateTime: dateTime,
     assetAudioPath: 'assets/alarm.mp3',
     loopAudio: true,
-    vibrate: true,
+    // alarmパッケージ自身の振動(500ms鳴動/500ms休止を繰り返す固定パターン)は
+    // 無効にする。振動はGradualVibrationControllerによる段階的な強度制御のみで
+    // 行うため、両方を有効にすると振動が二重に鳴ってしまう。
+    vibrate: false,
     volumeSettings: buildAlarmVolumeSettings(),
     payload: jsonEncode({'eventId': eventId, 'phase': phase}),
     notificationSettings: NotificationSettings(

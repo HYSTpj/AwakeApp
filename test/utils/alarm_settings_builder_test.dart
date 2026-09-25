@@ -58,7 +58,9 @@ void main() {
       expect(settings.dateTime, dateTime);
       expect(settings.notificationSettings.title, '出発時間です！');
       expect(settings.notificationSettings.body, '忘れ物はないですか？');
-      expect(settings.vibrate, isTrue);
+      // GradualVibrationControllerが振動を制御するため、alarmパッケージ自身の
+      // 固定振動パターンとの二重鳴動を避けるためfalseにしている
+      expect(settings.vibrate, isFalse);
       expect(settings.loopAudio, isTrue);
     });
   });
