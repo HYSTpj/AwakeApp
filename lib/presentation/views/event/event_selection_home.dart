@@ -37,24 +37,24 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     try {
       // ユーザーが所属するグループ一覧を取得
       final response = await _supabase
-          .from('group_memberships')
-          .select('group_id, groups ( id, name )')
+          .from('groups_memberships')
+          .select('group_id, groups ( id, group_name )')
           .eq('user_id', uid);
 
-      final groups = (response as List<dynamic>).map((item) {
+      final groupList = (response as List<dynamic>).map((item) {
         final g = item['groups'] as Map<String, dynamic>? ?? {};
         return {
           'group_id': item['group_id'] as String,
-          'group_name': (g['name'] ?? 'Unnamed Group') as String,
+          'group_name': (g['group_name'] ?? 'Unnamed Group') as String,
         };
       }).toList();
 
       if (mounted) {
         setState(() {
-          _myGroups = groups;
+          _myGroups = groupList;
           _isLoadingGroups = false;
-          if (groups.isNotEmpty) {
-            selectedGroupId = groups.first['group_id'];
+          if (groupList.isNotEmpty) {
+            selectedGroupId = groupList.first['group_id'];
             _eventsFuture = _fetchEvents(selectedGroupId!);
           }
         });
