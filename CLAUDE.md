@@ -110,8 +110,10 @@ directory.
   having run, because `CommonLayout` reads `FirebaseAuth.instance.currentUser`. This is handled
   automatically for every test file via `test/flutter_test_config.dart`, which calls
   `setupFirebaseCoreMocks()` (`test/test_helpers/firebase_mock_setup.dart`) before any test's
-  `main()` runs — no per-file setup is needed. That helper only fakes `firebase_core`
-  (`FirebasePlatform`), not `firebase_auth`'s platform channel; it's sufficient for the synchronous
-  `.currentUser` null-check `CommonLayout` does, but a test that needs `FirebaseAuth` to actually
-  sign in/out or stream auth state will need to extend the fake (or fake `FirebaseAuthPlatform`
-  too) rather than assume it's fully covered.
+  `main()` runs — no per-file setup is needed. That helper fakes both `firebase_core`
+  (`FirebasePlatform`) and `firebase_auth`'s platform delegate (`FirebaseAuthPlatform`), so
+  `FirebaseAuth.instance.currentUser` never reaches a real platform channel and always resolves to
+  `null` (signed-out). A test that needs `FirebaseAuth` to actually sign in/out, stream auth state,
+  or otherwise call a real auth operation will need to extend `FakeFirebaseAuthPlatform` (most of
+  its methods are unoverridden and throw `UnimplementedError`) rather than assume it's fully
+  covered.

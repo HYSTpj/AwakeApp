@@ -1,3 +1,4 @@
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,14 +16,8 @@ class _FakeFirebaseAppPlatform extends FirebaseAppPlatform {
 
 /// `FirebasePlatform.instance` をFakeに差し替えることで、実際のプラットフォーム
 /// チャンネル（Pigeon）に触れずに `Firebase.initializeApp()` / `Firebase.app()` を
-/// 成立させる。`CommonLayout` など `FirebaseAuth.instance.currentUser` を同期的に
-/// 参照するだけのWidgetであれば、これで十分。
-///
-/// 注意: ここでFakeにしているのは `firebase_core`（`FirebasePlatform`）だけで、
-/// `firebase_auth` の `FirebaseAuthPlatform` は差し替えていない。`currentUser` の
-/// 同期nullチェックは通るが、`signInWithEmailAndPassword` など実際のプラットフォーム
-/// 往復を必要とするAuth操作をpumpWidget内で呼ぶテストでは、別途
-/// `FirebaseAuthPlatform.instance` もFakeに差し替える必要がある（未対応）。
+/// 成立させる。`CommonLayout` など `FirebaseAuth.instance.currentUser` を参照する
+/// Widgetをpumpするテストで使う（`setupFirebaseCoreMocks()` 経由）。
 ///
 /// 呼び出しは `test/flutter_test_config.dart` の `testExecutable` が全テストファイルに
 /// 対して自動的に一度だけ行う。`firebase_core` は最初の `Firebase.*` アクセス時に
@@ -62,8 +57,31 @@ class FakeFirebasePlatform extends FirebasePlatform {
   }
 }
 
+/// `FirebaseAuthPlatform.instance` をFakeに差し替えることで、`FirebaseAuth.instance`
+/// を実プラットフォームチャンネル（Pigeonのリスナー登録含む）に一切触れさせずに
+/// 済ませる。常に未ログイン（`currentUser == null`）として振る舞う。
+///
+/// 実装していないのは `delegateFor`/`setInitialValues`/`currentUser` の3つだけで、
+/// サインイン等の実操作を呼ぶテストは対象外（`FirebaseAuthPlatform`の他メソッドは
+/// 未オーバーライドのまま `UnimplementedError` を投げる）。
+class FakeFirebaseAuthPlatform extends FirebaseAuthPlatform {
+  @override
+  FirebaseAuthPlatform delegateFor({required FirebaseApp app}) => this;
+
+  @override
+  FirebaseAuthPlatform setInitialValues({
+    PigeonUserDetails? currentUser,
+    String? languageCode,
+  }) =>
+      this;
+
+  @override
+  UserPlatform? get currentUser => null;
+}
+
 Future<void> setupFirebaseCoreMocks() async {
   TestWidgetsFlutterBinding.ensureInitialized();
   FirebasePlatform.instance = FakeFirebasePlatform();
+  FirebaseAuthPlatform.instance = FakeFirebaseAuthPlatform();
   await Firebase.initializeApp();
 }
