@@ -64,11 +64,15 @@ class SupabaseMemberEventRepository implements MemberEventRepository {
     final uid = _currentUserId;
     if (uid == null) throw const AuthException('Not authenticated');
 
-    await _client.from('event_reports').update({
+    final res = await _client.from('event_reports').update({
       'planned_wakeup_time': wakeupTime.toIso8601String(),
       'planned_departure_time': departureTime.toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
-    }).eq('event_id', eventId).eq('user_id', uid);
+    }).eq('event_id', eventId).eq('user_id', uid).select();
+
+    if (res.isEmpty) {
+      throw const PostgrestException(message: '参加者レポートが見つかりません');
+    }
   }
 
   @override

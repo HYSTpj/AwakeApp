@@ -37,7 +37,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     try {
       // ユーザーが所属するグループ一覧を取得
       final response = await _supabase
-          .from('group_members')
+          .from('group_memberships')
           .select('group_id, groups ( id, name )')
           .eq('user_id', uid);
 
@@ -68,7 +68,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   Future<List<Map<String, dynamic>>> _fetchEvents(String groupId) async {
     try {
       final response = await _supabase
-          .from('events')
+          .from('events_view')
           .select()
           .eq('group_id', groupId)
           .order('arrival_time', ascending: true);

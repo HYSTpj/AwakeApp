@@ -138,7 +138,19 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     }
   }
 
-  // 1. 保存と遷移のメソッドを追加
+  // 暗号学的に安全な推測不可能なトークンを生成
+  String _generateSecureToken([int length = 32]) {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+    final rand = Random.secure();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+  String _generateRandomCode([int length = 6]) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
+  }
+
   Future<void> _saveAndNavigate() async {
     if (_isLoading) return;
 
@@ -152,9 +164,9 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 4桁のランダムパスワードとダミーQRを生成
-      final password =_generateRandomCode(6);
-      final qrcodeId = 'qr_${DateTime.now().millisecondsSinceEpoch}';
+      final password = _generateRandomCode(6);
+      // 時刻由来を廃止し、暗号学的に安全なランダム文字列を生成
+      final qrcodeId = 'qr_${_generateSecureToken(32)}';
 
       await _repository.createEventWithParticipants(
         groupId: widget.groupId,
@@ -188,12 +200,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
         setState(() => _isLoading = false);
       }
     }
-  }
-
-  String _generateRandomCode([int length = 6]) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 誤読しやすい0/O, 1/Iを除外
-    final rand = Random();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
   }
 
   @override

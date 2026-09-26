@@ -60,26 +60,29 @@ class SupabaseGroupRepository implements GroupRepository {
 
     final code = _generateInvitationCode();
 
-    // 1. groups 作成
+    // RPC (create_group_with_admin) を呼び出してグループ作成とAdmin登録をアトミックに実行
+    final res = await _client.rpc(
+      'create_group_with_admin',
+      params: {
+        'p_group_name': groupName,
+        'p_invitation_code': code,
+      },
+    );
+
+    if (res is! Map<String, dynamic> || res['success'] != true) {
+      throw const PostgrestException(message: 'Failed to create group via RPC');
+    }
+
+    final groupId = res['group_id'] as String;
+
+    // 作成したグループの詳細を取得して返却
     final groupData = await _client
         .from('groups')
-        .insert({
-          'group_name': groupName,
-          'invitation_code': code,
-        })
         .select()
+        .eq('id', groupId)
         .single();
 
-    final newGroup = Group.fromJson(groupData, role: 0);
-
-    // 2. 作成者を管理者 (role = 0) としてメンバーシップに追加
-    await _client.from('groups_memberships').insert({
-      'group_id': newGroup.id,
-      'user_id': uid,
-      'role': 0, // Admin
-    });
-
-    return newGroup;
+    return Group.fromJson(groupData, role: 0);
   }
 
   @override
@@ -115,9 +118,10 @@ class SupabaseGroupRepository implements GroupRepository {
     }
   }
 
-  String _generateInvitationCode({int length = 6}) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 誤読しやすい0/O, 1/Iを除外
-    final rand = Random();
+  // 暗号学的に安全な乱数生成器を使用し長さを8桁に強化
+  String _generateInvitationCode({int length = 8}) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
     return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
   }
 }

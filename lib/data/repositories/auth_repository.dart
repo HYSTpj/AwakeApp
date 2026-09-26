@@ -52,12 +52,17 @@ class SupabaseAuthRepository implements AuthRepository {
       data: {'nickname': nickname},
     );
 
+    // signUp 内で res.session == null のチェックを追加
     final user = res.user;
     if (user == null) {
       throw const AuthException('User creation failed');
     }
 
-    // auth.users INSERT 後、DBトリガーによる profiles レコード作成完了を待って取得
+    if (res.session == null) {
+      // メール確認が必要な場合はここで明確な例外を投げるか結果を分岐
+      throw const AuthException('確認メールを送信しました。メール内のリンクからログインしてください。');
+    }
+
     return _fetchProfileWithRetry(user.id);
   }
 

@@ -15,9 +15,10 @@ class SupabaseRankingRepository implements RankingRepository {
 
   @override
   Future<void> completeEvent(String eventId) async {
+    // スキーマ列名に合わせて updated_at に修正
     await _client.from('events').update({
       'status': 'completed',
-      'update_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', eventId);
   }
 

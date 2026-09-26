@@ -119,6 +119,7 @@ class _EventListPageState extends State<EventListPage> {
             myRole: myRole,
             arrivalTime: displayTime,
             password: selectedEvent.password,
+            qrcodeId: selectedEvent.qrcodeId,
           );
         }
 

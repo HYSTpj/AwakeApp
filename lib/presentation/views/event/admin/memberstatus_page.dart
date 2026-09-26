@@ -11,6 +11,7 @@ class MemberStatusPage extends StatefulWidget {
   final int myRole;
   final String arrivalTime;
   final String password;
+  final String qrcodeId; // 管理者用QRコード照合トークン
 
   const MemberStatusPage({
     super.key,
@@ -20,6 +21,7 @@ class MemberStatusPage extends StatefulWidget {
     required this.myRole,
     required this.arrivalTime,
     required this.password,
+    required this.qrcodeId,
   });
 
   @override
@@ -201,6 +203,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                           myRole: widget.myRole,
                           arrivalTime: widget.arrivalTime,
                           password: widget.password,
+                          qrcodeId: widget.qrcodeId, // QrcodePage に渡す
                         ),
                       ),
                     );

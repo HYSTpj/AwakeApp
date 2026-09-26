@@ -36,31 +36,30 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   }
 
   Future<void> _initializeData() async {
-    final errorMessage = await _viewModel.loadData();
-    // If there's an error (e.g. not authenticated), show a dialog and return.
-    if (errorMessage != null) {
-      final ctx = context;
-      if (!ctx.mounted) return;
-      await showDialog<void>(
-        context: ctx,
-        barrierDismissible: false, // 周りをタップして閉じられないようにブロック
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('ログインが必要です'),
-            content: const Text('メンバーのチェックインを利用するには、ログインしてください。'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  final navigator = Navigator.of(context);
-                  navigator.pop(); // ダイアログを閉じる
-                  navigator.pop(); // 元の画面へ戻る
-                },
-                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
+    final error = await _viewModel.loadData();
+
+    if (error != null && mounted) {
+      switch (error) {
+        case CheckInLoadError.notLoggedIn:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ログインが必要です。再度ログインしてください。')),
           );
-        }
-      );
+          Navigator.of(context).pop();
+          break;
+
+        case CheckInLoadError.notParticipant:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('あなたはこのイベントの参加者として登録されていません。')),
+          );
+          Navigator.of(context).pop();
+          break;
+
+        case CheckInLoadError.fetchFailed:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('データの取得に失敗しました。通信環境を確認してください。')),
+          );
+          break;
+      }
     }
   }
 
@@ -106,7 +105,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   }
 
   Future<void> _handleCheckIn() async {
-    if (_viewModel.isCheckInPressed) return;
+    if (_viewModel.isCheckInPressed || !_viewModel.isParticipant) return;
 
     // QRスキャナーまたはパスコード画面へ遷移して結果を受け取る
     final scannedResult = await Navigator.push<Map<String, String>>(
@@ -150,6 +149,43 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
+  // 取得失敗時に表示する再試行ビュー
+  Widget _buildErrorRetryView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Color(0xFF93000A)),
+            const SizedBox(height: 16),
+            const Text(
+              'データの取得に失敗しました',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '通信環境を確認し、もう一度お試しください。',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _initializeData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('再読み込み'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5C00),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // ViewModelの変更を監視してUIを自動再描画
@@ -157,58 +193,68 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildGroupDropdown(),
-                  const SizedBox(height: 24),
-                  CurrentStatusPanel(status: _viewModel.selectedStatus),
-                  const SizedBox(height: 16),
-                  WakeUpButton(isPressed: _viewModel.isWakeUpPressed, onTap: _viewModel.toggleWakeUp),
-                  const SizedBox(height: 16),
-                  DepartureButton(
-                    isSelected: _viewModel.isDeparturePressed,
-                    onTap: _viewModel.toggleDeparture,
-                  ),
-                  const SizedBox(height: 16),
-                  CheckInButton(isPressed: _viewModel.isCheckInPressed, onTap: _handleCheckIn),
-                  const SizedBox(height: 16),
-                  ReportLateButton(
-                    onTap: () async {
-                      final ctx = context;
-                      final reportId = await _viewModel.getOrCreateReportId();
-                      if (!ctx.mounted) return;
-
-                      if (reportId == null) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(
-                            content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                        return;
-                      }
-
-                      final res = await Navigator.push<bool>(
-                        ctx,
-                        MaterialPageRoute(
-                          builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
+          body: _viewModel.loadError == CheckInLoadError.fetchFailed
+              ? _buildErrorRetryView()
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildGroupDropdown(),
+                        const SizedBox(height: 24),
+                        CurrentStatusPanel(status: _viewModel.selectedStatus),
+                        const SizedBox(height: 16),
+                        WakeUpButton(
+                          isPressed: _viewModel.isWakeUpPressed,
+                          onTap: _viewModel.isParticipant ? _viewModel.toggleWakeUp : null,
                         ),
-                      );
+                        const SizedBox(height: 16),
+                        DepartureButton(
+                          isSelected: _viewModel.isDeparturePressed,
+                          onTap: _viewModel.isParticipant ? _viewModel.toggleDeparture : null,
+                        ),
+                        const SizedBox(height: 16),
+                        CheckInButton(
+                          isPressed: _viewModel.isCheckInPressed,
+                          onTap: _viewModel.isParticipant ? _handleCheckIn : null,
+                        ),
+                        const SizedBox(height: 16),
+                        ReportLateButton(
+                          onTap: !_viewModel.isParticipant
+                              ? null
+                              : () async {
+                                  final ctx = context;
+                                  final reportId = await _viewModel.getOrCreateReportId();
+                                  if (!ctx.mounted) return;
 
-                      if (res == true) {
-                        await _viewModel.loadData();
-                      }
-                    },
+                                  if (reportId == null) {
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  final res = await Navigator.push<bool>(
+                                    ctx,
+                                    MaterialPageRoute(
+                                      builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
+                                    ),
+                                  );
+
+                                  if (res == true) {
+                                    await _viewModel.loadData();
+                                  }
+                                },
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                ),
         );
       },
     );

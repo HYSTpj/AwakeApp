@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common_layout.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // qrコード表示用
-import 'package:flutter/services.dart'; // コピー用
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter/services.dart';
 import '../../../../widgets/return_button.dart';
 
 class QrcodePage extends StatefulWidget {
@@ -12,6 +12,7 @@ class QrcodePage extends StatefulWidget {
   final int myRole;
   final String arrivalTime;
   final String password;
+  final String qrcodeId; // 照合用の秘密トークン
 
   const QrcodePage({
     super.key,
@@ -21,6 +22,7 @@ class QrcodePage extends StatefulWidget {
     required this.myRole,
     required this.arrivalTime,
     required this.password,
+    required this.qrcodeId,
   });
 
   @override
@@ -69,8 +71,8 @@ class _QrcodePageState extends State<QrcodePage> {
                   children: [
                     Flexible(
                       child: QrImageView(
-                        // QRコード取得
-                        data: widget.eventId,
+                        // eventId ではなく、RPC が照合する秘密の qrcodeId を埋め込む
+                        data: widget.qrcodeId,
                         version: QrVersions.auto,
                       ),
                     ),
