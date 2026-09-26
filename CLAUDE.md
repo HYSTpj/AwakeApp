@@ -16,7 +16,7 @@ flutter pub get                 # install dependencies
 flutter run                     # run the app (defaults to a connected device/simulator)
 flutter analyze                 # static analysis (uses analysis_options.yaml / flutter_lints)
 flutter test                    # run all tests
-flutter test test/viewmodels/set_time_viewmodel_test.dart   # run a single test file
+flutter test test/set_time/set_time_viewmodel_test.dart     # run a single test file
 flutter test --plain-name "初期化時"                          # run tests matching a name
 ```
 
@@ -95,8 +95,25 @@ payloads are JSON containing `eventId` and `phase`.
 
 ### Testing conventions
 
-Tests under `test/viewmodels/` construct a view model directly (no widget pump), drive its public
-methods, and assert on its `ChangeNotifier` state/getters — see
-`test/viewmodels/set_time_viewmodel_test.dart` and `late_report_viewmodel_test.dart`. View models
-that need to avoid hitting real platform APIs in tests expose optional mock injection points in
-their constructors (e.g. `LateReportViewModel`'s `mockFetchLocation` / `mockUploadPhoto`).
+Tests live under `test/<feature>/`, mirroring the `lib/<feature>/` layout (e.g.
+`test/set_time/`, `test/late_report/`, `test/group/`) rather than one flat `test/viewmodels/`
+directory.
+
+- View-model unit tests construct the view model directly (no widget pump), drive its public
+  methods, and assert on its `ChangeNotifier` state/getters — see
+  `test/set_time/set_time_viewmodel_test.dart` and `test/late_report/late_report_viewmodel_test.dart`.
+  View models that need to avoid hitting real platform APIs in tests expose optional mock
+  injection points in their constructors (e.g. `LateReportViewModel`'s `mockFetchLocation` /
+  `mockUploadPhoto`), or accept an interface/Repository that `mocktail` can mock directly (e.g.
+  `test/group/create_group_view_model_test.dart` mocks the `GroupRepository` interface).
+- Widget tests that render `CommonLayout` (directly or via a page) rely on `Firebase.initializeApp()`
+  having run, because `CommonLayout` reads `FirebaseAuth.instance.currentUser`. This is handled
+  automatically for every test file via `test/flutter_test_config.dart`, which calls
+  `setupFirebaseCoreMocks()` (`test/test_helpers/firebase_mock_setup.dart`) before any test's
+  `main()` runs — no per-file setup is needed. That helper fakes both `firebase_core`
+  (`FirebasePlatform`) and `firebase_auth`'s platform delegate (`FirebaseAuthPlatform`), so
+  `FirebaseAuth.instance.currentUser` never reaches a real platform channel and always resolves to
+  `null` (signed-out). A test that needs `FirebaseAuth` to actually sign in/out, stream auth state,
+  or otherwise call a real auth operation will need to extend `FakeFirebaseAuthPlatform` (most of
+  its methods are unoverridden and throw `UnimplementedError`) rather than assume it's fully
+  covered.
