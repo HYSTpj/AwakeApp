@@ -94,6 +94,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # Repository/Serviceをモック化してユニットテストするためのツール
+  mocktail: ^1.0.4
+
+  # Widgetテストで実Firebaseに接続せず Firebase.initializeApp() を通すためのFake実装用
+  firebase_core_platform_interface: ^6.0.3
+
   # 以下の「flutter_lints」パッケージには、優れたコーディング習慣を促進するための推奨リンターセットが含まれている
   # このパッケージで提供されるリンターセットは
   # パッケージのルートにある "analysis_options.yaml" ファイルで有効化される
