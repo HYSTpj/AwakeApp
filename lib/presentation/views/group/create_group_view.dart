@@ -74,7 +74,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         const SnackBar(content: Text('Created a new group.')),
       );
       // 作成完了後は一覧まで戻る
-      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pop(context, true);
     } else {
       final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示

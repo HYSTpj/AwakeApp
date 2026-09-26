@@ -120,9 +120,10 @@ class _GroupListPageState extends State<GroupListPage> {
                                     letterSpacing: 0.5,
                                   ),
                                 ),
+                                // コピーアイコンのタップ処理（invitationCode に変更）
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(ClipboardData(text: group.id));
+                                    Clipboard.setData(ClipboardData(text: group.invitationCode));
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('copied the invitation code')),
                                     );
@@ -152,15 +153,25 @@ class _GroupListPageState extends State<GroupListPage> {
                           ),
                         ),
                       ],
-                      onChanged: (String? value) {
+                      // DropdownButton の onChanged 処理
+                      onChanged: (String? value) async {
                         if (value == null) return;
+
                         if (value == 'create_add_delete') {
-                          Navigator.push(
+                          final result = await Navigator.push<bool>(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const CreateOrAddOrDeletePage(),
                             ),
                           );
+
+                          // 削除・作成・参加から戻ってきたら一覧を再取得
+                          if (result == true) {
+                            await _viewModel.loadGroups();
+                            setState(() {
+                              selectedGroupId = null; // 選択状態をリセット
+                            });
+                          }
                         } else {
                           setState(() {
                             selectedGroupId = value;

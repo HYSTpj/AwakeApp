@@ -75,7 +75,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
         const SnackBar(content: Text('Joined the group.')),
       );
       // 参加完了後は一覧画面まで戻る
-      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pop(context, true);
     } else {
       final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示

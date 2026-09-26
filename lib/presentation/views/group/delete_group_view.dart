@@ -94,8 +94,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You have left the group.')),
       );
-      // 脱退完了後はグループ一覧画面まで戻る
-      Navigator.popUntil(context, (route) => route.isFirst);
+      // true を返して選択画面に戻る
+      Navigator.pop(context, true);
     } else {
       final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
       ScaffoldMessenger.of(context).showSnackBar(
@@ -148,7 +148,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       child: TextField(
         controller: _controller,
         decoration: const InputDecoration(
-          hintText: 'Enter groupID to leave',
+          hintText: 'Enter invitation code to leave',
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(left: 15, top: 15),
         ),

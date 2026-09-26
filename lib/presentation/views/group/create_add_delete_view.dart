@@ -66,13 +66,18 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
       width: 400,
       height: 100,
       child: ElevatedButton(
-        onPressed: () {                                
-          Navigator.push(
+        onPressed: () async {                                
+          final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const CreateGroupPage(),
             ),
           );
+
+          // 削除が成功して戻ってきた場合、この選択画面も閉じて一覧画面へ戻る
+          if (result == true && context.mounted) {
+            Navigator.pop(context, true);
+          }
           debugPrint('グループ作成画面へ移動');
         },
         style: _buttonStyle(),
@@ -90,13 +95,18 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
       width: 400,
       height: 100,
       child: ElevatedButton(
-        onPressed: () {                
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const AddGroupPage(),
             ),
           );
+
+          // 削除が成功して戻ってきた場合、この選択画面も閉じて一覧画面へ戻る
+          if (result == true && context.mounted) {
+            Navigator.pop(context, true);
+          }
           debugPrint('グループ参加画面へ移動');
         },
         style: _buttonStyle(),
@@ -114,20 +124,24 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
       width: 400,
       height: 100,
       child: ElevatedButton(
-        onPressed: () {                
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const DeleteGroupPage(),
             ),
           );
-          debugPrint('グループ脱退画面へ移動');
+
+          // 削除が成功して戻ってきた場合、この選択画面も閉じて一覧画面へ戻る
+          if (result == true && context.mounted) {
+            Navigator.pop(context, true);
+          }
         },
         style: _buttonStyle(),
         child: const Text(
           'Delete group',
           style: TextStyle(fontSize: 24),
-        )
+        ),
       ),
     );
   }

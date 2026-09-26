@@ -213,6 +213,8 @@ ALTER TABLE public.event_reports ENABLE ROW LEVEL SECURITY;
 
 -- profiles
 CREATE POLICY "profiles_select" ON public.profiles FOR SELECT TO authenticated USING (true);
+-- 認証済みユーザーが自分の profiles レコードを作成 (INSERT) できるように許可
+CREATE POLICY "profiles_insert" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
 CREATE POLICY "profiles_update" ON public.profiles FOR UPDATE TO authenticated 
 USING (auth.uid() = id) 
 WITH CHECK (auth.uid() = id);
@@ -380,18 +382,25 @@ SET search_path = public
 AS $$
 DECLARE
     v_user_id UUID := auth.uid();
-    v_group_id UUID;
+    v_group public.groups%ROWTYPE;
 BEGIN
     IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
 
+    -- グループ作成
     INSERT INTO public.groups (group_name, invitation_code)
     VALUES (p_group_name, p_invitation_code)
-    RETURNING id INTO v_group_id;
+    RETURNING * INTO v_group;
 
+    -- 作成者を管理者(role: 0)として追加
     INSERT INTO public.groups_memberships (group_id, user_id, role)
-    VALUES (v_group_id, v_user_id, 0);
+    VALUES (v_group.id, v_user_id, 0);
 
-    RETURN jsonb_build_object('success', true, 'group_id', v_group_id);
+    -- 作成したグループの詳細を返却 (group_id と group の両方を渡す)
+    RETURN jsonb_build_object(
+        'success', true,
+        'group_id', v_group.id,
+        'group', to_jsonb(v_group)
+    );
 END;
 $$;
 

@@ -73,15 +73,8 @@ class SupabaseGroupRepository implements GroupRepository {
       throw const PostgrestException(message: 'Failed to create group via RPC');
     }
 
-    final groupId = res['group_id'] as String;
-
-    // 作成したグループの詳細を取得して返却
-    final groupData = await _client
-        .from('groups')
-        .select()
-        .eq('id', groupId)
-        .single();
-
+    // RPCから返ってきた group オブジェクトを利用
+    final groupData = Map<String, dynamic>.from(res['group'] as Map);
     return Group.fromJson(groupData, role: 0);
   }
 
@@ -99,21 +92,35 @@ class SupabaseGroupRepository implements GroupRepository {
   }
 
   @override
-  Future<void> leaveOrDeleteGroup(String groupId) async {
+  Future<void> leaveOrDeleteGroup(String invitationCode) async {
     final uid = _currentUserId;
     if (uid == null) throw const AuthException('Not authenticated');
 
-    final role = await getRole(groupId);
+    final code = invitationCode.trim();
+
+    // 招待コードからグループを特定
+    final groupRecord = await _client
+        .from('groups')
+        .select('id')
+        .eq('invitation_code', code)
+        .maybeSingle();
+
+    if (groupRecord == null) {
+      throw const PostgrestException(message: '該当するグループが見つかりません');
+    }
+
+    final targetGroupId = groupRecord['id'] as String;
+    final role = await getRole(targetGroupId);
 
     if (role == 0) {
-      // 管理者の場合はグループ自体を削除（CASCADEにより全関連データ削除）
-      await _client.from('groups').delete().eq('id', groupId);
+      // 管理者ならグループごと削除
+      await _client.from('groups').delete().eq('id', targetGroupId);
     } else {
-      // 一般メンバーの場合は自身の所属レコードを削除（脱退）
+      // メンバーなら脱退
       await _client
           .from('groups_memberships')
           .delete()
-          .eq('group_id', groupId)
+          .eq('group_id', targetGroupId)
           .eq('user_id', uid);
     }
   }
