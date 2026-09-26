@@ -751,6 +751,48 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.submit_late_report(
+    p_report_id UUID,
+    p_reason TEXT,
+    p_photo_url TEXT,
+    p_latitude DOUBLE PRECISION,
+    p_longitude DOUBLE PRECISION
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_user_id UUID := auth.uid();
+    v_point POINT := NULL;
+BEGIN
+    IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+    IF p_latitude IS NOT NULL AND p_longitude IS NOT NULL THEN
+        v_point := point(p_latitude, p_longitude);
+    END IF;
+
+    -- トリガーのチェックをパスするためのフラグ設定
+    PERFORM set_config('app.rpc_updating', 'true', true);
+
+    UPDATE public.event_reports
+    SET 
+        late_reason = p_reason,
+        photo_url = p_photo_url,
+        location = v_point,
+        status = 2, -- 遅刻ステータス
+        updated_at = NOW()
+    WHERE id = p_report_id AND user_id = v_user_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Report not found or not permitted';
+    END IF;
+
+    RETURN jsonb_build_object('success', true);
+END;
+$$;
+
 -- ====================================================
 -- 7. 権限設定 & Realtime
 -- ====================================================
@@ -769,6 +811,7 @@ GRANT EXECUTE ON FUNCTION public.report_wake_up(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.report_departure(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.check_in_by_qr(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.check_in_by_passcode(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_late_report(UUID, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION) TO authenticated;
 
 -- Realtime 有効化
 ALTER PUBLICATION supabase_realtime ADD TABLE public.events;

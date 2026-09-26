@@ -121,13 +121,13 @@ class MemberCheckInViewModel extends ChangeNotifier {
           selectedStatus = StatusButtonType.awake;
           break;
         case 2:
-        case 5:
           selectedStatus = StatusButtonType.overslept;
           break;
         case 3:
           selectedStatus = StatusButtonType.moving;
           break;
         case 4:
+        case 5:
           selectedStatus = StatusButtonType.arrived;
           break;
         case 0:

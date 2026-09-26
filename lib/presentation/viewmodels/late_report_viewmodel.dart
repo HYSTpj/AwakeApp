@@ -162,12 +162,13 @@ class LateReportViewModel extends ChangeNotifier {
       }
 
       // Supabase の event_reports テーブルを更新
-      await _supabase.from('event_reports').update({
-        'late_reason': reasonText.trim(),
-        'photo_url': downloadUrl,
-        'location': '($latitude, $longitude)',
-        'status': 2, // または 'late'
-      }).eq('id', reportId);
+      await _supabase.rpc('submit_late_report', params: {
+        'p_report_id': reportId,
+        'p_reason': reasonText.trim(),
+        'p_photo_url': downloadUrl,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+      });
 
       isUploading = false;
       notifyListeners();
