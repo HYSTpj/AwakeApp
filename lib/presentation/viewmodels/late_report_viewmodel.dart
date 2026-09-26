@@ -166,7 +166,7 @@ class LateReportViewModel extends ChangeNotifier {
         'late_reason': reasonText.trim(),
         'photo_url': downloadUrl,
         'location': '($latitude, $longitude)',
-        'status': 'overslept', // または 'late'
+        'status': 2, // または 'late'
       }).eq('id', reportId);
 
       isUploading = false;
