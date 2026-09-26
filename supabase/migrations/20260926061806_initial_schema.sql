@@ -253,6 +253,14 @@ CREATE POLICY "er_update" ON public.event_reports FOR UPDATE TO authenticated
 USING (user_id = auth.uid() AND public.is_event_participant(event_id))
 WITH CHECK (user_id = auth.uid() AND public.is_event_participant(event_id));
 
+-- avatars: 自分の UID プレフィックスのフォルダ配下のみアップロード許可
+CREATE POLICY "avatars_user_insert" ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- late-evidences: 認証済みユーザーならアップロード許可
+CREATE POLICY "late_evidences_insert" ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'late-evidences');
+
 -- ====================================================
 -- 5. トリガー
 -- ====================================================
