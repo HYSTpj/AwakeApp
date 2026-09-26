@@ -5,8 +5,8 @@ class Event {
   final String destinationName;
   final double? latitude;
   final double? longitude;
-  final String qrcodeId;
-  final String password;
+  final String? qrcodeId;
+  final String? password;
   final DateTime arrivalTime;
   final String status;
   final DateTime createdAt;
@@ -51,8 +51,8 @@ class Event {
       destinationName: json['destination_name'] as String,
       latitude: lat,
       longitude: lng,
-      qrcodeId: json['qrcode_id'] as String,
-      password: json['password'] as String,
+      qrcodeId: json['qrcode_id'] as String?,
+      password: json['password'] as String?,
       arrivalTime: DateTime.parse(json['arrival_time'] as String),
       status: json['status'] as String? ?? 'active',
       createdAt: DateTime.parse(json['created_at'] as String),

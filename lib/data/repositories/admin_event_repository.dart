@@ -25,18 +25,41 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
 
   @override
   Future<List<Event>> getEvents(String groupId) async {
-    // 管理者専用RPC経由で qrcode_id / password を含めて安全に取得
-    final res = await _client.rpc(
-      'get_admin_events',
-      params: {'p_group_id': groupId},
-    );
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) return [];
 
-    if (res is List<dynamic>) {
-      return res
+    // 管理者かどうか確認
+    final membership = await _client
+        .from('groups_memberships')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_id', uid)
+        .maybeSingle();
+
+    final isAdmin = (membership?['role'] == 0);
+
+    if (isAdmin) {
+      // 管理者の場合はシークレット含む専用RPC
+      final res = await _client.rpc(
+        'get_admin_events',
+        params: {'p_group_id': groupId},
+      );
+      if (res is List<dynamic>) {
+        return res.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } else {
+      // 一般メンバーは安全な events_view を取得
+      final data = await _client
+          .from('events_view')
+          .select()
+          .eq('group_id', groupId)
+          .order('arrival_time', ascending: true);
+
+      return (data as List<dynamic>)
           .map((e) => Event.fromJson(e as Map<String, dynamic>))
           .toList();
     }
-    return [];
   }
 
   @override
