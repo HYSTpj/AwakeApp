@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 
-Widget myHeader() {
+Widget myHeader(BuildContext context) {
   return Container(
-    // 💡 背景色をオレンジにするならここで指定
     width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 20), // 文字の上下に隙間を作る
+    padding: EdgeInsets.only(
+      top: MediaQuery.of(context).padding.top,
+      bottom: 12,
+    ),
     decoration: const BoxDecoration(
-      color: Color(0xFFEC5B13), // オレンジ背景
+      color: Color(0xFFEC5B13),
       border: Border(
-        bottom: BorderSide(color: Colors.black, width: 2), // 下に黒い線を引く
+        bottom: BorderSide(
+          color: Colors.black,
+          width: 2,
+        ),
       ),
     ),
     child: const Text(
@@ -19,8 +24,6 @@ Widget myHeader() {
         fontSize: 16,
         fontFamily: 'Noto Sans JP',
         fontWeight: FontWeight.w900,
-        height: 1.25,
-        letterSpacing: -0.40,
       ),
     ),
   );
