@@ -18,12 +18,11 @@ Widget createAccountBody(
   ) {
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),
-    body: SafeArea(
-      child: SingleChildScrollView(
+    body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch, 
           children: [
-            myHeader(),  // ロゴとタイトルのヘッダー
+            myHeader(context),  // ロゴとタイトルのヘッダー
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -197,7 +196,6 @@ Widget createAccountBody(
             ),
           ],
         ),
-      ),
-    ),
+      ), 
   );
 }

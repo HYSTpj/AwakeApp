@@ -29,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
         Widget build(BuildContext context) {
           // Scaffoldを消して直接loginBodyを呼び出す
           return loginBody(
+            context,
             emailController: emailController,
             passwordController: passwordController,
             

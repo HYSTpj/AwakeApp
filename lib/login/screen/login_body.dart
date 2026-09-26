@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart';
 
-Widget loginBody({
+Widget loginBody(
+    BuildContext context, {
     required TextEditingController emailController, // LoginPageで定義したcontrollerを引数として受け取る
     required TextEditingController passwordController, // LoginPageで定義したcontrollerを引数として受け取る
     required VoidCallback onLoginPressed, // ログインボタンが押されたときの処理を引数として受け取る
@@ -14,7 +15,7 @@ Widget loginBody({
             child: Column(
                 children: [
 
-                    myHeader(), // ヘッダーを呼び出す
+                    myHeader(context), // ヘッダーを呼び出す
                     /* ロゴとキャッチコピーの部分 */
                     Padding(
                         padding: const EdgeInsets.only(top: 34, bottom: 24),

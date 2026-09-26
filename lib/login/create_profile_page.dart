@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'screen/create_account_body.dart';
+import 'screen/create_profile_body.dart';
 import 'package:flutter_application_1/data/profiles_repository.dart';
 import '../group/view/group_list_view.dart';
 
