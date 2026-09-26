@@ -180,7 +180,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
         final int all = eventMembers.length; // イベントメンバー人数
         final int arrived = eventMembers
-            .where((m) => m['status'] == 4)
+            .where((m) => m['status'] == 4|| m['status'] == 5)
             .length; // イベントメンバーの内到着済み人数
 
         return Column(
@@ -270,6 +270,12 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                     Colors.orangeAccent,
                     4,
                   ),
+                  _statusButton(
+                    '5: LATE ARRIVED',
+                    Icons.circle,
+                    Colors.redAccent,
+                    5,
+                  ),
                 ],
               ),
             ),
@@ -344,6 +350,10 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                           case 4:
                             statusColor = Colors.orangeAccent;
                             statusText = 'ARRIVED';
+                            break;
+                          case 5:
+                            statusColor = Colors.redAccent;
+                            statusText = 'ARRIVED (LATE)';
                             break;
                           default: // statusColorとstatusTextがnull値にならないよう宣言
                             statusColor = Colors.grey;
