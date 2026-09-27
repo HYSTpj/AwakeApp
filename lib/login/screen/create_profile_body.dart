@@ -14,6 +14,7 @@ Widget createAccountBody(
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),
     body: SafeArea(
+      top: false,
       child: Column(
         children: [
           // ヘッダーは固定
