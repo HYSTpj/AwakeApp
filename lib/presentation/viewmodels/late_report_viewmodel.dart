@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -118,65 +119,62 @@ class LateReportViewModel extends ChangeNotifier {
     reasonText = text;
   }
 
-  Future<bool> submitReport() async {
-    if (evidencePhoto == null) {
-      errorMessage = "CAPTURE EVIDENCE (写真) の撮影が必須です。";
-      notifyListeners();
-      return false;
-    }
-    if (reasonText.trim().isEmpty) {
-      errorMessage = "遅刻の理由を入力してください。";
-      notifyListeners();
-      return false;
-    }
-    if (latitude == null || longitude == null) {
-      errorMessage = "位置情報が取得できていません。GPSの設定を確認してください。";
-      notifyListeners();
-      return false;
+  /// 写真のアップロード処理
+  Future<String?> _uploadEvidencePhoto() async {
+    if (evidencePhoto == null) return null;
+
+    if (mockUploadPhoto != null) {
+      return await mockUploadPhoto!(eventId, userId, evidencePhoto!);
     }
 
+    try {
+      final file = File(evidencePhoto!.path);
+      final fileExt = evidencePhoto!.name.split('.').last;
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '$userId/$eventId/$fileName';
+
+      await _supabase.storage.from('late-evidences').upload(
+        filePath,
+        file,
+        fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+      );
+
+      return _supabase.storage.from('late-evidences').getPublicUrl(filePath);
+    } catch (e) {
+      debugPrint('Photo upload failed: $e');
+      return null;
+    }
+  }
+
+  /// 遅刻報告の送信（修正された submit_late_report RPC に p_event_id を送信）
+  Future<bool> submitReport() async {
     isUploading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      String downloadUrl;
-      if (mockUploadPhoto != null) {
-        downloadUrl = await mockUploadPhoto!(eventId, userId, evidencePhoto!);
-      } else {
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
-        final storagePath = '$eventId/$fileName';
-
-        // Web / Native 共通でバイト配列からアップロード
-        final bytes = await evidencePhoto!.readAsBytes();
-        await _supabase.storage.from('late-evidences').uploadBinary(
-          storagePath,
-          bytes,
-          fileOptions: const FileOptions(
-            contentType: 'image/jpeg',
-            upsert: true,
-          ),
-        );
-
-        downloadUrl = _supabase.storage.from('late-evidences').getPublicUrl(storagePath);
+      String? photoUrl;
+      if (evidencePhoto != null) {
+        photoUrl = await _uploadEvidencePhoto();
       }
 
-      // Supabase の event_reports テーブルを更新
-      await _supabase.rpc('submit_late_report', params: {
-        'p_report_id': reportId,
-        'p_reason': reasonText.trim(),
-        'p_photo_url': downloadUrl,
-        'p_latitude': latitude,
-        'p_longitude': longitude,
-      });
+      await _supabase.rpc(
+        'submit_late_report',
+        params: {
+          'p_event_id': eventId,
+          'p_reason': reasonText,
+          'p_photo_url': photoUrl,
+          'p_latitude': latitude,
+          'p_longitude': longitude,
+        },
+      );
 
       isUploading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      errorMessage = e.toString();
       isUploading = false;
-      errorMessage = "アップロードに失敗しました。詳細: $e";
-      debugPrint(errorMessage);
       notifyListeners();
       return false;
     }

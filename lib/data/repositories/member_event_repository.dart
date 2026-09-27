@@ -120,20 +120,15 @@ class SupabaseMemberEventRepository implements MemberEventRepository {
     final uid = _currentUserId;
     if (uid == null) throw const AuthException('Not authenticated');
 
-    final updateData = <String, dynamic>{
-      'late_reason': reason,
-      'photo_url': photoUrl,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-
-    if (latitude != null && longitude != null) {
-      updateData['location'] = '($latitude,$longitude)';
-    }
-
-    await _client
-        .from('event_reports')
-        .update(updateData)
-        .eq('event_id', eventId)
-        .eq('user_id', uid);
+    await _client.rpc(
+      'submit_late_report',
+      params: {
+        'p_event_id': eventId,
+        'p_reason': reason,
+        'p_photo_url': photoUrl,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+      },
+    );
   }
 }
