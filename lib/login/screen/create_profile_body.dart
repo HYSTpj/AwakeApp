@@ -13,8 +13,7 @@ Widget createAccountBody(
    required VoidCallback onCreateAccountPressed,
    required VoidCallback onReturnToLoginPressed,
    required TextEditingController userNameController,
-   required dynamic pickedImage,
-   required bool isLoading,}
+   required dynamic pickedImage,}
   ) {
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),

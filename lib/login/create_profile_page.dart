@@ -18,7 +18,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
   final TextEditingController _userNameController = TextEditingController();
   dynamic _pickedImage;
   final ImagePicker _picker = ImagePicker();
-  final bool _isLoading = false; // 処理中のぐるぐる表示用
   final ProfilesRepository _profilesRepository = ProfilesRepository();                                                                                                                              
 
   @override
@@ -31,7 +30,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       onReturnToLoginPressed: _returnToLogin,
       userNameController: _userNameController,
       pickedImage: _pickedImage,
-      isLoading: _isLoading,
     );
   }
 
