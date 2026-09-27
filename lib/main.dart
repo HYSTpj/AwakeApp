@@ -11,6 +11,7 @@ import 'presentation/views/login/login_page.dart'; // ログインページの�
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/database/database.dart';
+import 'config/env_config.dart';
 
 // リポジトリ
 import 'data/repositories/room_repository.dart';
@@ -29,9 +30,10 @@ void main() async {
   await Alarm.init();
 
   // Supabaseを初期化
+  // 直書き文字列から EnvConfig 経由に変更
   await Supabase.initialize(
-    url: 'https://ysfdiozvtqpozurtqaor.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZmRpb3p2dHFwb3p1cnRxYW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5ODU3NTMsImV4cCI6MjEwNTU2MTc1M30.WUNe9uDyfC1kv9Akt5Z9Ac4KZ7Afw7WlJjV6P0fRWrY',
+    url: EnvConfig.supabaseUrl,
+    anonKey: EnvConfig.supabaseAnonKey,
   );
 
   final client = Supabase.instance.client;
