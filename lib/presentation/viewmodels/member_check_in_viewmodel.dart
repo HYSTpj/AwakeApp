@@ -142,8 +142,10 @@ class MemberCheckInViewModel extends ChangeNotifier {
   }
 
   // 起床ボタン（RPC 経由で実行）
-  Future<void> toggleWakeUp() async {
-    if (!isParticipant || isWakeUpPressed) return;
+  Future<bool> toggleWakeUp() async {
+    if (!isParticipant || isWakeUpPressed) return false;
+
+    errorMessage = null;
 
     try {
       await Alarm.stop(getAlarmId(eventId, 'wakeup'));
@@ -161,15 +163,25 @@ class MemberCheckInViewModel extends ChangeNotifier {
         isWakeUpPressed = true;
         notifyListeners();
         await loadData();
+        return true;
+      } else {
+        errorMessage = '起床報告の処理に失敗しました。';
+        notifyListeners();
+        return false;
       }
     } catch (e) {
       debugPrint('起床記録RPCエラー: $e');
+      errorMessage = '起床記録に失敗しました: ${e.toString()}';
+      notifyListeners();
+      return false;
     }
   }
 
   // 出発ボタン（RPC 経由で実行）
-  Future<void> toggleDeparture() async {
-    if (!isParticipant || isDeparturePressed) return;
+  Future<bool> toggleDeparture() async {
+    if (!isParticipant || isDeparturePressed) return false;
+
+    errorMessage = null;
 
     try {
       await Alarm.stop(getAlarmId(eventId, 'departure'));
@@ -187,15 +199,25 @@ class MemberCheckInViewModel extends ChangeNotifier {
         isDeparturePressed = true;
         notifyListeners();
         await loadData();
+        return true;
+      } else {
+        errorMessage = '出発報告の処理に失敗しました。';
+        notifyListeners();
+        return false;
       }
     } catch (e) {
       debugPrint('出発記録RPCエラー: $e');
+      errorMessage = '出発記録に失敗しました: ${e.toString()}';
+      notifyListeners();
+      return false;
     }
   }
 
   // チェックイン承認（RPC 経由で実行）
   Future<bool> verifyAndCheckIn(String type, String value) async {
     if (!isParticipant || isCheckInPressed) return false;
+
+    errorMessage = null;
 
     try {
       final functionName = (type == 'qrcode') ? 'check_in_by_qr' : 'check_in_by_passcode';
@@ -214,9 +236,14 @@ class MemberCheckInViewModel extends ChangeNotifier {
         notifyListeners();
         await loadData();
         return true;
+      } else {
+        errorMessage = 'チェックインに失敗しました。';
+        notifyListeners();
       }
     } catch (e) {
       debugPrint('チェックインRPCエラー: $e');
+      errorMessage = 'チェックイン処理でエラーが発生しました: ${e.toString()}';
+      notifyListeners();
     }
     return false;
   }
