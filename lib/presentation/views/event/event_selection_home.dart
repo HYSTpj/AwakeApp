@@ -38,7 +38,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
       // ユーザーが所属するグループ一覧を取得
       final response = await _supabase
           .from('groups_memberships')
-          .select('group_id, groups ( id, group_name )')
+          .select('group_id, groups ( id, group_name, invitation_code )')
           .eq('user_id', uid);
 
       final groupList = (response as List<dynamic>).map((item) {
@@ -46,6 +46,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
         return {
           'group_id': item['group_id'] as String,
           'group_name': (g['group_name'] ?? 'Unnamed Group') as String,
+          'invitation_code': (g['invitation_code'] ?? '') as String,
         };
       }).toList();
 
@@ -139,7 +140,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: group['group_id']));
+                        final code = group['invitation_code'] ?? '';
+                        Clipboard.setData(ClipboardData(text: code));
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Copied the invitation code')),
                         );
