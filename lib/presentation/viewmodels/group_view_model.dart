@@ -35,6 +35,14 @@ class GroupViewModel extends ChangeNotifier {
 
   GroupState get state => _state;
 
+  /// 所属グループ内に同名のグループが存在するか確認
+  bool isGroupNameExists(String name) {
+    final trimmedName = name.trim().toLowerCase();
+    return _state.groups.any(
+      (group) => group.groupName.trim().toLowerCase() == trimmedName,
+    );
+  }
+
   Future<void> loadGroups() async {
     _state = _state.copyWith(isLoading: true, clearError: true);
     notifyListeners();
@@ -50,11 +58,33 @@ class GroupViewModel extends ChangeNotifier {
   }
 
   Future<bool> createGroup(String name) async {
+    final trimmedName = name.trim();
+
+    // 1. 空文字バリデーション
+    if (trimmedName.isEmpty) {
+      _state = _state.copyWith(
+        isLoading: false,
+        errorMessage: 'グループ名を入力してください',
+      );
+      notifyListeners();
+      return false;
+    }
+
+    // 2. グループ名の重複チェック
+    if (isGroupNameExists(trimmedName)) {
+      _state = _state.copyWith(
+        isLoading: false,
+        errorMessage: '同じ名前のグループが既に存在します',
+      );
+      notifyListeners();
+      return false;
+    }
+
     _state = _state.copyWith(isLoading: true, clearError: true);
     notifyListeners();
 
     try {
-      final newGroup = await _groupRepository.createGroup(name);
+      final newGroup = await _groupRepository.createGroup(trimmedName);
       _state = _state.copyWith(
         groups: [..._state.groups, newGroup],
         isLoading: false,
@@ -69,11 +99,21 @@ class GroupViewModel extends ChangeNotifier {
   }
 
   Future<bool> joinGroupByCode(String code) async {
+    final trimmedCode = code.trim();
+    if (trimmedCode.isEmpty) {
+      _state = _state.copyWith(
+        isLoading: false,
+        errorMessage: '招待コードを入力してください',
+      );
+      notifyListeners();
+      return false;
+    }
+
     _state = _state.copyWith(isLoading: true, clearError: true);
     notifyListeners();
 
     try {
-      final success = await _groupRepository.joinGroupByCode(code);
+      final success = await _groupRepository.joinGroupByCode(trimmedCode);
       if (success) {
         await loadGroups();
         return true;
