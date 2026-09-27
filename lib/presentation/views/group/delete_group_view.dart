@@ -50,7 +50,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     final groupId = _controller.text.trim();
     if (groupId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your group ID.')),
+        const SnackBar(content: Text('Please enter your invitation code.')),
       );
       return;
     }

@@ -766,8 +766,34 @@ AS $$
 DECLARE
     v_user_id UUID := auth.uid();
     v_point POINT := NULL;
+    v_event_id UUID;
+    v_event_status TEXT;
 BEGIN
     IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+    -- レポートの存在と所有者を確認して event_id を取得
+    SELECT event_id INTO v_event_id
+    FROM public.event_reports
+    WHERE id = p_report_id AND user_id = v_user_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Report not found or not permitted';
+    END IF;
+
+    -- 現在もグループの参加者であるかを検証
+    IF NOT public.is_event_participant(v_event_id) THEN
+        RAISE EXCEPTION 'Not an active event participant';
+    END IF;
+
+    -- イベントがアクティブか検証
+    SELECT status INTO v_event_status
+    FROM public.events
+    WHERE id = v_event_id
+    FOR UPDATE;
+
+    IF v_event_status IS DISTINCT FROM 'active' THEN
+        RAISE EXCEPTION 'Event is not active';
+    END IF;
 
     IF p_latitude IS NOT NULL AND p_longitude IS NOT NULL THEN
         v_point := point(p_latitude, p_longitude);
@@ -783,10 +809,12 @@ BEGIN
         location = v_point,
         status = 2, -- 遅刻ステータス
         updated_at = NOW()
-    WHERE id = p_report_id AND user_id = v_user_id;
+    WHERE id = p_report_id
+        AND user_id = v_user_id
+        AND status < 3;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Report not found or not permitted';
+        RAISE EXCEPTION 'Report status is already departed or arrived';
     END IF;
 
     RETURN jsonb_build_object('success', true);

@@ -168,6 +168,7 @@ class _GroupListPageState extends State<GroupListPage> {
                           // 削除・作成・参加から戻ってきたら一覧を再取得
                           if (result == true) {
                             await _viewModel.loadGroups();
+                            if (!mounted) return;
                             setState(() {
                               selectedGroupId = null; // 選択状態をリセット
                             });
