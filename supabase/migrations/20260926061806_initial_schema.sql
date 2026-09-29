@@ -827,6 +827,71 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.update_event_with_participants(
+    p_event_id UUID,
+    p_title TEXT,
+    p_destination_name TEXT,
+    p_arrival_time TIMESTAMPTZ,
+    p_participant_ids UUID[]
+) RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public -- search_path を固定
+AS $$
+DECLARE
+    v_group_id UUID;
+    v_is_admin BOOLEAN;
+    v_valid_member_count INT;
+BEGIN
+    -- 1. イベントの group_id を取得
+    SELECT group_id INTO v_group_id FROM public.events WHERE id = p_event_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Event not found';
+    END IF;
+
+    -- 2. 実行者がグループの管理者か確認
+    SELECT (role = 0) INTO v_is_admin 
+    FROM public.groups_memberships 
+    WHERE group_id = v_group_id AND user_id = auth.uid();
+
+    IF NOT coalesce(v_is_admin, false) THEN
+        RAISE EXCEPTION 'Not authorized to edit event';
+    END IF;
+
+    -- 3. 指定された全参加者が対象グループに所属しているか検証
+    IF array_length(p_participant_ids, 1) > 0 THEN
+        SELECT COUNT(DISTINCT user_id) INTO v_valid_member_count
+        FROM public.groups_memberships
+        WHERE group_id = v_group_id AND user_id = ANY(p_participant_ids);
+
+        IF v_valid_member_count <> array_length(p_participant_ids, 1) THEN
+            RAISE EXCEPTION 'One or more participant IDs do not belong to this group';
+        END IF;
+    END IF;
+
+    -- 4. イベント本体の更新
+    UPDATE public.events
+    SET title = p_title,
+        destination_name = p_destination_name,
+        arrival_time = p_arrival_time,
+        updated_at = NOW()
+    WHERE id = p_event_id;
+
+    -- 5. 除外された参加者のレポートを削除
+    DELETE FROM public.event_reports
+    WHERE event_id = p_event_id
+        AND NOT (user_id = ANY(p_participant_ids));
+
+    -- 6. 新規追加された参加者のレポートを挿入 (status: 0)
+    IF array_length(p_participant_ids, 1) > 0 THEN
+        INSERT INTO public.event_reports (event_id, user_id, status)
+        SELECT p_event_id, u.id, 0
+        FROM unnest(p_participant_ids) AS u(id)
+        ON CONFLICT (event_id, user_id) DO NOTHING;
+    END IF;
+END;
+$$;
+
 -- ====================================================
 -- 7. 権限設定 & Realtime
 -- ====================================================
@@ -846,6 +911,8 @@ GRANT EXECUTE ON FUNCTION public.report_departure(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.check_in_by_qr(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.check_in_by_passcode(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_late_report(UUID, TEXT, TEXT, DOUBLE PRECISION, DOUBLE PRECISION) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_event_with_participants(UUID, TEXT, TEXT, TIMESTAMPTZ, UUID[]) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_admin_events(UUID) TO authenticated;
 
 -- Realtime 有効化
 ALTER PUBLICATION supabase_realtime ADD TABLE public.events;

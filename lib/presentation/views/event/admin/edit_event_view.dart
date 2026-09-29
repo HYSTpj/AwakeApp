@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../common_layout.dart';
-import '../domain/event_entity.dart';
-import '../data/event_data.dart';
-import '../view_model/edit_event_view_model.dart';
+import '../../../../common_layout.dart';
+import '../../../viewmodels/edit_event_view_model.dart';
+import '../../../../models/event.dart';
 
-// CreateEventPageと共通のボダースタイル定義
+// CreateEventPageと共通のボーダースタイル定義
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 const _kLabelStyle = TextStyle(
   fontSize: 14,
@@ -90,7 +89,7 @@ class _PickerButton extends StatelessWidget {
 }
 
 class EditEventPage extends StatefulWidget {
-  final EventEntity event;
+  final Event event;
   final String groupId;
   final int myRole;
 
@@ -106,7 +105,7 @@ class EditEventPage extends StatefulWidget {
 }
 
 class _EditEventPageState extends State<EditEventPage> {
-  final _repository = EventRepositoryImpl(); 
+  // 💡 古い EventRepositoryImpl は削除し、ViewModel を使用
   final EditEventViewModel _viewModel = EditEventViewModel();
   
   late TextEditingController _nameController;
@@ -133,9 +132,9 @@ class _EditEventPageState extends State<EditEventPage> {
     super.initState();
     _nameController = TextEditingController(text: widget.event.title);
     _locationController = TextEditingController(text: widget.event.destinationName);
-    _scheduledTime = widget.event.arrivalTime ?? DateTime.now();
+    _scheduledTime = widget.event.arrivalTime;
     
-    _viewModel.loadInitialData(widget.groupId, widget.event.eventId);
+    _viewModel.loadInitialData(widget.groupId, widget.event.id);
   }
 
   @override
@@ -146,7 +145,7 @@ class _EditEventPageState extends State<EditEventPage> {
   }
 
   Future<void> _saveSettings() async {
-    if (_nameController.text.isEmpty || _locationController.text.isEmpty) {
+    if (_nameController.text.trim().isEmpty || _locationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields.')),
       );
@@ -154,12 +153,11 @@ class _EditEventPageState extends State<EditEventPage> {
     }
 
     try {
-      await _repository.updateEventDetails(
-        eventId: widget.event.eventId,
+      await _viewModel.updateEvent(
+        eventId: widget.event.id,
         title: _nameController.text.trim(),
         destinationName: _locationController.text.trim(),
-        arrivalTime: _scheduledTime.toIso8601String(),
-        participants: _viewModel.selectedMembers.toList(), 
+        arrivalTime: _scheduledTime,
       );
 
       if (!mounted) return;
@@ -169,6 +167,10 @@ class _EditEventPageState extends State<EditEventPage> {
       Navigator.pop(context, true); 
     } catch (e) {
       debugPrint('更新失敗: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update event: $e')),
+      );
     }
   }
 
@@ -262,9 +264,15 @@ class _EditEventPageState extends State<EditEventPage> {
                               );
                               if (time == null) return;
                               setState(() {
-                                _scheduledTime = DateTime(_scheduledTime.year, _scheduledTime.month, _scheduledTime.day, time.hour, time.minute);
+                                _scheduledTime = DateTime(
+                                  _scheduledTime.year,
+                                  _scheduledTime.month,
+                                  _scheduledTime.day,
+                                  time.hour,
+                                  time.minute,
+                                );
                               });
-                            }
+                            },
                           ),
 
                           // 日付
@@ -272,17 +280,28 @@ class _EditEventPageState extends State<EditEventPage> {
                           _PickerButton(
                             label: _dateLabel, 
                             onTap: () async {
+                              final now = DateTime.now();
+                              final earliestDate = _scheduledTime.isBefore(now)
+                                  ? _scheduledTime.subtract(const Duration(days: 1))
+                                  : now.subtract(const Duration(days: 30));
+
                               final date = await showDatePicker(
                                 context: context,
                                 initialDate: _scheduledTime,
-                                firstDate: DateTime.now().subtract(const Duration(days: 7)),
+                                firstDate: earliestDate,
                                 lastDate: DateTime(2030),
                               );
                               if (date == null) return;
                               setState(() {
-                                _scheduledTime = DateTime(date.year, date.month, date.day, _scheduledTime.hour, _scheduledTime.minute);
+                                _scheduledTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  _scheduledTime.hour,
+                                  _scheduledTime.minute,
+                                );
                               });
-                            }
+                            },
                           ),
 
                           // 場所
@@ -339,10 +358,10 @@ class _EditEventPageState extends State<EditEventPage> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: _viewModel.allMembers.map((member) {
-                                final uid = member['uid'] ?? '';
+                                final uid = member.id;
                                 final isSelected = _viewModel.selectedMembers.contains(uid);
-                                final nickname = member['nickname'] ?? 'No Name';
-                                final avatarUrl = member['avatar_url'] ?? '';
+                                final nickname = member.nickname;
+                                final avatarUrl = member.avatarUrl;
 
                                 return Container(
                                   padding: const EdgeInsets.all(16),
@@ -354,22 +373,46 @@ class _EditEventPageState extends State<EditEventPage> {
                                       CircleAvatar(
                                         radius: 24,
                                         backgroundColor: Colors.grey,
-                                        backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
-                                        child: avatarUrl.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 24) : null,
+                                        backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                                            ? NetworkImage(avatarUrl)
+                                            : null,
+                                        child: (avatarUrl == null || avatarUrl.isEmpty)
+                                            ? const Icon(Icons.person, color: Colors.white, size: 24)
+                                            : null,
                                       ),
                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(nickname, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-                                            Text('@$uid', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontSize: 12)),
+                                            Text(
+                                              nickname,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            Text(
+                                              '@$uid',
+                                              style: TextStyle(
+                                                color: Colors.black.withValues(alpha: 0.5),
+                                                fontSize: 12,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
                                       Column(
                                         children: [
-                                          const Text('ATTENDING', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.black)),
+                                          const Text(
+                                            'ATTENDING',
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          ),
                                           Switch(
                                             value: isSelected,
                                             activeThumbColor: const Color(0xFFFF5C00),
@@ -403,7 +446,11 @@ class _EditEventPageState extends State<EditEventPage> {
                                 onPressed: _saveSettings, 
                                 child: const Text(
                                   'SAVE SETTINGS', 
-                                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                             ),
@@ -415,7 +462,7 @@ class _EditEventPageState extends State<EditEventPage> {
                 ),
               ),
         );
-      }
+      },
     );
   }
 }
