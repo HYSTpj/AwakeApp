@@ -197,7 +197,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _stopCustomVibration() {
-    _vibrationController.stop();
+    unawaited(_vibrationController.stop());
   }
 
   @override

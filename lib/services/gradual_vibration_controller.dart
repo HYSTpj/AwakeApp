@@ -50,9 +50,23 @@ class GradualVibrationController {
   /// 停止された場合、タイマー開始を取りやめるための判定に使う。
   /// これに加えて、待機中に[stop]（または新たな[start]）が呼ばれた場合も
   /// 世代番号の不一致により自動的に無効化される。
+  ///
+  /// 世代番号の更新は（[_cancelVibration]のawaitを挟まず）同期的に行う。
+  /// 先にawaitを挟んでしまうと、その間に外部から[stop]が呼ばれても
+  /// 世代の不一致を検知できないレースが生まれるため。
   Future<void> start({bool Function()? isCancelled}) async {
-    stop();
-    final myGeneration = _generation;
+    final myGeneration = ++_generation;
+    _isRunning = false;
+    _timer?.cancel();
+    _timer = null;
+
+    // 前回分の停止命令(cancel())の完了を待ってから次の振動を開始することで、
+    // 停止と開始の命令がプラットフォーム側で入れ替わって届くのを防ぐ。
+    await _cancelVibration();
+
+    if (myGeneration != _generation) {
+      return;
+    }
 
     _currentIntensity = _initialIntensity;
     _elapsedSinceEscalation = Duration.zero;
@@ -101,15 +115,22 @@ class GradualVibrationController {
   }
 
   /// バイブレーションとタイマーを止める。
-  void stop() {
+  ///
+  /// `cancel()`の完了を待つため`Future`を返すが、呼び出し元が結果を
+  /// 必要としない場合（[dispose]など）は待たずに呼び出してよい。
+  Future<void> stop() async {
     _generation++;
     _isRunning = false;
     _timer?.cancel();
     _timer = null;
-    unawaited(
-      _vibrationService.cancel().catchError(
-        (e) => debugPrint('バイブレーション停止に失敗しました: $e'),
-      ),
-    );
+    await _cancelVibration();
+  }
+
+  Future<void> _cancelVibration() async {
+    try {
+      await _vibrationService.cancel();
+    } catch (e) {
+      debugPrint('バイブレーション停止に失敗しました: $e');
+    }
   }
 }
