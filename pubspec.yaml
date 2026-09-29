@@ -50,18 +50,11 @@ dependencies:
   # iPhone風のアイコンを使えるパッケージ
   cupertino_icons: ^1.0.8
 
-  # Firebaseを使うためのパッケージ追加
-  firebase_core: ^4.5.0
-
-  # Firestoreを使うためのパッケージ追加
-  cloud_firestore: ^6.1.3
-
   # Supabaseを使うためのパッケージ追加
   supabase_flutter: ^2.12.0
 
   # GPSを使うためのパッケージ追加
   geolocator: ^14.0.2
-  firebase_auth: ^6.2.0
 
   # Google Map を使うためのパッケージ追加
   google_maps_flutter: ^2.16.0
@@ -75,7 +68,6 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
   crypto: ^3.0.7
-  firebase_storage: ^13.2.0
   image_picker: ^1.2.1
   alarm: ^5.2.1
   vibration: ^3.1.8
@@ -104,6 +96,7 @@ dev_dependencies:
   drift_dev: ^2.14.1
   build_runner: ^2.4.8
   flutter_launcher_icons: ^0.14.4
+  mocktail: ^1.0.5
 
 # このファイルの汎用 Dart 部分に関する情報については，次のページを参照
 # https://dart.dev/tools/pub/pubspec
