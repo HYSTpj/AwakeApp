@@ -96,6 +96,15 @@ class _MyAppState extends State<MyApp> {
         _showAlarmDialog(alarm);
         _startGradualVibration(alarm.id);
       }
+
+      // 通知の停止アクションなど、アプリ内ダイアログを経由しない経路で
+      // アラームが止まった場合もここで検知し、カスタムバイブレーションを止める。
+      final removedIds = _lastRingingIds.difference(currentIds);
+      if (removedIds.contains(_vibratingAlarmId)) {
+        _stopCustomVibration();
+        _vibratingAlarmId = null;
+      }
+
       _lastRingingIds = currentIds;
     });
   }
