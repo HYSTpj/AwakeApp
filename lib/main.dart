@@ -91,6 +91,9 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
   bool _isDialogShowing = false;
+  // 現在画面に表示中のダイアログがどのアラームのものかを記録しておく。
+  // 通知経由でそのアラームが停止された場合に、このダイアログを閉じるために使う。
+  int? _showingDialogAlarmId;
   // 複数のアラームが同時に鳴った場合、ダイアログは重ねて表示せず、
   // 表示中のダイアログが閉じてから次を表示するための待ち行列。
   final List<AlarmSettings> _pendingDialogAlarms = [];
@@ -119,6 +122,16 @@ class _MyAppState extends State<MyApp> {
       for (final id in removedIds) {
         _stopCustomVibration(id);
         _pendingDialogAlarms.removeWhere((a) => a.id == id);
+
+        // このアラームのダイアログが今まさに表示中であれば、それも閉じる。
+        // ダイアログのストップボタン自身がpopした直後は、既に
+        // _showingDialogAlarmIdがnullに戻っているため二重にpopされることはない。
+        if (_isDialogShowing && _showingDialogAlarmId == id) {
+          final navigatorState = _navigatorKey.currentState;
+          if (navigatorState != null && navigatorState.canPop()) {
+            navigatorState.pop();
+          }
+        }
       }
 
       _lastRingingIds = currentIds;
@@ -140,6 +153,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     _isDialogShowing = true;
+    _showingDialogAlarmId = alarmSettings.id;
 
     final payload = alarmSettings.payload;
     final alarmData = payload == null
@@ -218,6 +232,7 @@ class _MyAppState extends State<MyApp> {
       );
     } finally {
       _isDialogShowing = false;
+      _showingDialogAlarmId = null;
       if (_pendingDialogAlarms.isNotEmpty) {
         final next = _pendingDialogAlarms.removeAt(0);
         _showAlarmDialog(next);
