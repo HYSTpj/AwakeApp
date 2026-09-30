@@ -112,8 +112,11 @@ class _MyAppState extends State<MyApp> {
       final newIds = currentIds.difference(_lastRingingIds);
       for (final id in newIds) {
         final alarm = alarmSet.alarms.firstWhere((a) => a.id == id);
-        _showAlarmDialog(alarm);
-        _startGradualVibration(alarm.id);
+        // どちらもFuture<void>を返すが、リスナー内では結果を待つ必要がない。
+        // 明示的にunawaited()で囲むことで、内部で例外が発生した場合に
+        // 静かに握りつぶされるのではなく、Zoneのエラーハンドラーに届くようにする。
+        unawaited(_showAlarmDialog(alarm));
+        unawaited(_startGradualVibration(alarm.id));
       }
 
       // 通知の停止アクションなど、アプリ内ダイアログを経由しない経路で
