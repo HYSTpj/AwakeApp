@@ -133,7 +133,10 @@ void main() {
       expect(service.vibrateCalls, isEmpty);
     });
 
-    test('待機中に別のstart()が呼ばれた場合、古い方の待機はタイマーを開始しない', () async {
+    test('待機中に別のstart()が呼ばれた場合、最後に呼ばれたstart()だけがタイマーを開始する', () async {
+      // 2つ目のstart()が1つ目のstart()冒頭のstop()相当処理を経て世代を進めるため、
+      // 1つ目のstart()は_cancelVibration()完了直後の最初の世代チェックで早期returnし、
+      // hasAmplitudeControl()には到達しない（callCountは2つ目のstart()の分しか増えない）。
       final firstCompleter = Completer<bool>();
       var callCount = 0;
       final service = FakeVibrationService(() {
@@ -151,6 +154,41 @@ void main() {
 
       controller.stop();
     });
+
+    test(
+      'hasAmplitudeControl()の待機中にstop()が呼ばれた場合、解決後もタイマーを開始しない'
+      '(2箇所目の世代チェック)',
+      () async {
+        // 上のテストは _cancelVibration() 完了直後（1箇所目の世代チェック）で
+        // 早期returnするケースしか検証できていなかった。ここでは
+        // hasAmplitudeControl()の呼び出しが実際に行われた後で世代が
+        // 変わるケース（2箇所目の世代チェック）を、hasAmplitudeControl()の
+        // 呼び出しタイミングを合図するCompleterで確実に再現する。
+        final hasAmplitudeCompleter = Completer<bool>();
+        final invoked = Completer<void>();
+        final service = FakeVibrationService(() {
+          invoked.complete();
+          return hasAmplitudeCompleter.future;
+        });
+        final controller = GradualVibrationController(vibrationService: service);
+
+        final startFuture = controller.start();
+
+        // start()が実際にhasAmplitudeControl()を呼び出すまで待つ
+        // （_cancelVibration()完了・1箇所目の世代チェック通過を保証する）。
+        await invoked.future;
+
+        // hasAmplitudeControl()がまだ解決していない間に世代を進める。
+        controller.stop();
+
+        // ここでようやくhasAmplitudeControl()を解決させる。
+        hasAmplitudeCompleter.complete(true);
+        await startFuture;
+
+        expect(controller.isRunning, isFalse);
+        expect(service.vibrateCalls, isEmpty);
+      },
+    );
 
     test('hasAmplitudeControl()が例外を投げても、未捕捉のまま伝播せずamplitudeなしとして扱う', () async {
       final service = FakeVibrationService(
