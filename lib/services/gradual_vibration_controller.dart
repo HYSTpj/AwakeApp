@@ -105,13 +105,16 @@ class GradualVibrationController {
 
   /// [tickInterval] 経過ごとの1回分の処理。
   void tick() {
-    if (_hasAmplitude) {
-      unawaited(
-        _vibrationService
-            .vibrate(duration: 1000, amplitude: _currentIntensity)
-            .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
-      );
+    unawaited(
+      _vibrationService
+          .vibrate(
+            duration: 1000,
+            amplitude: _hasAmplitude ? _currentIntensity : null,
+          )
+          .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
+    );
 
+    if (_hasAmplitude) {
       _elapsedSinceEscalation += _tickInterval;
       if (_elapsedSinceEscalation >= _escalationInterval) {
         _elapsedSinceEscalation = Duration.zero;
@@ -121,12 +124,6 @@ class GradualVibrationController {
           max: _maxIntensity,
         );
       }
-    } else {
-      unawaited(
-        _vibrationService
-            .vibrate(duration: 1000)
-            .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
-      );
     }
   }
 
