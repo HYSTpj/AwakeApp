@@ -91,6 +91,9 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
   bool _isDialogShowing = false;
+  // 複数のアラームが同時に鳴った場合、ダイアログは重ねて表示せず、
+  // 表示中のダイアログが閉じてから次を表示するための待ち行列。
+  final List<AlarmSettings> _pendingDialogAlarms = [];
   // アラームIDごとに「停止済み」を管理する（全体で1つのフラグだと他のアラームに影響してしまうため）
   final Set<int> _stoppedAlarmIds = {};
   // アラームIDごとにバイブレーションコントローラーを持つ（1つを使い回すと、
@@ -115,6 +118,7 @@ class _MyAppState extends State<MyApp> {
       final removedIds = _lastRingingIds.difference(currentIds);
       for (final id in removedIds) {
         _stopCustomVibration(id);
+        _pendingDialogAlarms.removeWhere((a) => a.id == id);
       }
 
       _lastRingingIds = currentIds;
@@ -123,6 +127,10 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _showAlarmDialog(AlarmSettings alarmSettings) async {
     if (_isDialogShowing) {
+      // 表示中のダイアログがあれば、それが閉じてから表示するために
+      // 待ち行列に積んでおく（重ねて表示すると操作不能なポップアップが
+      // 積み重なってしまうため）。
+      _pendingDialogAlarms.add(alarmSettings);
       return;
     }
 
@@ -130,6 +138,8 @@ class _MyAppState extends State<MyApp> {
     if (context == null || !context.mounted) {
       return;
     }
+
+    _isDialogShowing = true;
 
     final payload = alarmSettings.payload;
     final alarmData = payload == null
@@ -208,6 +218,10 @@ class _MyAppState extends State<MyApp> {
       );
     } finally {
       _isDialogShowing = false;
+      if (_pendingDialogAlarms.isNotEmpty) {
+        final next = _pendingDialogAlarms.removeAt(0);
+        _showAlarmDialog(next);
+      }
     }
   }
 
