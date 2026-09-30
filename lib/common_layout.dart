@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'data/profiles_repository.dart';
-import 'group/view/group_list_view.dart';
-import 'create_event_page.dart';
-import 'member_check_in.dart';
-import 'ranking/ranking_screen.dart';
-import 'event_selection_home.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'presentation/views/group/group_list_view.dart';
+import 'presentation/views/event/admin/create_event_page.dart';
+import 'presentation/views/event/checkin/member_check_in.dart';
+import 'presentation/views/ranking/ranking_screen.dart';
+import 'presentation/views/event/event_selection_home.dart';
 
 class CommonLayout extends StatelessWidget {
-  final Widget body;  // 各画面の代入する中身
-  final Widget? floatingActionButton;  // それぞれのページで使うボタン
+  final Widget body; // 各画面の代入する中身
+  final Widget? floatingActionButton; // それぞれのページで使うボタン
   final String? groupId;
   final String? eventId;
   final String? eventTitle;
@@ -122,7 +122,8 @@ class CommonLayout extends StatelessWidget {
 
   ///AppBarの右側
   List<Widget> _buildRightIcons() {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    final client = Supabase.instance.client;
+    final currentUser = client.auth.currentUser;
 
     if (currentUser == null) {
       return [
@@ -141,9 +142,15 @@ class CommonLayout extends StatelessWidget {
         child: GestureDetector(
           onTap: _onProfilePressed,
           child: FutureBuilder<Map<String, dynamic>?>(
-            future: ProfilesRepository().getProfile(uid: currentUser.uid),
+            future: client
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', currentUser.id)
+                .maybeSingle(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError || !snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.hasError ||
+                  !snapshot.hasData) {
                 return const CircleAvatar(
                   backgroundColor: Colors.grey,
                   child: Icon(Icons.person, color: Colors.white),
@@ -178,8 +185,8 @@ class CommonLayout extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: _borderColor, width: 4),
       ),
-      child: ClipRRect( // 枠線に合わせて中身も丸める
-        borderRadius: BorderRadius.circular(26), 
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26), // 枠線に合わせて中身も丸める
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
@@ -209,7 +216,7 @@ class CommonLayout extends StatelessWidget {
     Widget? nextPage;
     switch (index) {
       case 0:
-        nextPage = GroupListPage();   // あとからポスト，ランキング画面に変更
+        nextPage = const GroupListPage();
         break;
       case 1:
         if (myRole == 0) {
@@ -227,9 +234,9 @@ class CommonLayout extends StatelessWidget {
             return;
           }
           nextPage = MemberCheckInPage(
-            eventId: eventId!, 
-            eventTitle: eventTitle!, 
-            groupId: groupId!, 
+            eventId: eventId!,
+            eventTitle: eventTitle!,
+            groupId: groupId!,
           );
         }
         break;
