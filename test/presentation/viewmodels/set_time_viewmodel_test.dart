@@ -4,11 +4,15 @@ import 'package:flutter_application_1/data/repositories/member_event_repository.
 import 'package:flutter_application_1/models/event_report.dart';
 import 'package:flutter_application_1/services/alarm_service.dart';
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 
 // DB通信をモック化
 class FakeMemberEventRepository implements MemberEventRepository {
   EventReport? reportToReturn;
   bool shouldFailSetReport = false;
+  bool shouldFailReportWakeUp = false;
+  bool shouldFailReportDeparture = false;
+  bool shouldFailCheckIn = false;
   DateTime? savedWakeupTime;
   DateTime? savedDepartureTime;
 
@@ -32,16 +36,20 @@ class FakeMemberEventRepository implements MemberEventRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> reportWakeUp(String eventId) async => {'success': true};
+  Future<Map<String, dynamic>> reportWakeUp(String eventId) async =>
+      {'success': !shouldFailReportWakeUp};
 
   @override
-  Future<Map<String, dynamic>> reportDeparture(String eventId) async => {'success': true};
+  Future<Map<String, dynamic>> reportDeparture(String eventId) async =>
+      {'success': !shouldFailReportDeparture};
 
   @override
-  Future<Map<String, dynamic>> checkInWithQr(String eventId, String qrCode) async => {'success': true};
+  Future<Map<String, dynamic>> checkInWithQr(String eventId, String qrCode) async =>
+      {'success': !shouldFailCheckIn};
 
   @override
-  Future<Map<String, dynamic>> checkInWithPasscode(String eventId, String passcode) async => {'success': true};
+  Future<Map<String, dynamic>> checkInWithPasscode(String eventId, String passcode) async =>
+      {'success': !shouldFailCheckIn};
 
   @override
   Future<void> submitLateReport({
@@ -53,11 +61,21 @@ class FakeMemberEventRepository implements MemberEventRepository {
   }) async {}
 }
 
-// ネイティブアラーム呼び出しを安全に回避
-class FakeAlarmService extends RealAlarmService {
+// ネイティブアラーム呼び出しを安全に回避。
+// AlarmServiceを直接implementsすることで、将来インターフェースに
+// メソッドが追加された際にコンパイルエラーで気づけるようにしている
+// （RealAlarmServiceをextendsすると、未オーバーライドのメンバーが
+// 実プラットフォームのメソッドチャンネルを呼び出す実装のまま残ってしまう）。
+class FakeAlarmService implements AlarmService {
   final List<AlarmSettings> setAlarmCalls = [];
   final List<int> stopCalls = [];
   bool shouldFailSetAlarm = false;
+
+  @override
+  Stream<AlarmSet> get ringing => const Stream.empty();
+
+  @override
+  Future<void> init() async {}
 
   @override
   Future<void> setAlarm({required AlarmSettings alarmSettings}) async {

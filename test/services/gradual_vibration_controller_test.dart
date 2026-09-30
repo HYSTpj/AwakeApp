@@ -33,12 +33,39 @@ class FakeVibrationService implements VibrationService {
   }
 }
 
+/// hasAmplitudeControl()の解決タイミングをテスト側から制御するための
+/// コントローラー/フェイクのセットを組み立てる。停止レース系のテストで
+/// 同じ組み立てコードが重複していたため共通化した。
+({
+  FakeVibrationService service,
+  GradualVibrationController controller,
+  Completer<bool> amplitudeCompleter,
+})
+_buildControllerWithPendingAmplitudeControl() {
+  final amplitudeCompleter = Completer<bool>();
+  final service = FakeVibrationService(() => amplitudeCompleter.future);
+  final controller = GradualVibrationController(vibrationService: service);
+  return (
+    service: service,
+    controller: controller,
+    amplitudeCompleter: amplitudeCompleter,
+  );
+}
+
 void main() {
   group('GradualVibrationController', () {
-    test('振幅制御ありの場合、tick()ごとに現在の強度でバイブレーションする', () async {
-      final service = FakeVibrationService(() async => true);
-      final controller = GradualVibrationController(vibrationService: service);
+    // 振幅制御ありの端末を想定した、最もよく使うデフォルトのフェイク/
+    // コントローラー。個別の挙動（振幅制御なし・例外・タイミング制御など）
+    // が必要なテストはローカルで独自に組み立てる。
+    late FakeVibrationService service;
+    late GradualVibrationController controller;
 
+    setUp(() {
+      service = FakeVibrationService(() async => true);
+      controller = GradualVibrationController(vibrationService: service);
+    });
+
+    test('振幅制御ありの場合、tick()ごとに現在の強度でバイブレーションする', () async {
       await controller.start();
       controller.tick();
       controller.stop();
@@ -48,9 +75,6 @@ void main() {
     });
 
     test('振幅制御ありの場合、30秒(15tick)ごとに強度が50ずつ上昇する', () async {
-      final service = FakeVibrationService(() async => true);
-      final controller = GradualVibrationController(vibrationService: service);
-
       await controller.start();
 
       for (var i = 0; i < 14; i++) {
@@ -70,12 +94,11 @@ void main() {
     });
 
     test('強度は255で頭打ちになる', () async {
-      final service = FakeVibrationService(() async => true);
-      final controller = GradualVibrationController(vibrationService: service);
-
       await controller.start();
 
-      for (var i = 0; i < 15 * 10; i++) {
+      // 50スタート・step 50・上限255なので、15tickごとの5回目のエスカレーション
+      // (50→100→150→200→250→255)で頭打ちに達する。15*5回で必要十分。
+      for (var i = 0; i < 15 * 5; i++) {
         controller.tick();
       }
 
@@ -101,44 +124,38 @@ void main() {
     });
 
     test('isCancelledがtrueの場合、hasAmplitudeControl()解決後もタイマーを開始しない(停止レース)', () async {
-      final completer = Completer<bool>();
-      final service = FakeVibrationService(() => completer.future);
-      final controller = GradualVibrationController(vibrationService: service);
+      final setup = _buildControllerWithPendingAmplitudeControl();
 
-      final startFuture = controller.start(isCancelled: () => true);
-      completer.complete(true);
+      final startFuture = setup.controller.start(isCancelled: () => true);
+      setup.amplitudeCompleter.complete(true);
       await startFuture;
 
-      expect(controller.isRunning, isFalse);
-      expect(service.vibrateCalls, isEmpty);
+      expect(setup.controller.isRunning, isFalse);
+      expect(setup.service.vibrateCalls, isEmpty);
     });
 
     test('isCancelledがfalseの場合は通常通りタイマーが開始される', () async {
-      final completer = Completer<bool>();
-      final service = FakeVibrationService(() => completer.future);
-      final controller = GradualVibrationController(vibrationService: service);
+      final setup = _buildControllerWithPendingAmplitudeControl();
 
-      final startFuture = controller.start(isCancelled: () => false);
-      completer.complete(true);
+      final startFuture = setup.controller.start(isCancelled: () => false);
+      setup.amplitudeCompleter.complete(true);
       await startFuture;
 
-      expect(controller.isRunning, isTrue);
+      expect(setup.controller.isRunning, isTrue);
 
-      controller.stop();
+      setup.controller.stop();
     });
 
     test('isCancelledを渡さなくても、待機中にstop()が呼ばれればタイマーを開始しない(世代の不一致による無効化)', () async {
-      final completer = Completer<bool>();
-      final service = FakeVibrationService(() => completer.future);
-      final controller = GradualVibrationController(vibrationService: service);
+      final setup = _buildControllerWithPendingAmplitudeControl();
 
-      final startFuture = controller.start();
-      controller.stop();
-      completer.complete(true);
+      final startFuture = setup.controller.start();
+      setup.controller.stop();
+      setup.amplitudeCompleter.complete(true);
       await startFuture;
 
-      expect(controller.isRunning, isFalse);
-      expect(service.vibrateCalls, isEmpty);
+      expect(setup.controller.isRunning, isFalse);
+      expect(setup.service.vibrateCalls, isEmpty);
     });
 
     test('待機中に別のstart()が呼ばれた場合、最後に呼ばれたstart()だけがタイマーを開始する', () async {
@@ -267,13 +284,16 @@ void main() {
 
       expect(controller.isRunning, isTrue);
 
+      // amplitudeなしとして扱われていることを、実際にtick()させて
+      // vibrateCallsのamplitudeがnullであることまで確認する
+      // （isRunningだけではこの分岐の正しさを検証できない）。
+      controller.tick();
+      expect(service.vibrateCalls.last.amplitude, isNull);
+
       controller.stop();
     });
 
     test('stop()でタイマーが止まりcancel()が呼ばれる', () async {
-      final service = FakeVibrationService(() async => true);
-      final controller = GradualVibrationController(vibrationService: service);
-
       await controller.start();
       expect(controller.isRunning, isTrue);
 
@@ -284,9 +304,6 @@ void main() {
     });
 
     test('start()は開始時に既存のバイブレーションをキャンセルしてからやり直す', () async {
-      final service = FakeVibrationService(() async => true);
-      final controller = GradualVibrationController(vibrationService: service);
-
       // 1回目のstart()は何も鳴っていない状態からの開始なのでcancel()は呼ばれない
       // （#8: 一度も開始していない場合はネイティブ側へのcancel()呼び出しを省略する）。
       await controller.start();
@@ -303,9 +320,6 @@ void main() {
     test(
       '一度も開始していないコントローラーをstop()してもcancel()は呼ばれない(#8)',
       () async {
-        final service = FakeVibrationService(() async => true);
-        final controller = GradualVibrationController(vibrationService: service);
-
         await controller.stop();
 
         expect(service.cancelCallCount, 0);
@@ -315,9 +329,6 @@ void main() {
     test(
       '一度停止した後、何も鳴っていない状態でもう一度stop()を呼んでもcancel()は増えない(#8)',
       () async {
-        final service = FakeVibrationService(() async => true);
-        final controller = GradualVibrationController(vibrationService: service);
-
         await controller.start();
         await controller.stop();
         final cancelCallCountAfterFirstStop = service.cancelCallCount;
