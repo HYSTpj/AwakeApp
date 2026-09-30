@@ -93,11 +93,10 @@ class _MyAppState extends State<MyApp> {
   bool _isDialogShowing = false;
   // アラームIDごとに「停止済み」を管理する（全体で1つのフラグだと他のアラームに影響してしまうため）
   final Set<int> _stoppedAlarmIds = {};
-  // 現在バイブレーションを鳴らしているアラームID
-  int? _vibratingAlarmId;
-
-  final GradualVibrationController _vibrationController =
-      GradualVibrationController(vibrationService: RealVibrationService());
+  // アラームIDごとにバイブレーションコントローラーを持つ（1つを使い回すと、
+  // 複数のアラームが同時に鳴った場合に後から鳴ったアラームが先のアラームの
+  // バイブレーションを乗っ取ってしまう）
+  final Map<int, GradualVibrationController> _vibrationControllers = {};
 
   @override
   void initState() {
@@ -114,9 +113,8 @@ class _MyAppState extends State<MyApp> {
       // 通知の停止アクションなど、アプリ内ダイアログを経由しない経路で
       // アラームが止まった場合もここで検知し、カスタムバイブレーションを止める。
       final removedIds = _lastRingingIds.difference(currentIds);
-      if (removedIds.contains(_vibratingAlarmId)) {
-        _stopCustomVibration();
-        _vibratingAlarmId = null;
+      for (final id in removedIds) {
+        _stopCustomVibration(id);
       }
 
       _lastRingingIds = currentIds;
@@ -164,10 +162,7 @@ class _MyAppState extends State<MyApp> {
                     _stoppedAlarmIds.add(alarmSettings.id);
                     Navigator.of(context).pop();
 
-                    if (_vibratingAlarmId == alarmSettings.id) {
-                      _stopCustomVibration();
-                      _vibratingAlarmId = null;
-                    }
+                    _stopCustomVibration(alarmSettings.id);
 
                     try {
                       await _alarmService.stop(alarmSettings.id);
@@ -212,20 +207,28 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _startGradualVibration(int alarmId) {
-    _vibratingAlarmId = alarmId;
-    return _vibrationController.start(
+    final controller = GradualVibrationController(
+      vibrationService: RealVibrationService(),
+    );
+    _vibrationControllers[alarmId] = controller;
+    return controller.start(
       isCancelled: () => _stoppedAlarmIds.contains(alarmId),
     );
   }
 
-  void _stopCustomVibration() {
-    unawaited(_vibrationController.stop());
+  void _stopCustomVibration(int alarmId) {
+    final controller = _vibrationControllers.remove(alarmId);
+    if (controller != null) {
+      unawaited(controller.stop());
+    }
   }
 
   @override
   void dispose() {
     _ringingSubscription?.cancel();
-    _stopCustomVibration();
+    for (final id in _vibrationControllers.keys.toList()) {
+      _stopCustomVibration(id);
+    }
     super.dispose();
   }
 
