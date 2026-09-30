@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:alarm/alarm.dart';
+import 'package:flutter/foundation.dart';
 
 /// 鳴り始めの音量。無音から始めると最初の30〜45秒ほどが聞こえにくくなるため、
 /// 最初からこの音量で鳴らす。
@@ -26,6 +27,25 @@ VolumeSettings buildAlarmVolumeSettings() => VolumeSettings.staircaseFade(
       volumeEnforced: true,
     );
 
+/// alarmパッケージ自身のネイティブ振動を有効にするかどうか。
+///
+/// Androidでは、alarmパッケージのネイティブ振動(`VibrationService.kt`)も
+/// vibrationパッケージ(`GradualVibrationController`が使う)も、どちらも
+/// 端末に1つしかないシステムの`Vibrator`サービスを共有している。後から
+/// 発行した振動命令が前の命令を自動的に上書きするため、二重に振動することは
+/// なく、むしろFlutterエンジンがまだ起動していない間(アプリを完全終了した
+/// 状態でアラームが鳴った場合など)もネイティブ側だけで振動が鳴り続けられる
+/// メリットがある。そのためAndroidでは有効にする。
+///
+/// iOSでは、alarmパッケージのネイティブ振動(`VibrationManager.swift`)と
+/// vibrationパッケージの振動(`CHHapticEngine`)が完全に独立した別々の仕組みで、
+/// どちらも相手を止める手段を持たない。両方有効にすると、アプリが起動して
+/// `GradualVibrationController`が動き出した後もネイティブ側の振動が並行して
+/// 鳴り続け、本物の二重振動になってしまう。そのためiOSでは無効のままにし、
+/// アプリ完全終了時に振動が遅れる/欠落するリスクは許容する。
+bool _shouldUseNativeVibration() =>
+    defaultTargetPlatform == TargetPlatform.android;
+
 /// 起床・出発アラームで共通の設定を持つ [AlarmSettings] を組み立てる。
 AlarmSettings buildAlarmSettings({
   required int id,
@@ -40,10 +60,7 @@ AlarmSettings buildAlarmSettings({
     dateTime: dateTime,
     assetAudioPath: 'assets/alarm.mp3',
     loopAudio: true,
-    // alarmパッケージ自身の振動(500ms鳴動/500ms休止を繰り返す固定パターン)は
-    // 無効にする。振動はGradualVibrationControllerによる段階的な強度制御のみで
-    // 行うため、両方を有効にすると振動が二重に鳴ってしまう。
-    vibrate: false,
+    vibrate: _shouldUseNativeVibration(),
     volumeSettings: buildAlarmVolumeSettings(),
     payload: jsonEncode({'eventId': eventId, 'phase': phase}),
     notificationSettings: NotificationSettings(

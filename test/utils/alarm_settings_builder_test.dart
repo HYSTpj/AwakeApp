@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:alarm/alarm.dart';
 import 'package:flutter_application_1/utils/alarm_settings_builder.dart';
@@ -58,10 +59,47 @@ void main() {
       expect(settings.dateTime, dateTime);
       expect(settings.notificationSettings.title, '出発時間です！');
       expect(settings.notificationSettings.body, '忘れ物はないですか？');
-      // GradualVibrationControllerが振動を制御するため、alarmパッケージ自身の
-      // 固定振動パターンとの二重鳴動を避けるためfalseにしている
-      expect(settings.vibrate, isFalse);
       expect(settings.loopAudio, isTrue);
     });
+
+    test(
+      'Androidではネイティブ振動を有効にする(GradualVibrationControllerと同じVibratorを共有し上書きされるため)',
+      () {
+        final original = debugDefaultTargetPlatformOverride;
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        addTearDown(() => debugDefaultTargetPlatformOverride = original);
+
+        final settings = buildAlarmSettings(
+          id: 1,
+          dateTime: DateTime(2026, 5, 14, 6, 30),
+          eventId: 'event-1',
+          phase: 'wakeup',
+          title: 'title',
+          body: 'body',
+        );
+
+        expect(settings.vibrate, isTrue);
+      },
+    );
+
+    test(
+      'iOSではネイティブ振動を無効にする(GradualVibrationControllerと独立に鳴り続け二重振動になるため)',
+      () {
+        final original = debugDefaultTargetPlatformOverride;
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = original);
+
+        final settings = buildAlarmSettings(
+          id: 1,
+          dateTime: DateTime(2026, 5, 14, 6, 30),
+          eventId: 'event-1',
+          phase: 'wakeup',
+          title: 'title',
+          body: 'body',
+        );
+
+        expect(settings.vibrate, isFalse);
+      },
+    );
   });
 }
