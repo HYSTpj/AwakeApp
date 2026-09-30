@@ -5,9 +5,14 @@ import 'package:flutter_application_1/services/gradual_vibration_controller.dart
 import 'package:flutter_application_1/services/vibration_service.dart';
 
 class FakeVibrationService implements VibrationService {
-  FakeVibrationService(this._hasAmplitudeControl);
+  FakeVibrationService(this._hasAmplitudeControl, {Future<void> Function()? cancel})
+      : _cancel = cancel;
 
   final Future<bool> Function() _hasAmplitudeControl;
+  // 省略時はテストのデフォルト動作として即座に完了する。
+  // cancel()の完了タイミング自体を制御したいテスト（1箇所目の世代チェックの
+  // 検証など）のためにオーバーライド可能にしている。
+  final Future<void> Function()? _cancel;
   final List<({int? duration, int? amplitude})> vibrateCalls = [];
   int cancelCallCount = 0;
 
@@ -22,6 +27,9 @@ class FakeVibrationService implements VibrationService {
   @override
   Future<void> cancel() async {
     cancelCallCount++;
+    if (_cancel != null) {
+      await _cancel();
+    }
   }
 }
 
@@ -159,11 +167,12 @@ void main() {
       'hasAmplitudeControl()の待機中にstop()が呼ばれた場合、解決後もタイマーを開始しない'
       '(2箇所目の世代チェック)',
       () async {
-        // 上のテストは _cancelVibration() 完了直後（1箇所目の世代チェック）で
-        // 早期returnするケースしか検証できていなかった。ここでは
-        // hasAmplitudeControl()の呼び出しが実際に行われた後で世代が
-        // 変わるケース（2箇所目の世代チェック）を、hasAmplitudeControl()の
-        // 呼び出しタイミングを合図するCompleterで確実に再現する。
+        // フレッシュなコントローラーの最初のstart()は_hasEverStartedがfalseのため
+        // _cancelVibration()自体を呼ばず、1箇所目の世代チェックを素通りして直接
+        // hasAmplitudeControl()に到達する。そのため、このテストのように
+        // 「フレッシュなコントローラーでの最初のstart()」を使うテストは、
+        // 実質的にすべて2箇所目の世代チェックだけを検証していることになる
+        // （1箇所目の世代チェックの検証は、下の別テストを参照）。
         final hasAmplitudeCompleter = Completer<bool>();
         final invoked = Completer<void>();
         final service = FakeVibrationService(() {
@@ -174,8 +183,7 @@ void main() {
 
         final startFuture = controller.start();
 
-        // start()が実際にhasAmplitudeControl()を呼び出すまで待つ
-        // （_cancelVibration()完了・1箇所目の世代チェック通過を保証する）。
+        // start()が実際にhasAmplitudeControl()を呼び出すまで待つ。
         await invoked.future;
 
         // hasAmplitudeControl()がまだ解決していない間に世代を進める。
@@ -187,6 +195,65 @@ void main() {
 
         expect(controller.isRunning, isFalse);
         expect(service.vibrateCalls, isEmpty);
+      },
+    );
+
+    test(
+      '2回目以降のstart()のcancel()待機中にstop()が呼ばれた場合、解決後もタイマーを開始しない'
+      '(1箇所目の世代チェック)',
+      () async {
+        // 1箇所目の世代チェック（_cancelVibration()完了直後のもの）は
+        // _hasEverStartedがtrueの場合、つまり2回目以降のstart()でしか
+        // 到達しない。さらに、#9のキャッシュが埋まっていると2回目以降の
+        // start()はhasAmplitudeControl()を待たずに1箇所目のチェックの
+        // 直後に2箇所目のチェックへ素通りしてしまい、1箇所目が正しく
+        // 早期returnしなくても2箇所目が拾ってしまうため区別できない。
+        // そこで、hasAmplitudeControl()を常に失敗させてキャッシュを
+        // 埋まらないようにし、1箇所目のチェックが機能していなければ
+        // hasAmplitudeControl()が余分にもう一度呼ばれることを検知する。
+        var hasAmplitudeCallCount = 0;
+        final cancelCompleter = Completer<void>();
+        var cancelCallCount = 0;
+        final service = FakeVibrationService(
+          () {
+            hasAmplitudeCallCount++;
+            return Future<bool>.error('検証用: 常に失敗させてキャッシュを埋めない');
+          },
+          cancel: () {
+            cancelCallCount++;
+            // 1回目のstart()自体はcancel()を呼ばない（_hasEverStartedが
+            // まだfalseのため）ので、ここでのcancel()は2回目のstart()に
+            // よるものだけのはず。
+            return cancelCallCount == 1 ? cancelCompleter.future : Future.value();
+          },
+        );
+        final controller = GradualVibrationController(vibrationService: service);
+
+        // 1回目のstart(): cancel()は呼ばれない（_hasEverStartedがまだ
+        // falseのため）。hasAmplitudeControl()は失敗するが捕捉され、
+        // _hasEverStartedはtrueになる（キャッシュは埋まらない）。
+        await controller.start();
+        expect(controller.isRunning, isTrue);
+        expect(hasAmplitudeCallCount, 1);
+        expect(cancelCallCount, 0);
+
+        // 2回目のstart(): 今度は_hasEverStartedがtrueなのでcancel()が
+        // 呼ばれるが、まだ解決していない（cancelCompleterが未完了のため）。
+        final secondStart = controller.start();
+
+        // cancel()がまだ解決していない間に、別のstop()で世代を進める。
+        controller.stop();
+
+        // ここでようやく2回目のstart()のcancel()を解決させる。
+        cancelCompleter.complete();
+        await secondStart;
+
+        // 1箇所目の世代チェックが機能していれば、cancel()解決直後に
+        // 早期returnし、hasAmplitudeControl()が再度呼ばれることはない
+        // （キャッシュも埋まっていないため、チェックが機能していなければ
+        // 素通りしてもう一度呼ばれてしまうはず）。
+        expect(hasAmplitudeCallCount, 1);
+        expect(controller.isRunning, isFalse);
       },
     );
 
