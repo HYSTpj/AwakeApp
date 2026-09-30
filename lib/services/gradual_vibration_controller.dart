@@ -40,6 +40,12 @@ class GradualVibrationController {
   // hasAmplitudeControl()の待機中にstop()（または別のstart()）が呼ばれても、
   // 古い世代の待機はタイマーを作らないようにするための無効化トークン。
   int _generation = 0;
+  // 一度でも振動を開始したことがあるか。falseの間はネイティブ側に
+  // キャンセルすべき振動が存在しないため、cancel()の呼び出しを省略できる。
+  bool _hasEverStarted = false;
+  // 端末が振幅制御に対応しているかどうかは、アプリの起動中に変わることが
+  // ないため、一度問い合わせた結果をキャッシュして毎回の問い合わせを省く。
+  bool? _hasAmplitudeCache;
 
   bool get isRunning => _isRunning;
   int get currentIntensity => _currentIntensity;
@@ -60,22 +66,31 @@ class GradualVibrationController {
     _timer?.cancel();
     _timer = null;
 
-    // 前回分の停止命令(cancel())の完了を待ってから次の振動を開始することで、
-    // 停止と開始の命令がプラットフォーム側で入れ替わって届くのを防ぐ。
-    await _cancelVibration();
+    // 一度も振動を開始したことがなければ、ネイティブ側にキャンセルすべき
+    // 振動は存在しないため、cancel()の呼び出し自体を省略する。
+    // （一度でも開始していれば、前回分の停止命令の完了を待ってから次の
+    // 振動を開始することで、停止と開始の命令がプラットフォーム側で
+    // 入れ替わって届くのを防ぐ。）
+    if (_hasEverStarted) {
+      await _cancelVibration();
 
-    if (myGeneration != _generation) {
-      return;
+      if (myGeneration != _generation) {
+        return;
+      }
     }
 
     _currentIntensity = _initialIntensity;
     _elapsedSinceEscalation = Duration.zero;
 
-    var hasAmplitude = false;
-    try {
-      hasAmplitude = await _vibrationService.hasAmplitudeControl();
-    } catch (e) {
-      debugPrint('バイブレーション制御の確認に失敗しました: $e');
+    var hasAmplitude = _hasAmplitudeCache;
+    if (hasAmplitude == null) {
+      try {
+        hasAmplitude = await _vibrationService.hasAmplitudeControl();
+        _hasAmplitudeCache = hasAmplitude;
+      } catch (e) {
+        debugPrint('バイブレーション制御の確認に失敗しました: $e');
+        hasAmplitude = false;
+      }
     }
 
     if (myGeneration != _generation || (isCancelled?.call() ?? false)) {
@@ -84,6 +99,7 @@ class GradualVibrationController {
 
     _hasAmplitude = hasAmplitude;
     _isRunning = true;
+    _hasEverStarted = true;
     _timer = Timer.periodic(_tickInterval, (_) => tick());
   }
 
@@ -120,10 +136,19 @@ class GradualVibrationController {
   /// 必要としない場合（[dispose]など）は待たずに呼び出してよい。
   Future<void> stop() async {
     _generation++;
+    // 世代番号の更新はstart()を無効化するために必須なので、
+    // 振動中かどうかに関わらず必ず行う（wasActiveのチェックは
+    // ネイティブ側へのcancel()呼び出しを省略するためだけに使う）。
+    final wasActive = _isRunning || _timer != null;
     _isRunning = false;
     _timer?.cancel();
     _timer = null;
-    await _cancelVibration();
+
+    // 一度も開始していない、またはこの呼び出し時点で何も鳴っていなければ、
+    // ネイティブ側にキャンセルすべき振動は存在しないためcancel()を省略する。
+    if (_hasEverStarted && wasActive) {
+      await _cancelVibration();
+    }
   }
 
   Future<void> _cancelVibration() async {

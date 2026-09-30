@@ -220,12 +220,67 @@ void main() {
       final service = FakeVibrationService(() async => true);
       final controller = GradualVibrationController(vibrationService: service);
 
+      // 1回目のstart()は何も鳴っていない状態からの開始なのでcancel()は呼ばれない
+      // （#8: 一度も開始していない場合はネイティブ側へのcancel()呼び出しを省略する）。
       await controller.start();
-      await controller.start();
+      expect(service.cancelCallCount, 0);
 
-      expect(service.cancelCallCount, greaterThanOrEqualTo(2));
+      // 2回目のstart()は、1回目で鳴り始めたバイブレーションを止める必要があるため
+      // cancel()が呼ばれる。
+      await controller.start();
+      expect(service.cancelCallCount, greaterThanOrEqualTo(1));
 
       controller.stop();
     });
+
+    test(
+      '一度も開始していないコントローラーをstop()してもcancel()は呼ばれない(#8)',
+      () async {
+        final service = FakeVibrationService(() async => true);
+        final controller = GradualVibrationController(vibrationService: service);
+
+        await controller.stop();
+
+        expect(service.cancelCallCount, 0);
+      },
+    );
+
+    test(
+      '一度停止した後、何も鳴っていない状態でもう一度stop()を呼んでもcancel()は増えない(#8)',
+      () async {
+        final service = FakeVibrationService(() async => true);
+        final controller = GradualVibrationController(vibrationService: service);
+
+        await controller.start();
+        await controller.stop();
+        final cancelCallCountAfterFirstStop = service.cancelCallCount;
+
+        // 既に停止済みの状態で、通知経由の停止検知とダイアログのストップ
+        // ボタンなど複数箇所から冗長にstop()が呼ばれるケースを想定。
+        await controller.stop();
+
+        expect(service.cancelCallCount, cancelCallCountAfterFirstStop);
+      },
+    );
+
+    test(
+      'hasAmplitudeControl()の結果はキャッシュされ、2回目以降のstart()では問い合わせない(#9)',
+      () async {
+        var hasAmplitudeControlCallCount = 0;
+        final service = FakeVibrationService(() {
+          hasAmplitudeControlCallCount++;
+          return Future.value(true);
+        });
+        final controller = GradualVibrationController(vibrationService: service);
+
+        await controller.start();
+        await controller.start();
+        await controller.start();
+
+        expect(hasAmplitudeControlCallCount, 1);
+
+        controller.stop();
+      },
+    );
   });
 }
