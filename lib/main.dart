@@ -170,14 +170,19 @@ class _MyAppState extends State<MyApp> {
                       // Supabase RPC経由で起床/出発の打刻処理を実行
                       if (eventId != null) {
                         try {
+                          Map<String, dynamic>? result;
                           if (phase == 'wakeup') {
-                            await widget.memberEventRepository.reportWakeUp(
-                              eventId,
-                            );
+                            result = await widget.memberEventRepository
+                                .reportWakeUp(eventId);
                           } else if (phase == 'departure') {
-                            await widget.memberEventRepository.reportDeparture(
-                              eventId,
-                            );
+                            result = await widget.memberEventRepository
+                                .reportDeparture(eventId);
+                          }
+                          // RPCは例外を投げずに失敗を返すことがあるため、
+                          // successフィールドも確認する（チェックイン画面の
+                          // MemberCheckInViewModelと同じ確認方法に合わせている）。
+                          if (result != null && result['success'] != true) {
+                            debugPrint('アラーム停止後のステータス更新に失敗: $result');
                           }
                         } catch (e) {
                           debugPrint('アラーム停止後のステータス更新に失敗: $e');
