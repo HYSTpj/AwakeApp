@@ -90,9 +90,9 @@ class _MyAppState extends State<MyApp> {
   final AlarmService _alarmService = RealAlarmService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
-  bool _isDialogShowing = false;
   // 現在画面に表示中のダイアログがどのアラームのものかを記録しておく。
-  // 通知経由でそのアラームが停止された場合に、このダイアログを閉じるために使う。
+  // nullなら何も表示していない。通知経由でそのアラームが停止された場合に、
+  // このダイアログを閉じるためにも使う。
   int? _showingDialogAlarmId;
   // 複数のアラームが同時に鳴った場合、ダイアログは重ねて表示せず、
   // 表示中のダイアログが閉じてから次を表示するための待ち行列。
@@ -103,6 +103,11 @@ class _MyAppState extends State<MyApp> {
   // 複数のアラームが同時に鳴った場合に後から鳴ったアラームが先のアラームの
   // バイブレーションを乗っ取ってしまう）
   final Map<int, GradualVibrationController> _vibrationControllers = {};
+  // 振幅制御対応の問い合わせ結果をアラームをまたいでキャッシュできるよう、
+  // VibrationServiceはアプリ全体で1つのインスタンスを使い回す
+  // （GradualVibrationControllerはアラームごとに作り直すが、
+  // こちらは共有する）。
+  final VibrationService _vibrationService = RealVibrationService();
 
   @override
   void initState() {
@@ -129,7 +134,7 @@ class _MyAppState extends State<MyApp> {
         // このアラームのダイアログが今まさに表示中であれば、それも閉じる。
         // ダイアログのストップボタン自身がpopした直後は、既に
         // _showingDialogAlarmIdがnullに戻っているため二重にpopされることはない。
-        if (_isDialogShowing && _showingDialogAlarmId == id) {
+        if (_showingDialogAlarmId == id) {
           final navigatorState = _navigatorKey.currentState;
           if (navigatorState != null && navigatorState.canPop()) {
             navigatorState.pop();
@@ -142,7 +147,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _showAlarmDialog(AlarmSettings alarmSettings) async {
-    if (_isDialogShowing) {
+    if (_showingDialogAlarmId != null) {
       // 表示中のダイアログがあれば、それが閉じてから表示するために
       // 待ち行列に積んでおく（重ねて表示すると操作不能なポップアップが
       // 積み重なってしまうため）。
@@ -155,7 +160,6 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
-    _isDialogShowing = true;
     _showingDialogAlarmId = alarmSettings.id;
 
     final payload = alarmSettings.payload;
@@ -234,7 +238,6 @@ class _MyAppState extends State<MyApp> {
         },
       );
     } finally {
-      _isDialogShowing = false;
       _showingDialogAlarmId = null;
       if (_pendingDialogAlarms.isNotEmpty) {
         final next = _pendingDialogAlarms.removeAt(0);
@@ -245,7 +248,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _startGradualVibration(int alarmId) {
     final controller = GradualVibrationController(
-      vibrationService: RealVibrationService(),
+      vibrationService: _vibrationService,
     );
     _vibrationControllers[alarmId] = controller;
     return controller.start(

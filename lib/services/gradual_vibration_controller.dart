@@ -43,9 +43,6 @@ class GradualVibrationController {
   // 一度でも振動を開始したことがあるか。falseの間はネイティブ側に
   // キャンセルすべき振動が存在しないため、cancel()の呼び出しを省略できる。
   bool _hasEverStarted = false;
-  // 端末が振幅制御に対応しているかどうかは、アプリの起動中に変わることが
-  // ないため、一度問い合わせた結果をキャッシュして毎回の問い合わせを省く。
-  bool? _hasAmplitudeCache;
 
   bool get isRunning => _isRunning;
   int get currentIntensity => _currentIntensity;
@@ -82,15 +79,16 @@ class GradualVibrationController {
     _currentIntensity = _initialIntensity;
     _elapsedSinceEscalation = Duration.zero;
 
-    var hasAmplitude = _hasAmplitudeCache;
-    if (hasAmplitude == null) {
-      try {
-        hasAmplitude = await _vibrationService.hasAmplitudeControl();
-        _hasAmplitudeCache = hasAmplitude;
-      } catch (e) {
-        debugPrint('バイブレーション制御の確認に失敗しました: $e');
-        hasAmplitude = false;
-      }
+    // 振幅制御対応の問い合わせ結果のキャッシュは、アラームをまたいで
+    // 共有される[_vibrationService]側（[RealVibrationService]）の
+    // 責務とする。GradualVibrationController自体はアラームごとに
+    // 使い捨てのインスタンスのため、ここでキャッシュを持っても
+    // 次のアラームには引き継がれない。
+    var hasAmplitude = false;
+    try {
+      hasAmplitude = await _vibrationService.hasAmplitudeControl();
+    } catch (e) {
+      debugPrint('バイブレーション制御の確認に失敗しました: $e');
     }
 
     if (myGeneration != _generation || (isCancelled?.call() ?? false)) {
@@ -136,7 +134,9 @@ class GradualVibrationController {
     // 世代番号の更新はstart()を無効化するために必須なので、
     // 振動中かどうかに関わらず必ず行う（wasActiveのチェックは
     // ネイティブ側へのcancel()呼び出しを省略するためだけに使う）。
-    final wasActive = _isRunning || _timer != null;
+    // _timerが非nullなのは常に_isRunningがtrueの時だけなので、
+    // _isRunning単独で「鳴っていたか」を判定できる。
+    final wasActive = _isRunning;
     _isRunning = false;
     _timer?.cancel();
     _timer = null;

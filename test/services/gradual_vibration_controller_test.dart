@@ -159,9 +159,12 @@ void main() {
     });
 
     test('待機中に別のstart()が呼ばれた場合、最後に呼ばれたstart()だけがタイマーを開始する', () async {
-      // 2つ目のstart()が1つ目のstart()冒頭のstop()相当処理を経て世代を進めるため、
-      // 1つ目のstart()は_cancelVibration()完了直後の最初の世代チェックで早期returnし、
-      // hasAmplitudeControl()には到達しない（callCountは2つ目のstart()の分しか増えない）。
+      // フレッシュなコントローラーでは_hasEverStartedがfalseのため、
+      // 1つ目・2つ目のstart()はどちらも_cancelVibration()を呼ばずに
+      // hasAmplitudeControl()へ直接到達する（callCountは2まで増える）。
+      // 1つ目のstart()は、2つ目のstart()が世代を進めた後、
+      // hasAmplitudeControl()解決後の2箇所目の世代チェックで早期returnする。
+      // （「1箇所目の世代チェック」の検証は、別の専用テストを参照）。
       final firstCompleter = Completer<bool>();
       var callCount = 0;
       final service = FakeVibrationService(() {
@@ -338,26 +341,6 @@ void main() {
         await controller.stop();
 
         expect(service.cancelCallCount, cancelCallCountAfterFirstStop);
-      },
-    );
-
-    test(
-      'hasAmplitudeControl()の結果はキャッシュされ、2回目以降のstart()では問い合わせない(#9)',
-      () async {
-        var hasAmplitudeControlCallCount = 0;
-        final service = FakeVibrationService(() {
-          hasAmplitudeControlCallCount++;
-          return Future.value(true);
-        });
-        final controller = GradualVibrationController(vibrationService: service);
-
-        await controller.start();
-        await controller.start();
-        await controller.start();
-
-        expect(hasAmplitudeControlCallCount, 1);
-
-        controller.stop();
       },
     );
   });
