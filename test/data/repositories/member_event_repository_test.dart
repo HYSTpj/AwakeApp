@@ -4,9 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/data/repositories/member_event_repository.dart';
 
-class MockSupabaseClient extends Mock implements SupabaseClient {}
-
-class MockGoTrueClient extends Mock implements GoTrueClient {}
+import 'supabase_test_mocks.dart';
 
 void main() {
   late MockSupabaseClient mockClient;
