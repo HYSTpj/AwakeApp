@@ -106,8 +106,9 @@ class _MyAppState extends State<MyApp> {
   // 振幅制御対応の問い合わせ結果をアラームをまたいでキャッシュできるよう、
   // VibrationServiceはアプリ全体で1つのインスタンスを使い回す
   // （GradualVibrationControllerはアラームごとに作り直すが、
-  // こちらは共有する）。
-  final VibrationService _vibrationService = RealVibrationService();
+  // こちらは共有する）。RealVibrationServiceはコンストラクタがprivateな
+  // ため、.instance以外の取得手段がなく、常に同じインスタンスになる。
+  final VibrationService _vibrationService = RealVibrationService.instance;
 
   @override
   void initState() {

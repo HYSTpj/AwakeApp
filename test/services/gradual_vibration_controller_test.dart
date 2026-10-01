@@ -224,20 +224,17 @@ void main() {
       () async {
         // 1箇所目の世代チェック（_cancelVibration()完了直後のもの）は
         // _hasEverStartedがtrueの場合、つまり2回目以降のstart()でしか
-        // 到達しない。さらに、#9のキャッシュが埋まっていると2回目以降の
-        // start()はhasAmplitudeControl()を待たずに1箇所目のチェックの
-        // 直後に2箇所目のチェックへ素通りしてしまい、1箇所目が正しく
-        // 早期returnしなくても2箇所目が拾ってしまうため区別できない。
-        // そこで、hasAmplitudeControl()を常に失敗させてキャッシュを
-        // 埋まらないようにし、1箇所目のチェックが機能していなければ
-        // hasAmplitudeControl()が余分にもう一度呼ばれることを検知する。
+        // 到達しない。hasAmplitudeControl()の呼び出し回数を数えておき、
+        // 1箇所目のチェックが機能していれば2回目のstart()はcancel()解決
+        // 直後に早期returnしてhasAmplitudeControl()を呼ばないはず
+        // （機能していなければ素通りしてもう一度呼ばれてしまう）。
         var hasAmplitudeCallCount = 0;
         final cancelCompleter = Completer<void>();
         var cancelCallCount = 0;
         final service = FakeVibrationService(
           () {
             hasAmplitudeCallCount++;
-            return Future<bool>.error('検証用: 常に失敗させてキャッシュを埋めない');
+            return Future.value(true);
           },
           cancel: () {
             cancelCallCount++;
@@ -250,8 +247,8 @@ void main() {
         final controller = GradualVibrationController(vibrationService: service);
 
         // 1回目のstart(): cancel()は呼ばれない（_hasEverStartedがまだ
-        // falseのため）。hasAmplitudeControl()は失敗するが捕捉され、
-        // _hasEverStartedはtrueになる（キャッシュは埋まらない）。
+        // falseのため）。hasAmplitudeControl()が成功し、_hasEverStarted
+        // がtrueになる。
         await controller.start();
         expect(controller.isRunning, isTrue);
         expect(hasAmplitudeCallCount, 1);
@@ -269,9 +266,7 @@ void main() {
         await secondStart;
 
         // 1箇所目の世代チェックが機能していれば、cancel()解決直後に
-        // 早期returnし、hasAmplitudeControl()が再度呼ばれることはない
-        // （キャッシュも埋まっていないため、チェックが機能していなければ
-        // 素通りしてもう一度呼ばれてしまうはず）。
+        // 早期returnし、hasAmplitudeControl()が再度呼ばれることはない。
         expect(hasAmplitudeCallCount, 1);
         expect(controller.isRunning, isFalse);
       },

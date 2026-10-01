@@ -35,7 +35,6 @@ class GradualVibrationController {
   bool _hasAmplitude = false;
   int _currentIntensity = 0;
   Duration _elapsedSinceEscalation = Duration.zero;
-  bool _isRunning = false;
   // start()/stop()が呼ばれるたびに増える世代番号。
   // hasAmplitudeControl()の待機中にstop()（または別のstart()）が呼ばれても、
   // 古い世代の待機はタイマーを作らないようにするための無効化トークン。
@@ -44,7 +43,10 @@ class GradualVibrationController {
   // キャンセルすべき振動が存在しないため、cancel()の呼び出しを省略できる。
   bool _hasEverStarted = false;
 
-  bool get isRunning => _isRunning;
+  // _timerが非nullなのは常に鳴動中なので、専用のboolフィールドは持たず
+  // _timerの有無から直接判定する（別々のフィールドだと更新を書き忘れて
+  // 食い違うおそれがあるため）。
+  bool get isRunning => _timer != null;
   int get currentIntensity => _currentIntensity;
 
   /// バイブレーションを開始する。既存の鳴動があれば先に止める。
@@ -59,7 +61,6 @@ class GradualVibrationController {
   /// 世代の不一致を検知できないレースが生まれるため。
   Future<void> start({bool Function()? isCancelled}) async {
     final myGeneration = ++_generation;
-    _isRunning = false;
     _timer?.cancel();
     _timer = null;
 
@@ -96,7 +97,6 @@ class GradualVibrationController {
     }
 
     _hasAmplitude = hasAmplitude;
-    _isRunning = true;
     _hasEverStarted = true;
     _timer = Timer.periodic(_tickInterval, (_) => tick());
   }
@@ -134,10 +134,7 @@ class GradualVibrationController {
     // 世代番号の更新はstart()を無効化するために必須なので、
     // 振動中かどうかに関わらず必ず行う（wasActiveのチェックは
     // ネイティブ側へのcancel()呼び出しを省略するためだけに使う）。
-    // _timerが非nullなのは常に_isRunningがtrueの時だけなので、
-    // _isRunning単独で「鳴っていたか」を判定できる。
-    final wasActive = _isRunning;
-    _isRunning = false;
+    final wasActive = isRunning;
     _timer?.cancel();
     _timer = null;
 
