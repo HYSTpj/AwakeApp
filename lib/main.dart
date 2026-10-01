@@ -248,6 +248,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _startGradualVibration(int alarmId) {
+    // 同じアラームID向けの振動コントローラーが既にMapにあれば、
+    // 上書きする前に必ず停止する。止めずに上書きすると、古い方の
+    // Timer.periodicが誰からも参照されなくなった後も動き続けてしまう
+    // （タイマーリーク）。
+    final existing = _vibrationControllers.remove(alarmId);
+    if (existing != null) {
+      unawaited(existing.stop());
+    }
+
     final controller = GradualVibrationController(
       vibrationService: _vibrationService,
     );
