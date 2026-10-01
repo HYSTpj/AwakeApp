@@ -1,20 +1,21 @@
-name: Flutter CI  # 処理の名前
+name: Flutter CI
 
-on:               # 実行するタイミング
-  push:           # コードがpushされた時
-  pull_request:   # プルリクエスト作成・更新時
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:           # 実行する作業の名前
+  test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true # キャッシュを有効にすると2回目以降が速くなります
+          channel: stable
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
@@ -22,9 +23,13 @@ jobs:
       - name: Static Analysis
         run: flutter analyze
 
-      # 脆弱性のあるパッケージをチェック
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: flutter build apk --debug
+
       - name: Security scan with OSV-Scanner
         uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
         with:
           scan-args: ./pubspec.lock
-          
