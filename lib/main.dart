@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import 'services/alarm_service.dart';
+import 'services/gradual_vibration_controller.dart';
 import 'services/vibration_service.dart';
 import 'presentation/views/login/login_page.dart'; // ログインページのインポート
 
@@ -84,14 +85,27 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final AlarmService _alarmService = RealAlarmService();
-  final VibrationService _vibrationService = RealVibrationService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
-  bool _isDialogShowing = false;
-  bool _isStoppingAlarm = false;
-
-  Timer? _vibrationTimer;
-  int _currentVibrationIntensity = 50;
+  // 現在画面に表示中のダイアログがどのアラームのものかを記録しておく。
+  // nullなら何も表示していない。通知経由でそのアラームが停止された場合に、
+  // このダイアログを閉じるためにも使う。
+  int? _showingDialogAlarmId;
+  // 複数のアラームが同時に鳴った場合、ダイアログは重ねて表示せず、
+  // 表示中のダイアログが閉じてから次を表示するための待ち行列。
+  final List<AlarmSettings> _pendingDialogAlarms = [];
+  // アラームIDごとに「停止済み」を管理する（全体で1つのフラグだと他のアラームに影響してしまうため）
+  final Set<int> _stoppedAlarmIds = {};
+  // アラームIDごとにバイブレーションコントローラーを持つ（1つを使い回すと、
+  // 複数のアラームが同時に鳴った場合に後から鳴ったアラームが先のアラームの
+  // バイブレーションを乗っ取ってしまう）
+  final Map<int, GradualVibrationController> _vibrationControllers = {};
+  // 振幅制御対応の問い合わせ結果をアラームをまたいでキャッシュできるよう、
+  // VibrationServiceはアプリ全体で1つのインスタンスを使い回す
+  // （GradualVibrationControllerはアラームごとに作り直すが、
+  // こちらは共有する）。RealVibrationServiceはコンストラクタがprivateな
+  // ため、.instance以外の取得手段がなく、常に同じインスタンスになる。
+  final VibrationService _vibrationService = RealVibrationService.instance;
 
   @override
   void initState() {
@@ -101,15 +115,41 @@ class _MyAppState extends State<MyApp> {
       final newIds = currentIds.difference(_lastRingingIds);
       for (final id in newIds) {
         final alarm = alarmSet.alarms.firstWhere((a) => a.id == id);
-        _showAlarmDialog(alarm);
-        _startGradualVibration();
+        // どちらもFuture<void>を返すが、リスナー内では結果を待つ必要がない。
+        // 明示的にunawaited()で囲むことで、内部で例外が発生した場合に
+        // 静かに握りつぶされるのではなく、Zoneのエラーハンドラーに届くようにする。
+        unawaited(_showAlarmDialog(alarm));
+        unawaited(_startGradualVibration(alarm.id));
       }
+
+      // 通知の停止アクションなど、アプリ内ダイアログを経由しない経路で
+      // アラームが止まった場合もここで検知し、カスタムバイブレーションを止める。
+      final removedIds = _lastRingingIds.difference(currentIds);
+      for (final id in removedIds) {
+        _stopCustomVibration(id);
+        _pendingDialogAlarms.removeWhere((a) => a.id == id);
+
+        // このアラームのダイアログが今まさに表示中であれば、それも閉じる。
+        // ダイアログのストップボタン自身がpopした直後は、既に
+        // _showingDialogAlarmIdがnullに戻っているため二重にpopされることはない。
+        if (_showingDialogAlarmId == id) {
+          final navigatorState = _navigatorKey.currentState;
+          if (navigatorState != null && navigatorState.canPop()) {
+            navigatorState.pop();
+          }
+        }
+      }
+
       _lastRingingIds = currentIds;
     });
   }
 
   Future<void> _showAlarmDialog(AlarmSettings alarmSettings) async {
-    if (_isDialogShowing) {
+    if (_showingDialogAlarmId != null) {
+      // 表示中のダイアログがあれば、それが閉じてから表示するために
+      // 待ち行列に積んでおく（重ねて表示すると操作不能なポップアップが
+      // 積み重なってしまうため）。
+      _pendingDialogAlarms.add(alarmSettings);
       return;
     }
 
@@ -117,6 +157,8 @@ class _MyAppState extends State<MyApp> {
     if (context == null || !context.mounted) {
       return;
     }
+
+    _showingDialogAlarmId = alarmSettings.id;
 
     final payload = alarmSettings.payload;
     final alarmData = payload == null
@@ -141,27 +183,43 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: Colors.deepOrangeAccent,
                   ),
                   onPressed: () async {
-                    if (_isStoppingAlarm) {
+                    if (_stoppedAlarmIds.contains(alarmSettings.id)) {
                       return;
                     }
 
-                    _isStoppingAlarm = true;
+                    // このアラームIDだけを「停止済み」にする（他のアラームには影響しない）
+                    _stoppedAlarmIds.add(alarmSettings.id);
                     Navigator.of(context).pop();
 
-                    _stopCustomVibration();
-                    await _alarmService.stop(alarmSettings.id);
+                    _stopCustomVibration(alarmSettings.id);
 
-                    // Supabase RPC経由で起床/出発の打刻処理を実行
-                    if (eventId != null) {
-                      try {
-                        if (phase == 'wakeup') {
-                          await widget.memberEventRepository.reportWakeUp(eventId);
-                        } else if (phase == 'departure') {
-                          await widget.memberEventRepository.reportDeparture(eventId);
+                    try {
+                      await _alarmService.stop(alarmSettings.id);
+
+                      // Supabase RPC経由で起床/出発の打刻処理を実行
+                      if (eventId != null) {
+                        try {
+                          Map<String, dynamic>? result;
+                          if (phase == 'wakeup') {
+                            result = await widget.memberEventRepository
+                                .reportWakeUp(eventId);
+                          } else if (phase == 'departure') {
+                            result = await widget.memberEventRepository
+                                .reportDeparture(eventId);
+                          }
+                          // RPCは例外を投げずに失敗を返すことがあるため、
+                          // successフィールドも確認する（チェックイン画面の
+                          // MemberCheckInViewModelと同じ確認方法に合わせている）。
+                          if (result != null && result['success'] != true) {
+                            debugPrint('アラーム停止後のステータス更新に失敗: $result');
+                          }
+                        } catch (e) {
+                          debugPrint('アラーム停止後のステータス更新に失敗: $e');
                         }
-                      } catch (e) {
-                        debugPrint('アラーム停止後のステータス更新に失敗: $e');
                       }
+                    } finally {
+                      // 停止処理が完全に終わってから印を外す（ダイアログが閉じた瞬間ではない）
+                      _stoppedAlarmIds.remove(alarmSettings.id);
                     }
                   },
                   child: const Text(
@@ -178,51 +236,55 @@ class _MyAppState extends State<MyApp> {
         },
       );
     } finally {
-      _isDialogShowing = false;
-      _isStoppingAlarm = false;
+      _showingDialogAlarmId = null;
+      if (_pendingDialogAlarms.isNotEmpty) {
+        final next = _pendingDialogAlarms.removeAt(0);
+        _showAlarmDialog(next);
+      }
+    }
+  }
+
+  Future<void> _startGradualVibration(int alarmId) {
+    // 同じアラームID向けの振動コントローラーが既にMapにあれば、
+    // 上書きする前に必ず停止する。止めずに上書きすると、古い方の
+    // Timer.periodicが誰からも参照されなくなった後も動き続けてしまう
+    // （タイマーリーク）。
+    final existing = _vibrationControllers.remove(alarmId);
+    if (existing != null) {
+      // 他のアラームのコントローラーが残っている間は、共有バイブレーターの
+      // cancel()を呼ばない（呼ぶとそのアラームの振動パルスも止めてしまう）。
+      unawaited(
+        existing.stop(cancelVibration: _vibrationControllers.isEmpty),
+      );
+    }
+
+    final controller = GradualVibrationController(
+      vibrationService: _vibrationService,
+    );
+    _vibrationControllers[alarmId] = controller;
+    return controller.start(
+      isCancelled: () => _stoppedAlarmIds.contains(alarmId),
+    );
+  }
+
+  void _stopCustomVibration(int alarmId) {
+    final controller = _vibrationControllers.remove(alarmId);
+    if (controller != null) {
+      // 他のアラームのコントローラーが残っている間は、共有バイブレーターの
+      // cancel()を呼ばない（呼ぶとそのアラームの振動パルスも止めてしまう）。
+      unawaited(
+        controller.stop(cancelVibration: _vibrationControllers.isEmpty),
+      );
     }
   }
 
   @override
   void dispose() {
     _ringingSubscription?.cancel();
-    _stopCustomVibration();
+    for (final id in _vibrationControllers.keys.toList()) {
+      _stopCustomVibration(id);
+    }
     super.dispose();
-  }
-
-  Future<void> _startGradualVibration() async {
-    _stopCustomVibration();
-
-    final hasAmplitude = await _vibrationService.hasAmplitudeControl() ?? false;
-    _currentVibrationIntensity = 50;
-    int secondsElapsed = 0;
-
-    _vibrationTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-      if (hasAmplitude) {
-        await _vibrationService.vibrate(
-          duration: 1000,
-          amplitude: _currentVibrationIntensity,
-        );
-
-        secondsElapsed += 2;
-
-        if (secondsElapsed >= 30) {
-          secondsElapsed = 0;
-          if (_currentVibrationIntensity < 255) {
-            _currentVibrationIntensity = (_currentVibrationIntensity + 50).clamp(50, 255);
-            debugPrint('バイブレーション強度が $_currentVibrationIntensity に上昇しました。');
-          }
-        }
-      } else {
-        await _vibrationService.vibrate(duration: 1000);
-      }
-    });
-  }
-
-  void _stopCustomVibration() {
-    _vibrationTimer?.cancel();
-    _vibrationTimer = null;
-    _vibrationService.cancel();
   }
 
   // デザインシステム設定

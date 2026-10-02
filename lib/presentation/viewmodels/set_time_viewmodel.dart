@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:alarm/alarm.dart';
 
 import '../../services/alarm_service.dart';
 import '../../models/event_report.dart';
 import '../../data/repositories/member_event_repository.dart';
 import '../../utils/alarm_id.dart';
+import '../../utils/alarm_settings_builder.dart';
 
 class SetTimeViewModel extends ChangeNotifier {
   final String eventId;
@@ -95,34 +94,22 @@ class SetTimeViewModel extends ChangeNotifier {
       }
 
       // まずローカルでアラームの登録を行う
-      final wakeupSettings = AlarmSettings(
+      final wakeupSettings = buildAlarmSettings(
         id: getAlarmId(eventId, 'wakeup'),
         dateTime: wakeupTimeDay,
-        assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
-        payload: jsonEncode({'eventId': eventId, 'phase': 'wakeup'}),
-        notificationSettings: const NotificationSettings(
-          title: '起床時間です！',
-          body: 'チェックイン画面から起きたことを報告しましょう',
-          stopButton: 'ストップ',
-        ),
+        eventId: eventId,
+        phase: 'wakeup',
+        title: '起床時間です！',
+        body: 'チェックイン画面から起きたことを報告しましょう',
       );
 
-      final departureSettings = AlarmSettings(
+      final departureSettings = buildAlarmSettings(
         id: getAlarmId(eventId, 'departure'),
         dateTime: departureTimeDay,
-        assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: true,
-        vibrate: true,
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
-        payload: jsonEncode({'eventId': eventId, 'phase': 'departure'}),
-        notificationSettings: const NotificationSettings(
-          title: '出発時間です！',
-          body: '忘れ物はないですか？出発を報告しましょう',
-          stopButton: 'ストップ',
-        ),
+        eventId: eventId,
+        phase: 'departure',
+        title: '出発時間です！',
+        body: '忘れ物はないですか？出発を報告しましょう',
       );
 
       try {
