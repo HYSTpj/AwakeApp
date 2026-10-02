@@ -338,5 +338,19 @@ void main() {
         expect(service.cancelCallCount, cancelCallCountAfterFirstStop);
       },
     );
+
+    test(
+      'cancelVibration: falseの場合、タイマーは止まるがcancel()は呼ばれない'
+      '(他のアラームが共有バイブレーターを使用中のケース)',
+      () async {
+        await controller.start();
+        expect(controller.isRunning, isTrue);
+
+        await controller.stop(cancelVibration: false);
+
+        expect(controller.isRunning, isFalse);
+        expect(service.cancelCallCount, 0);
+      },
+    );
   });
 }

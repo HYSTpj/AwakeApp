@@ -251,7 +251,11 @@ class _MyAppState extends State<MyApp> {
     // （タイマーリーク）。
     final existing = _vibrationControllers.remove(alarmId);
     if (existing != null) {
-      unawaited(existing.stop());
+      // 他のアラームのコントローラーが残っている間は、共有バイブレーターの
+      // cancel()を呼ばない（呼ぶとそのアラームの振動パルスも止めてしまう）。
+      unawaited(
+        existing.stop(cancelVibration: _vibrationControllers.isEmpty),
+      );
     }
 
     final controller = GradualVibrationController(
@@ -266,7 +270,11 @@ class _MyAppState extends State<MyApp> {
   void _stopCustomVibration(int alarmId) {
     final controller = _vibrationControllers.remove(alarmId);
     if (controller != null) {
-      unawaited(controller.stop());
+      // 他のアラームのコントローラーが残っている間は、共有バイブレーターの
+      // cancel()を呼ばない（呼ぶとそのアラームの振動パルスも止めてしまう）。
+      unawaited(
+        controller.stop(cancelVibration: _vibrationControllers.isEmpty),
+      );
     }
   }
 

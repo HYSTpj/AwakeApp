@@ -129,7 +129,13 @@ class GradualVibrationController {
   ///
   /// `cancel()`の完了を待つため`Future`を返すが、呼び出し元が結果を
   /// 必要としない場合（[dispose]など）は待たずに呼び出してよい。
-  Future<void> stop() async {
+  ///
+  /// [cancelVibration] は`false`にすると、タイマーの停止のみ行い
+  /// ネイティブ側の`cancel()`は呼ばない。[_vibrationService]はアラーム間で
+  /// 共有されるため、他のアラームがまだ鳴動中にここで`cancel()`を呼ぶと
+  /// そのアラームの振動パルスまで巻き込んで止めてしまう。呼び出し元は
+  /// 他に有効なコントローラーが残っていない場合にのみ`true`を渡すこと。
+  Future<void> stop({bool cancelVibration = true}) async {
     _generation++;
     // 世代番号の更新はstart()を無効化するために必須なので、
     // 振動中かどうかに関わらず必ず行う（wasActiveのチェックは
@@ -140,7 +146,7 @@ class GradualVibrationController {
 
     // 一度も開始していない、またはこの呼び出し時点で何も鳴っていなければ、
     // ネイティブ側にキャンセルすべき振動は存在しないためcancel()を省略する。
-    if (_hasEverStarted && wasActive) {
+    if (_hasEverStarted && wasActive && cancelVibration) {
       await _cancelVibration();
     }
   }
