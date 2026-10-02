@@ -69,9 +69,6 @@ void main() async {
       child: MyApp(memberEventRepository: memberEventRepository),
     ),
   );
-
-  // 画面のUIスタート
-  // runApp(const MyApp());
 }
 
 // アプリ全体の設定

@@ -24,7 +24,7 @@ class SignupBody extends StatelessWidget {
                 child: Column(
                     children: [
 
-                        myHeader(), // ヘッダーを呼び出す
+                        myHeader(context), // ヘッダーを呼び出す
                         /* ロゴとキャッチコピーの部分 */
                         Padding(
                             padding: const EdgeInsets.only(top: 34, bottom: 24),

@@ -23,7 +23,7 @@ Widget createAccountBody(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch, 
           children: [
-            myHeader(),  // ロゴとタイトルのヘッダー
+            myHeader(context),  // ロゴとタイトルのヘッダー
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
