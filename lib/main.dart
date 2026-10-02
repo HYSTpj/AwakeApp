@@ -34,7 +34,7 @@ void main() async {
   // 直書き文字列から EnvConfig 経由に変更
   await Supabase.initialize(
     url: EnvConfig.supabaseUrl,
-    anonKey: EnvConfig.supabaseAnonKey,
+    publishableKey: EnvConfig.supabaseAnonKey,
   );
 
   final client = Supabase.instance.client;
@@ -70,9 +70,6 @@ void main() async {
       child: MyApp(memberEventRepository: memberEventRepository),
     ),
   );
-
-  // 画面のUIスタート
-  // runApp(const MyApp());
 }
 
 // アプリ全体の設定
