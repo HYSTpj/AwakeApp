@@ -7,6 +7,7 @@ import '../../../../data/repositories/admin_event_repository.dart';
 import '../../../../../models/event.dart';
 import 'memberstatus_page.dart';
 import 'create_event_page.dart';
+import 'edit_event_view.dart';
 
 class EventListPage extends StatefulWidget {
   final String groupId;
@@ -293,8 +294,26 @@ class _EventListPageState extends State<EventListPage> {
                                           color: Colors.grey,
                                           size: 30,
                                         ),
-                                        onPressed: () {
-                                          debugPrint('イベント設定ページへ移動');
+                                        onPressed: () async {
+                                          // 管理者以外はタップ無効化（念のためのガード）
+                                          if (myRole != 0) return;
+                                          final result = await Navigator.push<bool>(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => EditEventPage(
+                                                event: event,
+                                                groupId: widget.groupId,
+                                                myRole: myRole,
+                                              ),
+                                            ),
+                                          );
+                                          // 保存成功（trueが返ってきた）時に一覧をリフレッシュ
+                                          if (result == true && mounted) {
+                                            setState(() {
+                                              _loadData();
+                                            });
+                                            debugPrint('${event.title} の更新を検知して一覧をリフレッシュ');
+                                          }
                                         },
                                       ),
                                     ),
