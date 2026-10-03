@@ -139,6 +139,34 @@ void main() {
       expect(viewModel.state.errorMessage, isNull);
     });
 
+    test(
+        '直前の signUp でメール確認待ちになっていても、signIn 成功時に isEmailConfirmationPending が false にリセットされること',
+        () async {
+      when(() => mockAuthRepository.signUp(
+            email: 'pending@example.com',
+            password: 'password123',
+            nickname: null,
+          )).thenThrow(const EmailConfirmationPendingException());
+      await viewModel.signUp(
+        email: 'pending@example.com',
+        password: 'password123',
+      );
+      expect(viewModel.state.isEmailConfirmationPending, isTrue);
+
+      when(() => mockAuthRepository.signIn(
+            email: 'test@example.com',
+            password: 'password123',
+          )).thenAnswer((_) async => testProfile);
+
+      final result = await viewModel.signIn(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+
+      expect(result, isTrue);
+      expect(viewModel.state.isEmailConfirmationPending, isFalse);
+    });
+
     test('signIn 失敗時: 適切なエラーメッセージが保持されること', () async {
       when(() => mockAuthRepository.signIn(
             email: 'test@example.com',

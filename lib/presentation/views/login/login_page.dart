@@ -42,6 +42,9 @@ class _LoginPageState extends State<LoginPage> {
       passwordController: passwordController,
       isLoading: isLoading,
       onLoginPressed: () async {
+        // 再描画が間に合わず連打で呼ばれた場合、誤った失敗メッセージを出さず黙って無視する
+        if (context.read<AuthViewModel>().state.isLoading) return;
+
         final email = emailController.text.trim();
         final password = passwordController.text;
 

@@ -94,7 +94,11 @@ class AuthViewModel extends ChangeNotifier {
     // 実行中の多重タップで複数回リクエストが飛ぶのを防ぐ
     if (_state.isLoading) return false;
 
-    _state = _state.copyWith(isLoading: true, clearError: true);
+    _state = _state.copyWith(
+      isLoading: true,
+      clearError: true,
+      isEmailConfirmationPending: false,
+    );
     notifyListeners();
 
     try {
