@@ -34,7 +34,6 @@ void main() {
       when(() => mockAuth.signUp(
             email: any(named: 'email'),
             password: any(named: 'password'),
-            data: any(named: 'data'),
           )).thenAnswer((_) async => AuthResponse(session: null, user: user));
 
       expect(
@@ -50,7 +49,6 @@ void main() {
       when(() => mockAuth.signUp(
             email: any(named: 'email'),
             password: any(named: 'password'),
-            data: any(named: 'data'),
           )).thenAnswer((_) async => AuthResponse(session: null, user: null));
 
       expect(
@@ -58,6 +56,17 @@ void main() {
           email: 'fail@example.com',
           password: 'password123',
         ),
+        throwsA(isA<AuthException>()),
+      );
+    });
+  });
+
+  group('SupabaseAuthRepository.updateProfile', () {
+    test('未ログイン状態の場合、AuthException を投げること', () async {
+      when(() => mockAuth.currentUser).thenReturn(null);
+
+      expect(
+        () => repository.updateProfile(nickname: 'NewName'),
         throwsA(isA<AuthException>()),
       );
     });

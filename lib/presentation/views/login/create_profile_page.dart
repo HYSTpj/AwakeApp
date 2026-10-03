@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 import 'screen/create_account_body.dart';
+import '../../viewmodels/auth_view_model.dart';
 import '../group/group_list_view.dart';
 
 class CreateAccountProfile extends StatefulWidget {
@@ -16,7 +17,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
   final TextEditingController _userNameController = TextEditingController();
   File? _pickedImage;
   final ImagePicker _picker = ImagePicker();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -26,6 +26,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
   @override
   Widget build(BuildContext context) {
+    // isLoading の変化で再描画されるよう state を購読する
+    final isLoading = context.watch<AuthViewModel>().state.isLoading;
+
     // CreateAccountBodyを呼び出す
     return createAccountBody(
       context,
@@ -34,7 +37,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       onReturnToLoginPressed: _returnToLogin,
       userNameController: _userNameController,
       pickedImage: _pickedImage,
-      isLoading: _isLoading,
+      isLoading: isLoading,
     );
   }
 
@@ -53,70 +56,33 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     }
   }
 
-  // アカウント作成の処理(Supabaseへの保存など)
+  // アカウント作成の処理(AuthViewModel経由でプロフィールを保存)
   Future<void> _handleCreateAccount() async {
-    final String name = _userNameController.text.trim();
-    final client = Supabase.instance.client;
-    final user = client.auth.currentUser;
+    final authViewModel = context.read<AuthViewModel>();
+    // 再描画が間に合わず連打で呼ばれた場合、誤った失敗メッセージを出さず黙って無視する
+    if (authViewModel.state.isLoading) return;
 
+    final String name = _userNameController.text.trim();
     if (name.isEmpty) {
       _showSnackBar('ユーザー名を入力してください');
       return;
     }
 
-    // ユーザーがログインしているか確認
-    if (user == null) {
-      _showSnackBar('ログインしていません');
-      return;
-    }
+    final success = await authViewModel.completeProfile(
+      nickname: name,
+      avatarImage: _pickedImage,
+    );
 
-    setState(() => _isLoading = true);
+    if (!mounted) return;
 
-    try {
-      // 画像があればSupabase StorageにアップロードしてURLを取得
-      String? avatarUrl;
-      if (_pickedImage != null) {
-        final filePath = '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-        await client.storage.from('avatars').upload(
-          filePath,
-          _pickedImage!,
-          fileOptions: const FileOptions(
-            contentType: 'image/jpeg',
-            upsert: true,
-          ),
-        );
-
-        avatarUrl = client.storage.from('avatars').getPublicUrl(filePath);
-      }
-
-      // profiles テーブルの更新 (upsert)
-      final updateData = <String, dynamic>{
-        'id': user.id,
-        'nickname': name,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-      if (avatarUrl != null) {
-        updateData['avatar_url'] = avatarUrl;
-      }
-
-      await client.from('profiles').upsert(updateData);
-
-      debugPrint("プロフィール保存に成功しました");
-      if (!mounted) return;
-
+    if (success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const GroupListPage()),
       );
-    } catch (e) {
-      debugPrint("プロファイル保存エラー: $e");
-      if (!mounted) return;
-      _showSnackBar('プロファイルの保存に失敗しました: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } else {
+      final errorMsg = authViewModel.state.errorMessage ?? 'プロフィールの保存に失敗しました';
+      _showSnackBar(errorMsg);
     }
   }
 
