@@ -29,52 +29,58 @@ class MemberSetTimeViewData {
   }
 }
 
-class MemberSetTimePage extends StatefulWidget {
-  final List<MemberSetTimeViewData> initialMembers;
+class SetTimePage extends StatefulWidget {
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
+  final DateTime arrivalTime;
+  final List<MemberSetTimeViewData>? initialMembers;
 
-  const MemberSetTimePage({
+  const SetTimePage({
     super.key,
-    required this.initialMembers,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+    required this.arrivalTime,
+    this.initialMembers,
   });
 
-  factory MemberSetTimePage.withDummyData({Key? key}) {
-    return MemberSetTimePage(
-      key: key,
-      initialMembers: const [
-        MemberSetTimeViewData(
-          memberName: 'Sora Tanaka',
-          wakeUpTime: TimeOfDay(hour: 6, minute: 10),
-          leaveHomeTime: TimeOfDay(hour: 7, minute: 5),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-        MemberSetTimeViewData(
-          memberName: 'Yui Sato',
-          wakeUpTime: TimeOfDay(hour: 6, minute: 30),
-          leaveHomeTime: TimeOfDay(hour: 7, minute: 20),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-        MemberSetTimeViewData(
-          memberName: 'Ren Kato',
-          wakeUpTime: TimeOfDay(hour: 5, minute: 50),
-          leaveHomeTime: TimeOfDay(hour: 6, minute: 55),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-      ],
-    );
-  }
-
   @override
-  State<MemberSetTimePage> createState() => _MemberSetTimePageState();
+  State<SetTimePage> createState() => _SetTimePageState();
 }
 
-class _MemberSetTimePageState extends State<MemberSetTimePage> {
+class _SetTimePageState extends State<SetTimePage> {
   late List<MemberSetTimeViewData> _members;
   int _selectedMemberIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _members = List<MemberSetTimeViewData>.from(widget.initialMembers);
+    // 渡されたメンバーがあればそれを使用、なければデフォルト初期値をセット
+    if (widget.initialMembers != null && widget.initialMembers!.isNotEmpty) {
+      _members = List<MemberSetTimeViewData>.from(widget.initialMembers!);
+    } else {
+      final arrivalTimeOfDay = TimeOfDay(
+        hour: widget.arrivalTime.hour,
+        minute: widget.arrivalTime.minute,
+      );
+      _members = [
+        MemberSetTimeViewData(
+          memberName: 'ME',
+          wakeUpTime: TimeOfDay(
+            hour: (widget.arrivalTime.hour - 2 + 24) % 24,
+            minute: widget.arrivalTime.minute,
+          ),
+          leaveHomeTime: TimeOfDay(
+            hour: (widget.arrivalTime.hour - 1 + 24) % 24,
+            minute: widget.arrivalTime.minute,
+          ),
+          arrivalGoalTime: arrivalTimeOfDay,
+        ),
+      ];
+    }
   }
 
   Future<void> _pickTime({
@@ -106,14 +112,10 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
           _members[_selectedMemberIndex] = member.copyWith(wakeUpTime: picked);
           break;
         case 'leave':
-          _members[_selectedMemberIndex] = member.copyWith(
-            leaveHomeTime: picked,
-          );
+          _members[_selectedMemberIndex] = member.copyWith(leaveHomeTime: picked);
           break;
         case 'arrival':
-          _members[_selectedMemberIndex] = member.copyWith(
-            arrivalGoalTime: picked,
-          );
+          _members[_selectedMemberIndex] = member.copyWith(arrivalGoalTime: picked);
           break;
       }
     });
@@ -130,13 +132,17 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
     final MemberSetTimeViewData selected = _members[_selectedMemberIndex];
 
     return CommonLayout(
+      groupId: widget.groupId,
+      myRole: widget.myRole,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMemberDropdown(),
-            const SizedBox(height: 24),
+            if (_members.length > 1) ...[
+              _buildMemberDropdown(),
+              const SizedBox(height: 24),
+            ],
             const Text(
               'My Schedule',
               style: TextStyle(
@@ -205,8 +211,9 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
             _SaveChangesButton(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Dummy UI: save action.')),
+                  const SnackBar(content: Text('保存処理を実行します')),
                 );
+                Navigator.of(context).pop();
               },
             ),
           ],

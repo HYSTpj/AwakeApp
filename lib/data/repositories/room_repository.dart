@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import '../../database/database.dart';
+import '../database/database.dart';
 
 class RoomRepository{
   final AwakeDatabase db;
