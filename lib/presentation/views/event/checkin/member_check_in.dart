@@ -10,12 +10,14 @@ class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final int myRole;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    required this.myRole,
   });
 
   @override
@@ -63,41 +65,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
-  Widget _buildGroupDropdown() {
-    return Container(
-      width: 362,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
-          items: _viewModel.myGroups.map((group) {
-            return DropdownMenuItem<String>(
-              value: group['group_id'],
-              child: Text(
-                group['group_name'] ?? 'Unnamed Group',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-            );
-          }).toList(),
-          onChanged: (String? newGroupId) {
-            if (newGroupId != null && newGroupId != _viewModel.groupId) {
-              // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
-              Navigator.pop(context);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _viewModel.dispose();
@@ -115,7 +82,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
           groupId: widget.groupId,
           eventId: widget.eventId,
           eventTitle: widget.eventTitle,
-          myRole: 1,
+          myRole: widget.myRole,
         ),
       ),
     );
@@ -126,12 +93,12 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       
       if (type == null || value == null) return;
 
-      final ctx = context;
       final isValid = await _viewModel.verifyAndCheckIn(type, value);
-      if (!ctx.mounted) return;
+
+      if (!mounted) return;
 
       if (isValid) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             backgroundColor: Colors.green,
@@ -139,7 +106,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         );
       } else {
         final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
-        ScaffoldMessenger.of(ctx).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             backgroundColor: Colors.red,
@@ -259,7 +226,50 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       },
     );
   }
+
+  Widget _buildGroupDropdown() {
+    // ViewModel等からグループ名が取れる場合はその名前、なければイベント名や仮名を表示
+    return GroupNameDropdown(groupName: widget.eventTitle);
+  }
 }
+
+class GroupNameDropdown extends StatelessWidget {
+  final String groupName;
+  
+  const GroupNameDropdown({super.key, required this.groupName});
+
+  @override
+  Widget build(BuildContext context) {
+    const borderColor = Color(0xFF1A1C1C);
+    
+    return Container(
+      width: 362,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: borderColor, width: 4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            groupName,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: borderColor,
+              letterSpacing: 0.5,
+            ),
+          ),
+          Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
+        ],
+      ),
+    );
+  }
+}
+
 
 class CurrentStatusPanel extends StatelessWidget {
   const CurrentStatusPanel({super.key, required this.status});
