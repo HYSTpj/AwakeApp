@@ -7,6 +7,7 @@ Widget loginBody(
     required TextEditingController passwordController, // LoginPageで定義したcontrollerを引数として受け取る
     required VoidCallback onLoginPressed, // ログインボタンが押されたときの処理を引数として受け取る
     required VoidCallback onCreateAccountPressed, // アカウント作成ボタンが押されたときの処理を引数として受け取る
+    bool isLoading = false, // ログイン処理中は true になり、多重タップによる多重送信を防ぐ
 }) {
     return Scaffold(
         backgroundColor: Color(0xFFf8f6f6),
@@ -153,20 +154,29 @@ Widget loginBody(
                                             ],
                                         ),
                                         child: ElevatedButton(
-                                            onPressed: onLoginPressed,
+                                            onPressed: isLoading ? null : onLoginPressed,
                                             style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.transparent, // 背景はContainerに任せる
                                                 shadowColor: Colors.transparent,
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                             ),
-                                            child: const Text(
-                                                'LOGIN',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
+                                            child: isLoading
+                                                ? const SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.white,
+                                                    ),
+                                                )
+                                                : const Text(
+                                                    'LOGIN',
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 18,
+                                                    ),
                                                 ),
-                                            ),
                                         ),
                                     ),
                                 ),

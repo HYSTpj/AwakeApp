@@ -52,6 +52,9 @@ class AuthViewModel extends ChangeNotifier {
     required String password,
     String? nickname,
   }) async {
+    // 実行中の多重タップで複数回リクエストが飛ぶのを防ぐ
+    if (_state.isLoading) return false;
+
     _state = _state.copyWith(
       isLoading: true,
       clearError: true,
@@ -88,6 +91,9 @@ class AuthViewModel extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
+    // 実行中の多重タップで複数回リクエストが飛ぶのを防ぐ
+    if (_state.isLoading) return false;
+
     _state = _state.copyWith(isLoading: true, clearError: true);
     notifyListeners();
 

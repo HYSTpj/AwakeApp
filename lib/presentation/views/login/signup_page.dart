@@ -31,9 +31,13 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   // 画面のベース（アプリの見た目の骨組み）作成
   @override
   Widget build(BuildContext context) {
+    // isLoading の変化で再描画されるよう state を購読する
+    final isLoading = context.watch<AuthViewModel>().state.isLoading;
+
     return SignupBody(
       emailController: emailController,
       passwordController: passwordController,
+      isLoading: isLoading,
       onRegisterPressed: () async {
         final email = emailController.text.trim();
         final password = passwordController.text;

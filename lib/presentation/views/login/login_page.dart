@@ -32,11 +32,15 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // isLoading の変化で再描画されるよう state を購読する
+    final isLoading = context.watch<AuthViewModel>().state.isLoading;
+
     // Scaffoldを消して直接loginBodyを呼び出す
     return loginBody(
       context,
       emailController: emailController,
       passwordController: passwordController,
+      isLoading: isLoading,
       onLoginPressed: () async {
         final email = emailController.text.trim();
         final password = passwordController.text;

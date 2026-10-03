@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -87,6 +89,37 @@ void main() {
       expect(viewModel.state.errorMessage, isNull);
       expect(viewModel.state.isEmailConfirmationPending, isTrue);
     });
+
+    test(
+        'signUp 実行中に再度 signUp を呼んでも、2回目は早期リターンしてRepositoryが呼ばれないこと',
+        () async {
+      final completer = Completer<Profile>();
+      when(() => mockAuthRepository.signUp(
+            email: 'test@example.com',
+            password: 'password123',
+            nickname: null,
+          )).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.signUp(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+      final secondCall = viewModel.signUp(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+
+      completer.complete(testProfile);
+      final results = await Future.wait([firstCall, secondCall]);
+
+      expect(results[0], isTrue);
+      expect(results[1], isFalse);
+      verify(() => mockAuthRepository.signUp(
+            email: 'test@example.com',
+            password: 'password123',
+            nickname: null,
+          )).called(1);
+    });
   });
 
   group('AuthViewModel - ログインテスト', () {
@@ -120,6 +153,35 @@ void main() {
       expect(result, isFalse);
       expect(viewModel.state.user, isNull);
       expect(viewModel.state.errorMessage, contains('Invalid login credentials'));
+    });
+
+    test(
+        'signIn 実行中に再度 signIn を呼んでも、2回目は早期リターンしてRepositoryが呼ばれないこと',
+        () async {
+      final completer = Completer<Profile>();
+      when(() => mockAuthRepository.signIn(
+            email: 'test@example.com',
+            password: 'password123',
+          )).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.signIn(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+      final secondCall = viewModel.signIn(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+
+      completer.complete(testProfile);
+      final results = await Future.wait([firstCall, secondCall]);
+
+      expect(results[0], isTrue);
+      expect(results[1], isFalse);
+      verify(() => mockAuthRepository.signIn(
+            email: 'test@example.com',
+            password: 'password123',
+          )).called(1);
     });
   });
 
