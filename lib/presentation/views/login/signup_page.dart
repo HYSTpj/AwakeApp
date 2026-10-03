@@ -64,6 +64,21 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             context,
             MaterialPageRoute(builder: (context) => const CreateAccountProfile()),
           );
+        } else if (authViewModel.state.isEmailConfirmationPending) {
+          // メール確認待ち: 通常の失敗とは異なり、案内ダイアログを表示する
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('確認メールを送信しました'),
+              content: const Text('メール内のリンクからログインしてください。'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
         } else {
           final errorMsg = authViewModel.state.errorMessage ?? 'アカウント作成に失敗しました';
           ScaffoldMessenger.of(context).showSnackBar(

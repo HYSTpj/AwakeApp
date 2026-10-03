@@ -63,6 +63,29 @@ void main() {
       expect(viewModel.state.user, isNull);
       expect(viewModel.state.isLoading, isFalse);
       expect(viewModel.state.errorMessage, contains('User already registered'));
+      expect(viewModel.state.isEmailConfirmationPending, isFalse);
+    });
+
+    test(
+        'signUp 時に EmailConfirmationPendingException が発生した場合: '
+        'isEmailConfirmationPending が true になり、errorMessage は設定されず false が返却されること',
+        () async {
+      when(() => mockAuthRepository.signUp(
+            email: 'pending@example.com',
+            password: 'password123',
+            nickname: null,
+          )).thenThrow(const EmailConfirmationPendingException());
+
+      final result = await viewModel.signUp(
+        email: 'pending@example.com',
+        password: 'password123',
+      );
+
+      expect(result, isFalse);
+      expect(viewModel.state.user, isNull);
+      expect(viewModel.state.isLoading, isFalse);
+      expect(viewModel.state.errorMessage, isNull);
+      expect(viewModel.state.isEmailConfirmationPending, isTrue);
     });
   });
 

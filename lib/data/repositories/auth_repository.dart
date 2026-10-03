@@ -1,6 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/profile.dart';
 
+// サインアップ後、メール確認が完了するまでセッションが発行されない状態を示す例外
+// （メール/パスワード不正などの通常の失敗とは区別して扱うためのマーカー）
+class EmailConfirmationPendingException implements Exception {
+  const EmailConfirmationPendingException();
+}
+
 // 認証および認証ユーザープロフィールのデータ操作を抽象化するインターフェース
 abstract class AuthRepository {
   // メールアドレスとパスワード、ニックネームを用いて新規アカウントを登録する
@@ -59,8 +65,8 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     if (res.session == null) {
-      // メール確認が必要な場合はここで明確な例外を投げるか結果を分岐
-      throw const AuthException('確認メールを送信しました。メール内のリンクからログインしてください。');
+      // メール確認待ち（通常の失敗ではない）であることを専用の例外で伝える
+      throw const EmailConfirmationPendingException();
     }
 
     return _fetchProfileWithRetry(user.id);

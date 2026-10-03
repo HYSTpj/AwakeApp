@@ -8,11 +8,14 @@ class AuthState {
   final Profile? user;
   final bool isLoading;
   final String? errorMessage;
+  // サインアップ後、メール確認待ちで保留中であることを示すフラグ
+  final bool isEmailConfirmationPending;
 
   const AuthState({
     this.user,
     this.isLoading = false,
     this.errorMessage,
+    this.isEmailConfirmationPending = false,
   });
 
   // 既存の状態を維持しつつ一部のフィールドのみを更新した新しい [AuthState] を生成する
@@ -21,11 +24,14 @@ class AuthState {
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    bool? isEmailConfirmationPending,
   }) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      isEmailConfirmationPending:
+          isEmailConfirmationPending ?? this.isEmailConfirmationPending,
     );
   }
 }
@@ -46,7 +52,11 @@ class AuthViewModel extends ChangeNotifier {
     required String password,
     String? nickname,
   }) async {
-    _state = _state.copyWith(isLoading: true, clearError: true);
+    _state = _state.copyWith(
+      isLoading: true,
+      clearError: true,
+      isEmailConfirmationPending: false,
+    );
     notifyListeners();
 
     try {
@@ -58,6 +68,14 @@ class AuthViewModel extends ChangeNotifier {
       _state = _state.copyWith(user: profile, isLoading: false);
       notifyListeners();
       return true;
+    } on EmailConfirmationPendingException {
+      // 通常の失敗とは区別し、メール確認待ちであることを状態に反映する
+      _state = _state.copyWith(
+        isLoading: false,
+        isEmailConfirmationPending: true,
+      );
+      notifyListeners();
+      return false;
     } catch (e) {
       _state = _state.copyWith(isLoading: false, errorMessage: e.toString());
       notifyListeners();
