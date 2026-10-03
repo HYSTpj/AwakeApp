@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart';
+import 'loading_button_label.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 
@@ -148,7 +149,7 @@ Widget createAccountBody(
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: onCreateAccountPressed,
+                      onPressed: isLoading ? null : onCreateAccountPressed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEC5B13),
                         foregroundColor: Colors.white,
@@ -156,7 +157,11 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: const Text('CREATE ACCOUNT', style: TextStyle(fontWeight: FontWeight.w900)),
+                      child: LoadingButtonLabel(
+                        isLoading: isLoading,
+                        label: 'CREATE ACCOUNT',
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
 

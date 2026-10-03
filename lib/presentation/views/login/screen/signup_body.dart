@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
+import 'loading_button_label.dart';
 
 class SignupBody extends StatelessWidget {
   final TextEditingController emailController;
@@ -171,23 +172,10 @@ class SignupBody extends StatelessWidget {
                                                 shadowColor: Colors.transparent,     // ボタン自体の影を消す
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero), // 四角いボタンにする
                                                 ),
-                                                child: isLoading
-                                                ? const SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child: CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                    ),
-                                                )
-                                                : const Text(
-                                                'CREATE ACCOUNT',
-                                                style: TextStyle(
-                                                    color: Colors.white, // 文字色
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                ),
-                                                ),
+                                                child: LoadingButtonLabel(
+                                                isLoading: isLoading,
+                                                label: 'CREATE ACCOUNT',
+                                            ),
                                             ),
                                         ),
                                     ),

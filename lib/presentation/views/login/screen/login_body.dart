@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart';
+import 'loading_button_label.dart';
 
 Widget loginBody(
     BuildContext context, {
@@ -160,23 +161,10 @@ Widget loginBody(
                                                 shadowColor: Colors.transparent,
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                             ),
-                                            child: isLoading
-                                                ? const SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child: CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                    ),
-                                                )
-                                                : const Text(
-                                                    'LOGIN',
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 18,
-                                                    ),
-                                                ),
+                                            child: LoadingButtonLabel(
+                                                isLoading: isLoading,
+                                                label: 'LOGIN',
+                                            ),
                                         ),
                                     ),
                                 ),
