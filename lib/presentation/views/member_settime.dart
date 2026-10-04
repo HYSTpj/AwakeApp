@@ -145,21 +145,23 @@ class _SetTimePageState extends State<SetTimePage> {
       final selected = _members[_selectedMemberIndex];
       final localArrival = widget.arrivalTime.toLocal();
 
-      final plannedWakeup = DateTime(
-        localArrival.year,
-        localArrival.month,
-        localArrival.day,
-        selected.wakeUpTime.hour,
-        selected.wakeUpTime.minute,
-      ).toUtc().toIso8601String();
+      // 集合時刻より遅い時刻（例: 01:00集合に対して23:00起床）は前日として扱う
+      DateTime atOrBefore(TimeOfDay t) {
+        var d = DateTime(
+          localArrival.year,
+          localArrival.month,
+          localArrival.day,
+          t.hour,
+          t.minute,
+        );
+        if (d.isAfter(localArrival)) {
+          d = d.subtract(const Duration(days: 1));
+        }
+        return d;
+      }
 
-      final plannedDeparture = DateTime(
-        localArrival.year,
-        localArrival.month,
-        localArrival.day,
-        selected.leaveHomeTime.hour,
-        selected.leaveHomeTime.minute,
-      ).toUtc().toIso8601String();
+      final plannedWakeup = atOrBefore(selected.wakeUpTime).toUtc().toIso8601String();
+      final plannedDeparture = atOrBefore(selected.leaveHomeTime).toUtc().toIso8601String();
 
       await client.from('event_reports').upsert({
         'event_id': widget.eventId,
