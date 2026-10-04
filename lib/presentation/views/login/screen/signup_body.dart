@@ -46,7 +46,7 @@ class SignupBody extends StatelessWidget {
 
                                     // キャッチコピー
                                     Text(
-                                        'Join us among the elite who master time.',
+                                        'Join us among the elite who master time.\nLet\'sAWAKE!',
                                         textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: const Color(0xFF334155),
@@ -81,26 +81,32 @@ class SignupBody extends StatelessWidget {
                                         ),
                                     ),
 
-                                    SizedBox(
+                                    Container(
                                         width: 320,
                                         height: 56,
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            border: Border.all(
+                                                color: const Color(0xFF6B7280), 
+                                                width: 1,
+                                            ),
+                                            boxShadow: const [
+                                                BoxShadow(
+                                                    color: Colors.black,
+                                                    offset: Offset(4, 4),
+                                                ),
+                                            ],
+                                        ),
                                         child: TextField(
                                             controller: emailController, // LoginPageで定義したcontrollerをTextFieldに渡す
-                                            decoration: InputDecoration(
-                                                filled: true, // 色を塗ることを許可する
-                                                fillColor: Colors.white, // colorの代わりにfillColor
-                                                
-                                                border: OutlineInputBorder( // shapeの代わりにborderを使う
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: const Color(0xFF6B7280),
-                                                    ),
-                                                ),
-
-                                                hintText: 'your@email.com'
+                                            decoration: const InputDecoration(
+                                                hintText: 'your@email.com',
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                                             ),
                                         ),
                                     ),
+                                    const SizedBox(height: 16), // 影との重なりを防ぐための余白
 
                                     // PASSWORD
                                     Text(
