@@ -26,29 +26,49 @@ class CommonLayout extends StatelessWidget {
   });
 
   // ボトムナビゲーション
-  static const _bottomNavigationItems = <BottomNavigationBarItem>[
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.group),
-      ),
-      label: 'group',
+  Widget _buildBottomNavigationBar(BuildContext context) {
+  return Container(
+    height: 70,
+    margin: const EdgeInsets.only(
+      left: 20,
+      right: 20,
+      bottom: 12,
     ),
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.calendar_month),
+    decoration: BoxDecoration(
+      color: _themeColor,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: _borderColor,
+        width: 2,
       ),
-      label: 'event',
     ),
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.qr_code),
-      ),
-      label: 'ranking',
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.group),
+          iconSize: 28,
+          color: Colors.black,
+          onPressed: () => _onNavigationTap(context, 0),
+        ),
+        IconButton(
+          icon: const Icon(Icons.calendar_month),
+          iconSize: 28,
+          color: Colors.black,
+          onPressed: () => _onNavigationTap(context, 1),
+        ),
+        IconButton(
+          icon: const Icon(Icons.qr_code),
+          iconSize: 28,
+          color: Colors.black,
+          onPressed: () => _onNavigationTap(context, 2),
+        ),
+      ],
     ),
-  ];
+  );
+}
+
 
   // アプリのテーマカラー
   static const Color _themeColor = Colors.deepOrangeAccent;
@@ -174,32 +194,6 @@ class CommonLayout extends StatelessWidget {
         ),
       ),
     ];
-  }
-
-  /// BottomNavigationBar
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _themeColor,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: _borderColor, width: 4),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26), // 枠線に合わせて中身も丸める
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.black.withValues(alpha: 0.5),
-          items: _bottomNavigationItems,
-          onTap: (index) => _onNavigationTap(context, index),
-        ),
-      ),
-    );
   }
 
   // ナビゲーションタップ時の処理
