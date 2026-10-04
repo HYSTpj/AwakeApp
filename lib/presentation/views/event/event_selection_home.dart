@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../common_layout.dart';
 import '../group/create_add_delete_view.dart';
 import 'checkin/member_check_in.dart';
-import '../../views/member_settime.dart';
 
 class EventSelectionHome extends StatefulWidget {
   final String groupId;
@@ -336,7 +335,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     final location = event['destination_name'] ?? 'SECTOR 7G - COMMAND CENTER';
     final rawArrival = event['arrival_time'];
 
-    String meetingTimeStr = '--:--';
+    String meetingTimeStr = '08:15 AM';
     if (rawArrival != null) {
       DateTime? dt;
       if (rawArrival is DateTime) {
@@ -349,16 +348,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
       }
     }
 
-    // 💡 未定義だった起床・出発時間をパース（データがなければ '--:--'）
-    String formatTime(dynamic rawTime) {
-      if (rawTime == null) return '--:--';
-      DateTime? dt = rawTime is DateTime ? rawTime : DateTime.tryParse(rawTime.toString());
-      return dt != null ? DateFormat("hh:mm a").format(dt) : '--:--';
-    }
-
-    final wakeupTimeStr = formatTime(event['planned_wakeup_time']);
-    final departureTimeStr = formatTime(event['planned_departure_time']);
-
     final eventId = (event['id'] ?? event['event_id'] ?? '').toString();
 
     return Container(
@@ -370,7 +359,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
         boxShadow: const [
           BoxShadow(
             color: Colors.black,
-            offset: Offset(4, 4),
+            offset: Offset(4, 4), // デザインのように少しだけずらす太い影
             blurRadius: 0,
           )
         ],
@@ -391,55 +380,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                     letterSpacing: -0.5,
                     height: 1.1,
                   ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // 設定ボタン
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFF1A1C1C), width: 3),
-                ),
-                child: IconButton(
-                  constraints: const BoxConstraints(),
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.settings, color: Color(0xFF1A1C1C), size: 24),
-                  onPressed: () async {
-                    final arrivalTime = event['arrival_time'];
-                    DateTime arrivalDateTime = DateTime.now();
-
-                    if (arrivalTime is String && arrivalTime.isNotEmpty) {
-                      try {
-                        arrivalDateTime = DateTime.parse(arrivalTime);
-                      } catch (e) {
-                        debugPrint('時刻パースエラー: $e');
-                      }
-                    } else if (arrivalTime is DateTime) {
-                      arrivalDateTime = arrivalTime;
-                    }
-
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SetTimePage(
-                          groupId: selectedGroupId ?? widget.groupId,
-                          eventId: eventId,
-                          eventTitle: title,
-                          myRole: widget.myRole,
-                          arrivalTime: arrivalDateTime,
-                        ),
-                      ),
-                    );
-
-                    // 💡 最新時間を Supabase からリフレッシュ
-                    if (mounted && selectedGroupId != null) {
-                      setState(() {
-                        _eventsFuture = _fetchEvents(selectedGroupId!);
-                      });
-                    }
-                  },
                 ),
               ),
               const SizedBox(width: 16),
@@ -473,9 +413,10 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             ],
           ),
           const SizedBox(height: 8),
+          // Location text
           Row(
             children: [
-              const Icon(Icons.location_on, color: Color(0xFF6B7280), size: 16),
+              const Icon(Icons.location_on, color: Color(0xFF6B7280), size: 16), // gray icon
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -483,7 +424,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF6B7280),
+                    color: Color(0xFF6B7280), // gray text
+                    letterSpacing: 0.5,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -491,9 +433,10 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             ],
           ),
           const SizedBox(height: 20),
-          _buildTimeRow('WAKE-UP', wakeupTimeStr, Colors.black),
+          // Time Schedule Lines
+          _buildTimeRow('WAKE-UP', '06:30 AM', Colors.black),
           _buildDivider(),
-          _buildTimeRow('DEPARTURE', departureTimeStr, const Color(0xFFFF5C00)),
+          _buildTimeRow('DEPARTURE', '07:15 AM', const Color(0xFFFF5C00)),
           _buildDivider(),
           _buildTimeRow('MEETING', meetingTimeStr, Colors.black),
         ],

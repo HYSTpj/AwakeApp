@@ -109,7 +109,6 @@ class CreateEventPage extends StatefulWidget {
 class _CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
   DateTime _scheduledTime = DateTime.now();
 
   GoogleMapController? _mapController;
@@ -195,7 +194,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
-    _passwordController.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -283,22 +281,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   // 日付
                   const _LabelText('DATE'),
                   _PickerButton(label: _dateLabel, onTap: _pickDate),
-
-                  // CHECK-IN PASSWORD の入力欄
-                  const _LabelText('CHECK-IN PASSWORD'),
-                  const SizedBox(height: 4),
-                  _InputBox(
-                    child: TextField(
-                      controller: _passwordController,
-                      textAlignVertical: TextAlignVertical.center,
-                      style: _kValueStyle,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter backup numeric passcode...',
-                        border: InputBorder.none,
-                        isDense: true,
-                      ),
-                    ),
-                  ),
 
                   // 場所
                   const _LabelText('Location'),
