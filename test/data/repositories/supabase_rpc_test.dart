@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class MockSupabaseClient extends Mock implements SupabaseClient {}
+import 'supabase_test_mocks.dart';
 
 /// PostgrestFilterBuilder は Future を実装しているため、
 /// 任意の戻り値や例外を Future として完了させる Fake クラスを作成する
