@@ -24,7 +24,7 @@ void main() {
     test(
       '未認証の場合、setPlannedTimes()はAuthExceptionを投げ、DBへのクエリは発行しない',
       () async {
-        expect(
+        await expectLater(
           () => repository.setPlannedTimes(
             eventId: 'event-1',
             wakeupTime: DateTime(2026, 5, 14, 6, 30),
