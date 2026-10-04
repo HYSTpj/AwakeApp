@@ -100,7 +100,7 @@ class SetTimeViewModel extends ChangeNotifier {
         eventId: eventId,
         phase: 'wakeup',
         title: '起床時間です！',
-        body: 'チェックイン画面から起きたことを報告しましょう',
+        body: '起きたら忘れずアプリで報告しましょう！!',
       );
 
       final departureSettings = buildAlarmSettings(
