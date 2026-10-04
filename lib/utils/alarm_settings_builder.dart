@@ -13,12 +13,7 @@ const _maxVolume = 1.0;
 /// [_initialVolume] から [_maxVolume] まで引き上げるまでの経過時間。
 const _volumeRampUpDuration = Duration(seconds: 30);
 
-/// 起床・出発アラーム共通の音量設定。
-///
-/// 無音から1分かけてフェードインする方式だと、鳴り始めの30〜45秒ほどが
-/// かえって聞こえにくくなってしまう。最初から一定の音量で鳴らしつつ、
-/// 30秒後に最大音量まで引き上げることで、鳴り始めから確実に聞こえるように
-/// している。
+/// 起床・出発アラーム共通の音量設定（無音からのフェードインだと鳴り始めが聞こえにくいため避けている）。
 VolumeSettings buildAlarmVolumeSettings() => VolumeSettings.staircaseFade(
       fadeSteps: [
         VolumeFadeStep(Duration.zero, _initialVolume),
@@ -29,20 +24,8 @@ VolumeSettings buildAlarmVolumeSettings() => VolumeSettings.staircaseFade(
 
 /// alarmパッケージ自身のネイティブ振動を有効にするかどうか。
 ///
-/// Androidでは、alarmパッケージのネイティブ振動(`VibrationService.kt`)も
-/// vibrationパッケージ(`GradualVibrationController`が使う)も、どちらも
-/// 端末に1つしかないシステムの`Vibrator`サービスを共有している。後から
-/// 発行した振動命令が前の命令を自動的に上書きするため、二重に振動することは
-/// なく、むしろFlutterエンジンがまだ起動していない間(アプリを完全終了した
-/// 状態でアラームが鳴った場合など)もネイティブ側だけで振動が鳴り続けられる
-/// メリットがある。そのためAndroidでは有効にする。
-///
-/// iOSでは、alarmパッケージのネイティブ振動(`VibrationManager.swift`)と
-/// vibrationパッケージの振動(`CHHapticEngine`)が完全に独立した別々の仕組みで、
-/// どちらも相手を止める手段を持たない。両方有効にすると、アプリが起動して
-/// `GradualVibrationController`が動き出した後もネイティブ側の振動が並行して
-/// 鳴り続け、本物の二重振動になってしまう。そのためiOSでは無効のままにし、
-/// アプリ完全終了時に振動が遅れる/欠落するリスクは許容する。
+/// Androidは同じVibratorを共有し後発命令が上書きするだけなので有効（アプリ完全終了時も鳴らせる）。
+/// iOSは振動の仕組みが独立していて互いに止められず二重振動になるため無効にする。
 bool _shouldUseNativeVibration() =>
     defaultTargetPlatform == TargetPlatform.android;
 

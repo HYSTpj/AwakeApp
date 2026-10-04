@@ -61,11 +61,7 @@ class FakeMemberEventRepository implements MemberEventRepository {
   }) async {}
 }
 
-// ネイティブアラーム呼び出しを安全に回避。
-// AlarmServiceを直接implementsすることで、将来インターフェースに
-// メソッドが追加された際にコンパイルエラーで気づけるようにしている
-// （RealAlarmServiceをextendsすると、未オーバーライドのメンバーが
-// 実プラットフォームのメソッドチャンネルを呼び出す実装のまま残ってしまう）。
+// AlarmServiceを直接implementsしてネイティブ呼び出しを回避する（extendsだと未実装分が実機能を呼んでしまう）。
 class FakeAlarmService implements AlarmService {
   final List<AlarmSettings> setAlarmCalls = [];
   final List<int> stopCalls = [];

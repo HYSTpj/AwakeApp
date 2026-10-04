@@ -35,45 +35,28 @@ class GradualVibrationController {
   bool _hasAmplitude = false;
   int _currentIntensity = 0;
   Duration _elapsedSinceEscalation = Duration.zero;
-  // start()/stop()が呼ばれるたびに増える世代番号。
-  // hasAmplitudeControl()の待機中にstop()（または別のstart()）が呼ばれても、
-  // 古い世代の待機はタイマーを作らないようにするための無効化トークン。
+  // start()/stop()のたびに増え、古い世代の待機を無効化するトークン。
   int _generation = 0;
-  // 一度でも振動を開始したことがあるか。falseの間はネイティブ側に
-  // キャンセルすべき振動が存在しないため、cancel()の呼び出しを省略できる。
+  // 一度も開始していなければcancel()呼び出しを省略するためのフラグ。
   bool _hasEverStarted = false;
-  // tick()で発行したvibrate()がネイティブ側で完了したことを未確認の間、
-  // そのFutureを保持する。_cancelVibration()はcancel()を呼ぶ前にこれを
-  // 待つことで、vibrate()より先にcancel()が届いてしまい、遅れて届いた
-  // vibrate()で振動が1回だけ残るレースを防ぐ。
+  // 直前のvibrate()完了を待ってからcancel()するためのFuture（順序逆転によるレース防止）。
   Future<void>? _pendingVibrate;
 
-  // _timerが非nullなのは常に鳴動中なので、専用のboolフィールドは持たず
-  // _timerの有無から直接判定する（別々のフィールドだと更新を書き忘れて
-  // 食い違うおそれがあるため）。
+  // 専用フラグによる食い違いを避けるため、_timerの有無で鳴動中かを判定する。
   bool get isRunning => _timer != null;
   int get currentIntensity => _currentIntensity;
 
   /// バイブレーションを開始する。既存の鳴動があれば先に止める。
   ///
-  /// [isCancelled] は amplitude 制御の有無を問い合わせている間にアラームが
-  /// 停止された場合、タイマー開始を取りやめるための判定に使う。
-  /// これに加えて、待機中に[stop]（または新たな[start]）が呼ばれた場合も
-  /// 世代番号の不一致により自動的に無効化される。
+  /// [isCancelled] はamplitude制御問い合わせ中の停止判定用（世代番号による無効化も併用）。
   ///
-  /// 世代番号の更新は（[_cancelVibration]のawaitを挟まず）同期的に行う。
-  /// 先にawaitを挟んでしまうと、その間に外部から[stop]が呼ばれても
-  /// 世代の不一致を検知できないレースが生まれるため。
+  /// 世代番号はawaitを挟まず同期的に更新する（挟むとstop()との競合を検知できなくなるため）。
   Future<void> start({bool Function()? isCancelled}) async {
     final myGeneration = ++_generation;
     _timer?.cancel();
     _timer = null;
 
-    // 一度も振動を開始したことがなければ、ネイティブ側にキャンセルすべき
-    // 振動は存在しないため、cancel()の呼び出し自体を省略する。
-    // （一度でも開始していれば、前回分の停止命令の完了を待ってから次の
-    // 振動を開始することで、停止と開始の命令がプラットフォーム側で
-    // 入れ替わって届くのを防ぐ。）
+    // 未開始ならcancel()を省略。開始済みなら前回の停止完了を待ってから次を開始する（命令の入れ替わり防止）。
     if (_hasEverStarted) {
       await _cancelVibration();
 
@@ -85,11 +68,7 @@ class GradualVibrationController {
     _currentIntensity = _initialIntensity;
     _elapsedSinceEscalation = Duration.zero;
 
-    // 振幅制御対応の問い合わせ結果のキャッシュは、アラームをまたいで
-    // 共有される[_vibrationService]側（[RealVibrationService]）の
-    // 責務とする。GradualVibrationController自体はアラームごとに
-    // 使い捨てのインスタンスのため、ここでキャッシュを持っても
-    // 次のアラームには引き継がれない。
+    // 振幅制御対応のキャッシュは_vibrationService側の責務（本クラスはアラームごとの使い捨てのため）。
     var hasAmplitude = false;
     try {
       hasAmplitude = await _vibrationService.hasAmplitudeControl();
@@ -130,27 +109,18 @@ class GradualVibrationController {
     }
   }
 
-  /// バイブレーションとタイマーを止める。
+  /// バイブレーションとタイマーを止める（[dispose]など結果が不要な場合は待たなくてよい）。
   ///
-  /// `cancel()`の完了を待つため`Future`を返すが、呼び出し元が結果を
-  /// 必要としない場合（[dispose]など）は待たずに呼び出してよい。
-  ///
-  /// [cancelVibration] は`false`にすると、タイマーの停止のみ行い
-  /// ネイティブ側の`cancel()`は呼ばない。[_vibrationService]はアラーム間で
-  /// 共有されるため、他のアラームがまだ鳴動中にここで`cancel()`を呼ぶと
-  /// そのアラームの振動パルスまで巻き込んで止めてしまう。呼び出し元は
-  /// 他に有効なコントローラーが残っていない場合にのみ`true`を渡すこと。
+  /// [cancelVibration] を`false`にするとタイマー停止のみ行う。[_vibrationService]はアラーム間で
+  /// 共有されるため、他のアラームが鳴動中は`true`を渡さないこと（巻き込んで止めてしまう）。
   Future<void> stop({bool cancelVibration = true}) async {
     _generation++;
-    // 世代番号の更新はstart()を無効化するために必須なので、
-    // 振動中かどうかに関わらず必ず行う（wasActiveのチェックは
-    // ネイティブ側へのcancel()呼び出しを省略するためだけに使う）。
+    // 振動中かどうかに関わらずstart()無効化のため必ず更新する（wasActiveはcancel()省略の判定専用）。
     final wasActive = isRunning;
     _timer?.cancel();
     _timer = null;
 
-    // 一度も開始していない、またはこの呼び出し時点で何も鳴っていなければ、
-    // ネイティブ側にキャンセルすべき振動は存在しないためcancel()を省略する。
+    // 未開始または鳴っていなければキャンセル対象がないためcancel()を省略する。
     if (_hasEverStarted && wasActive && cancelVibration) {
       await _cancelVibration();
     }

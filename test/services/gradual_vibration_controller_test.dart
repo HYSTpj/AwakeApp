@@ -13,12 +13,9 @@ class FakeVibrationService implements VibrationService {
         _vibrate = vibrate;
 
   final Future<bool> Function() _hasAmplitudeControl;
-  // 省略時はテストのデフォルト動作として即座に完了する。
-  // cancel()の完了タイミング自体を制御したいテスト（1箇所目の世代チェックの
-  // 検証など）のためにオーバーライド可能にしている。
+  // 省略時は即座に完了。cancel()の完了タイミングをテスト側から制御するためのオーバーライド。
   final Future<void> Function()? _cancel;
-  // vibrate()の完了タイミングをテスト側から制御するためのオーバーライド
-  // （stop()がvibrate()の完了を待ってからcancel()するレース対策の検証用）。
+  // vibrate()の完了タイミングをテスト側から制御するためのオーバーライド（停止レース検証用）。
   final Future<void> Function()? _vibrate;
   final List<({int? duration, int? amplitude})> vibrateCalls = [];
   int cancelCallCount = 0;
@@ -43,9 +40,7 @@ class FakeVibrationService implements VibrationService {
   }
 }
 
-/// hasAmplitudeControl()の解決タイミングをテスト側から制御するための
-/// コントローラー/フェイクのセットを組み立てる。停止レース系のテストで
-/// 同じ組み立てコードが重複していたため共通化した。
+/// hasAmplitudeControl()の解決タイミングを制御するコントローラー/フェイクのセットを組み立てる。
 ({
   FakeVibrationService service,
   GradualVibrationController controller,
@@ -64,9 +59,7 @@ _buildControllerWithPendingAmplitudeControl() {
 
 void main() {
   group('GradualVibrationController', () {
-    // 振幅制御ありの端末を想定した、最もよく使うデフォルトのフェイク/
-    // コントローラー。個別の挙動（振幅制御なし・例外・タイミング制御など）
-    // が必要なテストはローカルで独自に組み立てる。
+    // 振幅制御ありの端末を想定したデフォルトのフェイク/コントローラー（個別の挙動は各テストで組み立てる）。
     late FakeVibrationService service;
     late GradualVibrationController controller;
 
@@ -106,8 +99,7 @@ void main() {
     test('強度は255で頭打ちになる', () async {
       await controller.start();
 
-      // 50スタート・step 50・上限255なので、15tickごとの5回目のエスカレーション
-      // (50→100→150→200→250→255)で頭打ちに達する。15*5回で必要十分。
+      // 50スタート・step50・上限255なので、15tickごとの5回目のエスカレーションで頭打ちに達する。
       for (var i = 0; i < 15 * 5; i++) {
         controller.tick();
       }
@@ -169,12 +161,7 @@ void main() {
     });
 
     test('待機中に別のstart()が呼ばれた場合、最後に呼ばれたstart()だけがタイマーを開始する', () async {
-      // フレッシュなコントローラーでは_hasEverStartedがfalseのため、
-      // 1つ目・2つ目のstart()はどちらも_cancelVibration()を呼ばずに
-      // hasAmplitudeControl()へ直接到達する（callCountは2まで増える）。
-      // 1つ目のstart()は、2つ目のstart()が世代を進めた後、
-      // hasAmplitudeControl()解決後の2箇所目の世代チェックで早期returnする。
-      // （「1箇所目の世代チェック」の検証は、別の専用テストを参照）。
+      // 両方cancel()を経ずhasAmplitudeControl()に到達し、1つ目は世代の不一致で2箇所目のチェックで早期returnする。
       final firstCompleter = Completer<bool>();
       var callCount = 0;
       final service = FakeVibrationService(() {
@@ -197,12 +184,7 @@ void main() {
       'hasAmplitudeControl()の待機中にstop()が呼ばれた場合、解決後もタイマーを開始しない'
       '(2箇所目の世代チェック)',
       () async {
-        // フレッシュなコントローラーの最初のstart()は_hasEverStartedがfalseのため
-        // _cancelVibration()自体を呼ばず、1箇所目の世代チェックを素通りして直接
-        // hasAmplitudeControl()に到達する。そのため、このテストのように
-        // 「フレッシュなコントローラーでの最初のstart()」を使うテストは、
-        // 実質的にすべて2箇所目の世代チェックだけを検証していることになる
-        // （1箇所目の世代チェックの検証は、下の別テストを参照）。
+        // 最初のstart()はcancel()を経ないため、ここでは2箇所目の世代チェックのみを検証する（1箇所目は別テスト参照）。
         final hasAmplitudeCompleter = Completer<bool>();
         final invoked = Completer<void>();
         final service = FakeVibrationService(() {
@@ -213,14 +195,9 @@ void main() {
 
         final startFuture = controller.start();
 
-        // start()が実際にhasAmplitudeControl()を呼び出すまで待つ。
-        await invoked.future;
-
-        // hasAmplitudeControl()がまだ解決していない間に世代を進める。
-        controller.stop();
-
-        // ここでようやくhasAmplitudeControl()を解決させる。
-        hasAmplitudeCompleter.complete(true);
+        await invoked.future; // start()がhasAmplitudeControl()を呼ぶまで待つ。
+        controller.stop(); // 未解決の間に世代を進める。
+        hasAmplitudeCompleter.complete(true); // ここで解決させる。
         await startFuture;
 
         expect(controller.isRunning, isFalse);
@@ -232,12 +209,7 @@ void main() {
       '2回目以降のstart()のcancel()待機中にstop()が呼ばれた場合、解決後もタイマーを開始しない'
       '(1箇所目の世代チェック)',
       () async {
-        // 1箇所目の世代チェック（_cancelVibration()完了直後のもの）は
-        // _hasEverStartedがtrueの場合、つまり2回目以降のstart()でしか
-        // 到達しない。hasAmplitudeControl()の呼び出し回数を数えておき、
-        // 1箇所目のチェックが機能していれば2回目のstart()はcancel()解決
-        // 直後に早期returnしてhasAmplitudeControl()を呼ばないはず
-        // （機能していなければ素通りしてもう一度呼ばれてしまう）。
+        // 1箇所目の世代チェックが機能していれば2回目のstart()はcancel()解決直後に早期returnするはず（呼び出し回数で検証）。
         var hasAmplitudeCallCount = 0;
         final cancelCompleter = Completer<void>();
         var cancelCallCount = 0;
@@ -248,35 +220,26 @@ void main() {
           },
           cancel: () {
             cancelCallCount++;
-            // 1回目のstart()自体はcancel()を呼ばない（_hasEverStartedが
-            // まだfalseのため）ので、ここでのcancel()は2回目のstart()に
-            // よるものだけのはず。
+            // 1回目のstart()はcancel()を呼ばないので、ここでのcancel()は2回目のstart()によるものだけ。
             return cancelCallCount == 1 ? cancelCompleter.future : Future.value();
           },
         );
         final controller = GradualVibrationController(vibrationService: service);
 
-        // 1回目のstart(): cancel()は呼ばれない（_hasEverStartedがまだ
-        // falseのため）。hasAmplitudeControl()が成功し、_hasEverStarted
-        // がtrueになる。
+        // 1回目のstart(): _hasEverStartedがfalseなのでcancel()は呼ばれず、_hasEverStartedがtrueになる。
         await controller.start();
         expect(controller.isRunning, isTrue);
         expect(hasAmplitudeCallCount, 1);
         expect(cancelCallCount, 0);
 
-        // 2回目のstart(): 今度は_hasEverStartedがtrueなのでcancel()が
-        // 呼ばれるが、まだ解決していない（cancelCompleterが未完了のため）。
+        // 2回目のstart(): cancel()が呼ばれるがまだ解決していない。
         final secondStart = controller.start();
 
-        // cancel()がまだ解決していない間に、別のstop()で世代を進める。
-        controller.stop();
-
-        // ここでようやく2回目のstart()のcancel()を解決させる。
-        cancelCompleter.complete();
+        controller.stop(); // cancel()未解決の間に別のstop()で世代を進める。
+        cancelCompleter.complete(); // ここで2回目のstart()のcancel()を解決させる。
         await secondStart;
 
-        // 1箇所目の世代チェックが機能していれば、cancel()解決直後に
-        // 早期returnし、hasAmplitudeControl()が再度呼ばれることはない。
+        // 機能していればcancel()解決直後に早期returnしhasAmplitudeControl()は再呼されない。
         expect(hasAmplitudeCallCount, 1);
         expect(controller.isRunning, isFalse);
       },
@@ -292,9 +255,7 @@ void main() {
 
       expect(controller.isRunning, isTrue);
 
-      // amplitudeなしとして扱われていることを、実際にtick()させて
-      // vibrateCallsのamplitudeがnullであることまで確認する
-      // （isRunningだけではこの分岐の正しさを検証できない）。
+      // amplitudeなし扱いになっていることをtick()させて確認する（isRunningだけでは検証できない）。
       controller.tick();
       expect(service.vibrateCalls.last.amplitude, isNull);
 
@@ -312,13 +273,11 @@ void main() {
     });
 
     test('start()は開始時に既存のバイブレーションをキャンセルしてからやり直す', () async {
-      // 1回目のstart()は何も鳴っていない状態からの開始なのでcancel()は呼ばれない
-      // （#8: 一度も開始していない場合はネイティブ側へのcancel()呼び出しを省略する）。
+      // 1回目のstart()は未開始状態からなのでcancel()は呼ばれない（#8）。
       await controller.start();
       expect(service.cancelCallCount, 0);
 
-      // 2回目のstart()は、1回目で鳴り始めたバイブレーションを止める必要があるため
-      // cancel()が呼ばれる。
+      // 2回目のstart()は1回目の振動を止める必要があるためcancel()が呼ばれる。
       await controller.start();
       expect(service.cancelCallCount, greaterThanOrEqualTo(1));
 
@@ -341,8 +300,7 @@ void main() {
         await controller.stop();
         final cancelCallCountAfterFirstStop = service.cancelCallCount;
 
-        // 既に停止済みの状態で、通知経由の停止検知とダイアログのストップ
-        // ボタンなど複数箇所から冗長にstop()が呼ばれるケースを想定。
+        // 通知経由の停止検知とダイアログのストップボタンなど複数箇所から冗長にstop()が呼ばれるケースを想定。
         await controller.stop();
 
         expect(service.cancelCallCount, cancelCallCountAfterFirstStop);
