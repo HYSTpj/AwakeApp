@@ -369,7 +369,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
 
     final wakeupTimeStr = formatTime(event['planned_wakeup_time']);
     final departureTimeStr = formatTime(event['planned_departure_time']);
-
     final eventId = (event['id'] ?? event['event_id'] ?? '').toString();
 
     return Container(
@@ -430,7 +429,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                       arrivalDateTime = arrivalTime;
                     }
 
-                    await Navigator.push(
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => SetTimePage(
@@ -443,7 +442,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                       ),
                     );
 
-                    if (mounted && selectedGroupId != null) {
+                    if (result == true && mounted && selectedGroupId != null) {
                       setState(() {
                         _eventsFuture = _fetchEvents(selectedGroupId!);
                       });
@@ -493,6 +492,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF6B7280),
+                    letterSpacing: 0.5,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

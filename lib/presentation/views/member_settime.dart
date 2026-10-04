@@ -130,7 +130,7 @@ class _SetTimePageState extends State<SetTimePage> {
     return '$hour:$minute';
   }
 
-  // 2. Supabase にスケジュールを永続化する保存処理
+  // 2. Supabase への保存処理
   Future<void> _handleSave() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
@@ -145,7 +145,6 @@ class _SetTimePageState extends State<SetTimePage> {
       final selected = _members[_selectedMemberIndex];
       final localArrival = widget.arrivalTime.toLocal();
 
-      // TimeOfDay から DateTime (当日日付) を構築して ISO8601 文字列にする
       final plannedWakeup = DateTime(
         localArrival.year,
         localArrival.month,
@@ -162,7 +161,6 @@ class _SetTimePageState extends State<SetTimePage> {
         selected.leaveHomeTime.minute,
       ).toUtc().toIso8601String();
 
-      // event_reports テーブルに対象ユーザーの予定時間を保存
       await client.from('event_reports').upsert({
         'event_id': widget.eventId,
         'user_id': uid,
@@ -175,7 +173,7 @@ class _SetTimePageState extends State<SetTimePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('スケジュールを保存しました')),
       );
-      Navigator.of(context).pop(true); // 成功フラグを持たせて戻る
+      Navigator.of(context).pop(true);
     } catch (e) {
       debugPrint('スケジュール保存エラー: $e');
       if (mounted) {

@@ -13,39 +13,37 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(  // 共通レイアウトを使用
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 戻るボタン
-              ReturnButton(onTap: () {
-                Navigator.pop(context);
-                debugPrint('1画面戻る');
-              }),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-              // 余白
-              const SizedBox(height: 40), 
+            const SizedBox(height: 16),
+            // 戻るボタン
+            ReturnButton(onTap: () {
+              Navigator.pop(context);
+              debugPrint('1画面戻る');
+            }),
 
-              // グループ新規作成ボタン
-              _createButton(context),
+            const Spacer(), // 真ん中に押し出す
 
-              const SizedBox(height: 32),
+            // グループ新規作成ボタン
+            _createButton(context),
 
-              // グループ参加ボタン
-              _addButton(context),
+            const SizedBox(height: 50,),  // ボタン同士の隙間
 
-              const SizedBox(height: 32),
+            // グループ参加ボタン
+            _addButton(context),
 
-              // グループ脱退ボタン
-              _deleteButton(context),
+            const SizedBox(height: 50,),  // ボタン同士の隙間
 
-              const SizedBox(height: 40), 
-            ],
-          ),
-        ),
+            // グループ脱退ボタン
+            _deleteButton(context),
+
+            const Spacer(), // 真ん中に押し出す
+          ],
+        )
       ),
     );
   }
