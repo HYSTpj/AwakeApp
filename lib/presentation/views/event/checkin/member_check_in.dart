@@ -116,6 +116,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
+  Future<void> _handleReportLate() async {
+    final reportId = await _viewModel.getOrCreateReportId();
+
+    if (!mounted) return;
+
+    if (reportId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'ログイン情報が見つかりません。再度ログインしてください。',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final res = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LateReportPage(
+          reportId: reportId,
+          eventId: widget.eventId,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (res == true) {
+      await _viewModel.loadData();
+    }
+  }
+
   // 取得失敗時に表示する再試行ビュー
   Widget _buildErrorRetryView() {
     return Center(
@@ -189,34 +224,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                         ),
                         const SizedBox(height: 16),
                         ReportLateButton(
-                          onTap: !_viewModel.isParticipant
-                              ? null
-                              : () async {
-                                  final ctx = context;
-                                  final reportId = await _viewModel.getOrCreateReportId();
-                                  if (!ctx.mounted) return;
-
-                                  if (reportId == null) {
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    return;
-                                  }
-
-                                  final res = await Navigator.push<bool>(
-                                    ctx,
-                                    MaterialPageRoute(
-                                      builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
-                                    ),
-                                  );
-
-                                  if (res == true) {
-                                    await _viewModel.loadData();
-                                  }
-                                },
+                          onTap: !_viewModel.isParticipant ? null : _handleReportLate,
                         ),
                       ],
                     ),
@@ -228,43 +236,57 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   }
 
   Widget _buildGroupDropdown() {
-    // ViewModel等からグループ名が取れる場合はその名前、なければイベント名や仮名を表示
-    return GroupNameDropdown(groupName: widget.eventTitle);
+    return GroupNameDropdown(
+      title: widget.groupId,
+      onTap: () => Navigator.of(context).pop(),
+    );
   }
 }
 
 class GroupNameDropdown extends StatelessWidget {
-  final String groupName;
-  
-  const GroupNameDropdown({super.key, required this.groupName});
+  final String title;
+  final VoidCallback? onTap;
+
+  const GroupNameDropdown({
+    super.key,
+    required this.title,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     const borderColor = Color(0xFF1A1C1C);
-    
-    return Container(
-      width: 362,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: borderColor, width: 4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            groupName,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: borderColor,
-              letterSpacing: 0.5,
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 362,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: borderColor, width: 4),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: borderColor,
+                  letterSpacing: 0.5,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
-        ],
+            const Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
+          ],
+        ),
       ),
     );
   }
