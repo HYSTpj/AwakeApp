@@ -42,6 +42,11 @@ class GradualVibrationController {
   // 一度でも振動を開始したことがあるか。falseの間はネイティブ側に
   // キャンセルすべき振動が存在しないため、cancel()の呼び出しを省略できる。
   bool _hasEverStarted = false;
+  // tick()で発行したvibrate()がネイティブ側で完了したことを未確認の間、
+  // そのFutureを保持する。_cancelVibration()はcancel()を呼ぶ前にこれを
+  // 待つことで、vibrate()より先にcancel()が届いてしまい、遅れて届いた
+  // vibrate()で振動が1回だけ残るレースを防ぐ。
+  Future<void>? _pendingVibrate;
 
   // _timerが非nullなのは常に鳴動中なので、専用のboolフィールドは持たず
   // _timerの有無から直接判定する（別々のフィールドだと更新を書き忘れて
@@ -103,14 +108,14 @@ class GradualVibrationController {
 
   /// [tickInterval] 経過ごとの1回分の処理。
   void tick() {
-    unawaited(
-      _vibrationService
-          .vibrate(
-            duration: 1000,
-            amplitude: _hasAmplitude ? _currentIntensity : null,
-          )
-          .catchError((e) => debugPrint('バイブレーションに失敗しました: $e')),
-    );
+    final vibrateFuture = _vibrationService
+        .vibrate(
+          duration: 1000,
+          amplitude: _hasAmplitude ? _currentIntensity : null,
+        )
+        .catchError((e) => debugPrint('バイブレーションに失敗しました: $e'));
+    _pendingVibrate = vibrateFuture;
+    unawaited(vibrateFuture);
 
     if (_hasAmplitude) {
       _elapsedSinceEscalation += _tickInterval;
@@ -152,6 +157,12 @@ class GradualVibrationController {
   }
 
   Future<void> _cancelVibration() async {
+    final pendingVibrate = _pendingVibrate;
+    _pendingVibrate = null;
+    if (pendingVibrate != null) {
+      await pendingVibrate;
+    }
+
     try {
       await _vibrationService.cancel();
     } catch (e) {

@@ -5,14 +5,21 @@ import 'package:flutter_application_1/services/gradual_vibration_controller.dart
 import 'package:flutter_application_1/services/vibration_service.dart';
 
 class FakeVibrationService implements VibrationService {
-  FakeVibrationService(this._hasAmplitudeControl, {Future<void> Function()? cancel})
-      : _cancel = cancel;
+  FakeVibrationService(
+    this._hasAmplitudeControl, {
+    Future<void> Function()? cancel,
+    Future<void> Function()? vibrate,
+  })  : _cancel = cancel,
+        _vibrate = vibrate;
 
   final Future<bool> Function() _hasAmplitudeControl;
   // 省略時はテストのデフォルト動作として即座に完了する。
   // cancel()の完了タイミング自体を制御したいテスト（1箇所目の世代チェックの
   // 検証など）のためにオーバーライド可能にしている。
   final Future<void> Function()? _cancel;
+  // vibrate()の完了タイミングをテスト側から制御するためのオーバーライド
+  // （stop()がvibrate()の完了を待ってからcancel()するレース対策の検証用）。
+  final Future<void> Function()? _vibrate;
   final List<({int? duration, int? amplitude})> vibrateCalls = [];
   int cancelCallCount = 0;
 
@@ -22,6 +29,9 @@ class FakeVibrationService implements VibrationService {
   @override
   Future<void> vibrate({int? duration, int? amplitude}) async {
     vibrateCalls.add((duration: duration, amplitude: amplitude));
+    if (_vibrate != null) {
+      await _vibrate();
+    }
   }
 
   @override
@@ -350,6 +360,42 @@ void main() {
 
         expect(controller.isRunning, isFalse);
         expect(service.cancelCallCount, 0);
+      },
+    );
+
+    test(
+      'tick()のvibrate()がまだ完了していない間にstop()が呼ばれても、'
+      'cancel()はvibrate()の完了を待ってから呼ばれる'
+      '(stop()直後に遅れて届いたvibrateで振動が1回だけ残るレースの防止)',
+      () async {
+        final vibrateCompleter = Completer<void>();
+        final order = <String>[];
+        final service = FakeVibrationService(
+          () async => true,
+          vibrate: () async {
+            order.add('vibrate-dispatch');
+            await vibrateCompleter.future;
+            order.add('vibrate-done');
+          },
+          cancel: () async {
+            order.add('cancel');
+          },
+        );
+        final controller = GradualVibrationController(vibrationService: service);
+
+        await controller.start();
+        controller.tick();
+
+        final stopFuture = controller.stop();
+
+        // vibrate()がまだ完了していないので、cancel()はまだ呼ばれていないはず。
+        expect(service.cancelCallCount, 0);
+
+        vibrateCompleter.complete();
+        await stopFuture;
+
+        expect(order, ['vibrate-dispatch', 'vibrate-done', 'cancel']);
+        expect(service.cancelCallCount, 1);
       },
     );
   });
