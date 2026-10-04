@@ -45,6 +45,12 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'CREATE ACCOUNT'));
       await tester.pumpAndSettle();
 
+      // フラグが期待した入力値の呼び出しから立ったことを明示的に確認する
+      verify(() => mockAuthRepository.signUp(
+            email: 'pending@example.com',
+            password: 'password123',
+          )).called(1);
+
       expect(find.text('サインアップについて'), findsOneWidget);
       expect(
         find.text(
