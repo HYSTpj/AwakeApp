@@ -24,6 +24,7 @@ class _GroupListPageState extends State<GroupListPage> {
   late final GroupViewModel _viewModel;
   bool _isLocalViewModel = false;
   String? selectedGroupId;
+  String? selectedGroupName;
   int? myRole;
 
   @override
@@ -41,7 +42,26 @@ class _GroupListPageState extends State<GroupListPage> {
     }
 
     _viewModel.addListener(_onViewModelUpdated);
-    _viewModel.loadGroups();
+    _initGroups();
+  }
+
+  Future<void> _initGroups() async {
+    await _viewModel.loadGroups();
+    // initialGroupId が渡されている場合は初期選択
+    if (widget.initialGroupId != null && mounted) {
+      final groups = _viewModel.state.groups;
+      if (groups.any((g) => g.id == widget.initialGroupId)) {
+        final role = await _fetchUserRole(widget.initialGroupId!);
+        if (mounted && role != null) {
+          final g = groups.firstWhere((element) => element.id == widget.initialGroupId);
+          setState(() {
+            selectedGroupId = widget.initialGroupId;
+            selectedGroupName = g.groupName;
+            myRole = role;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -91,6 +111,9 @@ class _GroupListPageState extends State<GroupListPage> {
     final isLoading = _viewModel.state.isLoading;
 
     return CommonLayout(
+      groupId: selectedGroupId,
+      groupName: selectedGroupName,
+      myRole: myRole,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -182,32 +205,44 @@ class _GroupListPageState extends State<GroupListPage> {
                             if (!mounted) return;
                             setState(() {
                               selectedGroupId = null;
+                              selectedGroupName = null;
                               myRole = null;
                             });
                           }
                         } else {
                           final int? role = await _fetchUserRole(value);
-
                           if (!context.mounted) return;
 
-                          // role: 1 は一般メンバー（Member）
+                          // ロールが取得できない場合は管理者(0)に偽装せずエラー表示
+                          if (role == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('権限情報を取得できませんでした')),
+                            );
+                            return;
+                          }
+
+                          final targetGroup = groups.firstWhere((g) => g.id == value);
+
+                          // 一般メンバー（role == 1）
                           if (role == 1) {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => EventSelectionHome(
                                   groupId: value,
-                                  myRole: role!,
+                                  groupName: targetGroup.groupName, // 💡 正しいグループ名を渡す
+                                  myRole: role,
                                 ),
                               ),
                             );
                             return;
                           }
 
-                          // 管理者 (role == 0 など) の場合はその場で表示切り替え
+                          // 管理者の場合はその場で選択
                           setState(() {
                             selectedGroupId = value;
-                            myRole = role ?? 0;
+                            selectedGroupName = targetGroup.groupName;
+                            myRole = role;
                           });
 
                           debugPrint("グループ $value (役割: $myRole) を選択");

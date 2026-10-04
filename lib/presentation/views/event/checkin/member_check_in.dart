@@ -10,6 +10,7 @@ class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final String groupName;
   final int myRole;
 
   const MemberCheckInPage({
@@ -17,6 +18,7 @@ class MemberCheckInPage extends StatefulWidget {
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    required this.groupName,
     required this.myRole,
   });
 
@@ -74,7 +76,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   Future<void> _handleCheckIn() async {
     if (_viewModel.isCheckInPressed || !_viewModel.isParticipant) return;
 
-    // QRスキャナーまたはパスコード画面へ遷移して結果を受け取る
     final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
@@ -90,7 +91,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     if (scannedResult != null) {
       final type = scannedResult['type'];
       final value = scannedResult['value'];
-      
+
       if (type == null || value == null) return;
 
       final isValid = await _viewModel.verifyAndCheckIn(type, value);
@@ -151,7 +152,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
-  // 取得失敗時に表示する再試行ビュー
   Widget _buildErrorRetryView() {
     return Center(
       child: Padding(
@@ -190,11 +190,14 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ViewModelの変更を監視してUIを自動再描画
     return AnimatedBuilder(
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
+          groupId: widget.groupId,
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          myRole: widget.myRole,
           body: _viewModel.loadError == CheckInLoadError.fetchFailed
               ? _buildErrorRetryView()
               : SingleChildScrollView(
@@ -237,7 +240,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
 
   Widget _buildGroupDropdown() {
     return GroupNameDropdown(
-      title: widget.groupId,
+      title: widget.groupName,
       onTap: () => Navigator.of(context).pop(),
     );
   }
@@ -281,9 +284,11 @@ class GroupNameDropdown extends StatelessWidget {
                   color: borderColor,
                   letterSpacing: 0.5,
                 ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
             const Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
           ],
         ),
@@ -291,7 +296,6 @@ class GroupNameDropdown extends StatelessWidget {
     );
   }
 }
-
 
 class CurrentStatusPanel extends StatelessWidget {
   const CurrentStatusPanel({super.key, required this.status});

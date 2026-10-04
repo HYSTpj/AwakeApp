@@ -10,11 +10,13 @@ import '../../views/member_settime.dart';
 
 class EventSelectionHome extends StatefulWidget {
   final String groupId;
+  final String groupName;
   final int myRole;
 
   const EventSelectionHome({
     super.key,
     required this.groupId,
+    required this.groupName,
     required this.myRole,
   });
 
@@ -25,6 +27,7 @@ class EventSelectionHome extends StatefulWidget {
 class _EventSelectionHomeState extends State<EventSelectionHome> {
   final SupabaseClient _supabase = Supabase.instance.client;
   String? selectedGroupId;
+  String? selectedGroupName;
   List<Map<String, dynamic>> _myGroups = [];
   bool _isLoadingGroups = true;
   Future<List<Map<String, dynamic>>>? _eventsFuture;
@@ -34,6 +37,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   void initState() {
     super.initState();
     myRole = widget.myRole;
+    selectedGroupId = widget.groupId;
+    selectedGroupName = widget.groupName;
     _loadGroups();
   }
 
@@ -47,7 +52,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
     try {
       final response = await _supabase
           .from('groups_memberships')
-          .select('group_id, groups ( id, group_name, invitation_code )')
+          .select('group_id, role, groups ( id, group_name, invitation_code )')
           .eq('user_id', uid);
 
       final groupList = (response as List<dynamic>).map((item) {
@@ -56,6 +61,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           'group_id': item['group_id'] as String,
           'group_name': (g['group_name'] ?? 'Unnamed Group') as String,
           'invitation_code': (g['invitation_code'] ?? '') as String,
+          'role': item['role'] as int? ?? 1,
         };
       }).toList();
 
@@ -64,11 +70,13 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
           _myGroups = groupList;
           _isLoadingGroups = false;
           if (groupList.isNotEmpty) {
-            // 💡 渡された groupId が所属リストにあればそれを選択、なければ先頭を選択
-            final initialGroup = groupList.any((g) => g['group_id'] == widget.groupId)
-                ? widget.groupId
-                : groupList.first['group_id'] as String;
-            selectedGroupId = initialGroup;
+            final currentGroup = groupList.firstWhere(
+              (g) => g['group_id'] == widget.groupId,
+              orElse: () => groupList.first,
+            );
+            selectedGroupId = currentGroup['group_id'] as String?;
+            selectedGroupName = currentGroup['group_name'] as String?;
+            myRole = (currentGroup['role'] as int?) ?? 1;
             _eventsFuture = _fetchEvents(selectedGroupId!);
           }
         });
@@ -100,6 +108,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   Widget build(BuildContext context) {
     return CommonLayout(
       groupId: selectedGroupId,
+      groupName: selectedGroupName,
       myRole: myRole,
       body: Column(
         children: [
@@ -193,8 +202,11 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                 MaterialPageRoute(builder: (context) => const CreateOrAddOrDeletePage()),
               );
             } else {
+              final group = _myGroups.firstWhere((g) => g['group_id'] == newGroupId);
               setState(() {
                 selectedGroupId = newGroupId;
+                selectedGroupName = group['group_name'];
+                myRole = group['role'];
                 _eventsFuture = _fetchEvents(newGroupId);
               });
             }
@@ -349,7 +361,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
       }
     }
 
-    // 💡 未定義だった起床・出発時間をパース（データがなければ '--:--'）
     String formatTime(dynamic rawTime) {
       if (rawTime == null) return '--:--';
       DateTime? dt = rawTime is DateTime ? rawTime : DateTime.tryParse(rawTime.toString());
@@ -394,7 +405,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                 ),
               ),
               const SizedBox(width: 16),
-              // 設定ボタン
               Container(
                 width: 44,
                 height: 44,
@@ -427,13 +437,12 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                           groupId: selectedGroupId ?? widget.groupId,
                           eventId: eventId,
                           eventTitle: title,
-                          myRole: widget.myRole,
+                          myRole: myRole,
                           arrivalTime: arrivalDateTime,
                         ),
                       ),
                     );
 
-                    // 💡 最新時間を Supabase からリフレッシュ
                     if (mounted && selectedGroupId != null) {
                       setState(() {
                         _eventsFuture = _fetchEvents(selectedGroupId!);
@@ -443,7 +452,6 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                 ),
               ),
               const SizedBox(width: 16),
-              // Arrow Button
               InkWell(
                 onTap: () {
                   Navigator.push(
@@ -453,7 +461,8 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
                         eventId: eventId,
                         eventTitle: title,
                         groupId: selectedGroupId ?? widget.groupId,
-                        myRole: widget.myRole,
+                        groupName: selectedGroupName ?? widget.groupName,
+                        myRole: myRole,
                       ),
                     ),
                   );

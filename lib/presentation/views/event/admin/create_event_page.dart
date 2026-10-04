@@ -22,7 +22,6 @@ const _kValueStyle = TextStyle(
   color: Colors.black,
 );
 
-
 class _LabelText extends StatelessWidget {
   final String text;
   const _LabelText(this.text);
@@ -209,7 +208,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // 戻るボタン
             Padding(
               padding: const EdgeInsets.only(left: 14, top: 9),
@@ -258,7 +256,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // イベント名
                   const _LabelText('EVENT NAME'),
                   const SizedBox(height: 4),
@@ -292,6 +289,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       controller: _passwordController,
                       textAlignVertical: TextAlignVertical.center,
                       style: _kValueStyle,
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         hintText: 'Enter backup numeric passcode...',
                         border: InputBorder.none,
@@ -346,34 +344,45 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
                       onTap: () async {
-                        // 1. 入力チェック
-                        if (_nameController.text.trim().isEmpty || _locationController.text.trim().isEmpty) {
+                        final title = _nameController.text.trim();
+                        final location = _locationController.text.trim();
+                        final password = _passwordController.text.trim();
+
+                        // 1. イベント名・場所・パスコードの全入力検証を追加
+                        if (title.isEmpty || location.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill in all fields.')),
+                            const SnackBar(content: Text('Please enter event name and location.')),
                           );
                           return;
                         }
 
-                        // 2. 次の画面（参加者選択ページ）へ入力パラメータを渡して遷移
-                        // ※ SupabaseAdminEventRepository では、参加者確定時に RPC (create_event_with_participants) で一括生成するため
+                        if (password.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a check-in passcode.')),
+                          );
+                          return;
+                        }
+
+                        // 2. 次の画面へ password を引き渡す
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectParticipantsPage(
                               groupId: widget.groupId,
-                              title: _nameController.text.trim(),
-                              destinationName: _locationController.text.trim(),
+                              title: title,
+                              destinationName: location,
                               latitude: _selectedLocation.latitude,
                               longitude: _selectedLocation.longitude,
                               arrivalTime: _scheduledTime,
+                              password: password,
+                              myRole: widget.myRole,
                             ),
                           ),
                         );
 
-                        // SelectParticipantsPage で作成が完了して true などが返ってきたら自分も閉じる
                         if (!context.mounted) return;
                         if (result == true) {
-                          Navigator.pop(context);
+                          Navigator.pop(context, true);
                         }
                       },
                       child: Container(
