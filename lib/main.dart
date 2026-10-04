@@ -33,7 +33,7 @@ void main() async {
   // 直書き文字列から EnvConfig 経由に変更
   await Supabase.initialize(
     url: EnvConfig.supabaseUrl,
-    anonKey: EnvConfig.supabaseAnonKey,
+    publishableKey: EnvConfig.supabaseAnonKey,
   );
 
   final client = Supabase.instance.client;
