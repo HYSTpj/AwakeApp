@@ -11,6 +11,7 @@ class CommonLayout extends StatelessWidget {
   final Widget body;
   final Widget? floatingActionButton;
   final String? groupId;
+  final String? groupName;
   final String? eventId;
   final String? eventTitle;
   final int? myRole;
@@ -20,6 +21,7 @@ class CommonLayout extends StatelessWidget {
     required this.body,
     this.floatingActionButton,
     this.groupId,
+    this.groupName,
     this.eventId,
     this.eventTitle,
     this.myRole,
@@ -203,7 +205,7 @@ class CommonLayout extends StatelessWidget {
     Widget? nextPage;
     switch (index) {
       case 0:
-        nextPage = const GroupListPage();
+        nextPage = GroupListPage(initialGroupId: groupId);
         break;
       case 1:
         if (myRole == 0) {
@@ -212,18 +214,22 @@ class CommonLayout extends StatelessWidget {
             myRole: myRole!,
           );
         } else {
+          // イベント未選択の場合はイベント選択画面へ遷移
           if (eventId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please select event.')),
+            nextPage = EventSelectionHome(
+              groupId: groupId!,
+              groupName: groupName ?? 'Group',
+              myRole: myRole!,
             );
-            return;
+          } else {
+            nextPage = MemberCheckInPage(
+              eventId: eventId!,
+              eventTitle: eventTitle ?? '',
+              groupId: groupId!,
+              groupName: groupName ?? 'Group',
+              myRole: myRole!,
+            );
           }
-          nextPage = MemberCheckInPage(
-            eventId: eventId!,
-            eventTitle: eventTitle ?? '',
-            groupId: groupId!,
-            myRole: myRole!,
-          );
         }
         break;
       case 2:
@@ -243,7 +249,6 @@ class CommonLayout extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
-      debugPrint('グループが選択されていません');
       return;
     }
 
@@ -252,14 +257,10 @@ class CommonLayout extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: groupId)),
       );
-      debugPrint('管理者ページへ移動');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('閲覧権限がありません（管理者のみ利用可能）'),
-        ),
+        const SnackBar(content: Text('閲覧権限がありません（管理者のみ利用可能）')),
       );
-      debugPrint('利用者のため遷移不可');
     }
   }
 
@@ -268,7 +269,6 @@ class CommonLayout extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
-      debugPrint('グループが選択されていません');
       return;
     }
 
@@ -276,12 +276,12 @@ class CommonLayout extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => EventSelectionHome(
-          groupId: groupId ?? "",
+          groupId: groupId!,
+          groupName: groupName ?? 'Group',
           myRole: myRole!,
         ),
       ),
     );
-    debugPrint('利用者ボタンが押されました');
   }
 
   void _onProfilePressed() {
