@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common_layout.dart';
 
 class MemberSetTimeViewData {
@@ -54,28 +55,30 @@ class SetTimePage extends StatefulWidget {
 class _SetTimePageState extends State<SetTimePage> {
   late List<MemberSetTimeViewData> _members;
   int _selectedMemberIndex = 0;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    // 渡されたメンバーがあればそれを使用、なければデフォルト初期値をセット
     if (widget.initialMembers != null && widget.initialMembers!.isNotEmpty) {
       _members = List<MemberSetTimeViewData>.from(widget.initialMembers!);
     } else {
+      // 1. ローカルタイムに変換してから各時刻を算出
+      final localArrival = widget.arrivalTime.toLocal();
       final arrivalTimeOfDay = TimeOfDay(
-        hour: widget.arrivalTime.hour,
-        minute: widget.arrivalTime.minute,
+        hour: localArrival.hour,
+        minute: localArrival.minute,
       );
       _members = [
         MemberSetTimeViewData(
           memberName: 'ME',
           wakeUpTime: TimeOfDay(
-            hour: (widget.arrivalTime.hour - 2 + 24) % 24,
-            minute: widget.arrivalTime.minute,
+            hour: (localArrival.hour - 2 + 24) % 24,
+            minute: localArrival.minute,
           ),
           leaveHomeTime: TimeOfDay(
-            hour: (widget.arrivalTime.hour - 1 + 24) % 24,
-            minute: widget.arrivalTime.minute,
+            hour: (localArrival.hour - 1 + 24) % 24,
+            minute: localArrival.minute,
           ),
           arrivalGoalTime: arrivalTimeOfDay,
         ),
@@ -125,6 +128,66 @@ class _SetTimePageState extends State<SetTimePage> {
     final String hour = time.hour.toString().padLeft(2, '0');
     final String minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  // 2. Supabase にスケジュールを永続化する保存処理
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) {
+        throw Exception('ログイン情報が見つかりません');
+      }
+
+      final selected = _members[_selectedMemberIndex];
+      final localArrival = widget.arrivalTime.toLocal();
+
+      // TimeOfDay から DateTime (当日日付) を構築して ISO8601 文字列にする
+      final plannedWakeup = DateTime(
+        localArrival.year,
+        localArrival.month,
+        localArrival.day,
+        selected.wakeUpTime.hour,
+        selected.wakeUpTime.minute,
+      ).toUtc().toIso8601String();
+
+      final plannedDeparture = DateTime(
+        localArrival.year,
+        localArrival.month,
+        localArrival.day,
+        selected.leaveHomeTime.hour,
+        selected.leaveHomeTime.minute,
+      ).toUtc().toIso8601String();
+
+      // event_reports テーブルに対象ユーザーの予定時間を保存
+      await client.from('event_reports').upsert({
+        'event_id': widget.eventId,
+        'user_id': uid,
+        'planned_wakeup_time': plannedWakeup,
+        'planned_departure_time': plannedDeparture,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'event_id,user_id');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('スケジュールを保存しました')),
+      );
+      Navigator.of(context).pop(true); // 成功フラグを持たせて戻る
+    } catch (e) {
+      debugPrint('スケジュール保存エラー: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('保存に失敗しました: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -209,12 +272,8 @@ class _SetTimePageState extends State<SetTimePage> {
             ),
             const SizedBox(height: 36),
             _SaveChangesButton(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('保存処理を実行します')),
-                );
-                Navigator.of(context).pop();
-              },
+              isLoading: _isSaving,
+              onTap: _handleSave,
             ),
           ],
         ),
@@ -384,13 +443,17 @@ class _ActionCardButton extends StatelessWidget {
 
 class _SaveChangesButton extends StatelessWidget {
   final VoidCallback onTap;
+  final bool isLoading;
 
-  const _SaveChangesButton({required this.onTap});
+  const _SaveChangesButton({
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -409,15 +472,24 @@ class _SaveChangesButton extends StatelessWidget {
             color: const Color(0xFFFF5C00),
             border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
           ),
-          child: const Text(
-            'SAVE CHANGES',
-            style: TextStyle(
-              fontSize: 40,
-              letterSpacing: 3,
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+              : const Text(
+                  'SAVE CHANGES',
+                  style: TextStyle(
+                    fontSize: 40,
+                    letterSpacing: 3,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
         ),
       ),
     );
