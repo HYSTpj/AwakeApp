@@ -46,7 +46,7 @@ class SignupBody extends StatelessWidget {
 
                                     // キャッチコピー
                                     Text(
-                                        'Join us among the elite who master time.\nLet`s AWAKE!',
+                                        'Join us among the elite who master time.\nLet\'sAWAKE!',
                                         textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: const Color(0xFF334155),
