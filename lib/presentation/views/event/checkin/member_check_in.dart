@@ -195,6 +195,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       builder: (context, _) {
         return CommonLayout(
           groupId: widget.groupId,
+          groupName: widget.groupName,
           eventId: widget.eventId,
           eventTitle: widget.eventTitle,
           myRole: widget.myRole,
