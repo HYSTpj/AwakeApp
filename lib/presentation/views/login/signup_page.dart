@@ -76,8 +76,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('確認メールを送信しました'),
-              content: const Text('メール内のリンクからログインしてください。'),
+              title: const Text('サインアップについて'),
+              content: const Text(
+                '確認メールが届いた場合はリンクからログインしてください。'
+                '届かない場合は、既存アカウントでログインしてください。',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
