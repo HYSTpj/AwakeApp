@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../data/repositories/group_repository.dart';
 import '../../../../models/group.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../common_layout.dart';
@@ -22,7 +21,6 @@ class GroupListPage extends StatefulWidget {
 
 class _GroupListPageState extends State<GroupListPage> {
   late final GroupViewModel _viewModel;
-  bool _isLocalViewModel = false;
   String? selectedGroupId;
   String? selectedGroupName;
   int? myRole;
@@ -30,17 +28,7 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   void initState() {
     super.initState();
-
-    final parentViewModel = context.read<GroupViewModel?>();
-    if (parentViewModel != null) {
-      _viewModel = parentViewModel;
-    } else {
-      _viewModel = GroupViewModel(
-        SupabaseGroupRepository(Supabase.instance.client),
-      );
-      _isLocalViewModel = true;
-    }
-
+    _viewModel = context.read<GroupViewModel>();
     _viewModel.addListener(_onViewModelUpdated);
     _initGroups();
   }
@@ -67,9 +55,6 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   void dispose() {
     _viewModel.removeListener(_onViewModelUpdated);
-    if (_isLocalViewModel) {
-      _viewModel.dispose();
-    }
     super.dispose();
   }
 
