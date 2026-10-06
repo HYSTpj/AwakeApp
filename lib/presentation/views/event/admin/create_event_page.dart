@@ -275,6 +275,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       textAlignVertical: TextAlignVertical.center,
                       style: _kValueStyle,
                       keyboardType: TextInputType.number,
+                      obscureText: true,
                       decoration: const InputDecoration(
                         hintText: 'Enter backup numeric passcode...',
                         border: InputBorder.none,
