@@ -6,26 +6,26 @@ class MemberSetTimeViewData {
   final String memberName;
   final TimeOfDay wakeUpTime;
   final TimeOfDay leaveHomeTime;
-  final TimeOfDay arrivalGoalTime;
+  final TimeOfDay arrivalTime;
 
   const MemberSetTimeViewData({
     required this.memberName,
     required this.wakeUpTime,
     required this.leaveHomeTime,
-    required this.arrivalGoalTime,
+    required this.arrivalTime,
   });
 
   MemberSetTimeViewData copyWith({
     String? memberName,
     TimeOfDay? wakeUpTime,
     TimeOfDay? leaveHomeTime,
-    TimeOfDay? arrivalGoalTime,
+    TimeOfDay? arrivalTime,
   }) {
     return MemberSetTimeViewData(
       memberName: memberName ?? this.memberName,
       wakeUpTime: wakeUpTime ?? this.wakeUpTime,
       leaveHomeTime: leaveHomeTime ?? this.leaveHomeTime,
-      arrivalGoalTime: arrivalGoalTime ?? this.arrivalGoalTime,
+      arrivalTime: arrivalTime ?? this.arrivalTime,
     );
   }
 }
@@ -80,7 +80,7 @@ class _SetTimePageState extends State<SetTimePage> {
             hour: (localArrival.hour - 1 + 24) % 24,
             minute: localArrival.minute,
           ),
-          arrivalGoalTime: arrivalTimeOfDay,
+          arrivalTime: arrivalTimeOfDay,
         ),
       ];
     }
@@ -118,7 +118,7 @@ class _SetTimePageState extends State<SetTimePage> {
           _members[_selectedMemberIndex] = member.copyWith(leaveHomeTime: picked);
           break;
         case 'arrival':
-          _members[_selectedMemberIndex] = member.copyWith(arrivalGoalTime: picked);
+          _members[_selectedMemberIndex] = member.copyWith(arrivalTime: picked);
           break;
       }
     });
@@ -250,11 +250,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   _ScheduleRow(
                     icon: Icons.calendar_month,
                     title: 'Arrival Goal',
-                    timeLabel: _timeLabel(selected.arrivalGoalTime),
-                    onTap: () => _pickTime(
-                      field: 'arrival',
-                      current: selected.arrivalGoalTime,
-                    ),
+                    timeLabel: _timeLabel(selected.arrivalTime),
                     highlight: true,
                   ),
                 ],
@@ -324,14 +320,14 @@ class _ScheduleRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String timeLabel;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool highlight;
 
   const _ScheduleRow({
     required this.icon,
     required this.title,
     required this.timeLabel,
-    required this.onTap,
+    this.onTap,
     this.highlight = false,
   });
 
