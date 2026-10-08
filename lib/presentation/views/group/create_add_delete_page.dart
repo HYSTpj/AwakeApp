@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
-import 'create_group_view.dart';
-import 'add_group_view.dart';
-import 'delete_group_view.dart';
+import 'create_group_page.dart';
+import 'add_group_page.dart';
+import 'delete_group_page.dart';
 
 /// グループ作成、参加、脱退を選択するページ
 class CreateOrAddOrDeletePage extends StatelessWidget {
