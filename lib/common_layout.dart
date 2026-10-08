@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'presentation/views/group/group_list_view.dart';
+import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
-import 'presentation/views/event/checkin/member_check_in.dart';
-import 'presentation/views/ranking/ranking_screen.dart';
-import 'presentation/views/event/event_selection_home.dart';
+import 'presentation/views/event/checkin/member_check_in_page.dart';
+import 'presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/event_selection_home_page.dart';
 
 class CommonLayout extends StatelessWidget {
   final Widget body; // 各画面の代入する中身
