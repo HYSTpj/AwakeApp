@@ -60,10 +60,10 @@ class _SetTimePageState extends State<SetTimePage> {
   @override
   void initState() {
     super.initState();
+    // 1. まずは初期値（渡された値またはデフォルト値）をセット
     if (widget.initialMembers != null && widget.initialMembers!.isNotEmpty) {
       _members = List<MemberSetTimeViewData>.from(widget.initialMembers!);
     } else {
-      // 1. ローカルタイムに変換してから各時刻を算出
       final localArrival = widget.arrivalTime.toLocal();
       final arrivalTimeOfDay = TimeOfDay(
         hour: localArrival.hour,
@@ -83,6 +83,54 @@ class _SetTimePageState extends State<SetTimePage> {
           arrivalTime: arrivalTimeOfDay,
         ),
       ];
+
+      // 2. 保存済みのスケジュールが存在する場合は非同期で復元
+      _loadSavedSchedule();
+    }
+  }
+
+  Future<void> _loadSavedSchedule() async {
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final response = await client
+          .from('event_reports')
+          .select('planned_wakeup_time, planned_departure_time')
+          .eq('event_id', widget.eventId)
+          .eq('user_id', uid)
+          .maybeSingle();
+
+      if (!mounted || response == null) return;
+
+      final wakeupStr = response['planned_wakeup_time'] as String?;
+      final departureStr = response['planned_departure_time'] as String?;
+
+      if (wakeupStr == null && departureStr == null) return;
+
+      setState(() {
+        TimeOfDay? savedWakeup;
+        TimeOfDay? savedDeparture;
+
+        if (wakeupStr != null) {
+          final wakeupUtc = DateTime.parse(wakeupStr).toLocal();
+          savedWakeup = TimeOfDay(hour: wakeupUtc.hour, minute: wakeupUtc.minute);
+        }
+
+        if (departureStr != null) {
+          final depUtc = DateTime.parse(departureStr).toLocal();
+          savedDeparture = TimeOfDay(hour: depUtc.hour, minute: depUtc.minute);
+        }
+
+        final current = _members[0];
+        _members[0] = current.copyWith(
+          wakeUpTime: savedWakeup ?? current.wakeUpTime,
+          leaveHomeTime: savedDeparture ?? current.leaveHomeTime,
+        );
+      });
+    } catch (e) {
+      debugPrint('保存済みスケジュールの読み込みに失敗: $e');
     }
   }
 
@@ -130,7 +178,6 @@ class _SetTimePageState extends State<SetTimePage> {
     return '$hour:$minute';
   }
 
-  // 2. Supabase への保存処理
   Future<void> _handleSave() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
@@ -145,7 +192,6 @@ class _SetTimePageState extends State<SetTimePage> {
       final selected = _members[_selectedMemberIndex];
       final localArrival = widget.arrivalTime.toLocal();
 
-      // 集合時刻より遅い時刻（例: 01:00集合に対して23:00起床）は前日として扱う
       DateTime atOrBefore(TimeOfDay t) {
         var d = DateTime(
           localArrival.year,
