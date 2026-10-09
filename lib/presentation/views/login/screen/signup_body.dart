@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
 import 'loading_button_label.dart';
+import '../common_effects.dart';
 
 class SignupBody extends StatelessWidget {
   final TextEditingController emailController;
@@ -49,7 +50,7 @@ class SignupBody extends StatelessWidget {
 
                                     // キャッチコピー
                                     Text(
-                                        'Join us among the elite who master time.',
+                                        'Join us among the elite who master time.\nLet\'sAWAKE!',
                                         textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: const Color(0xFF334155),
@@ -84,26 +85,23 @@ class SignupBody extends StatelessWidget {
                                         ),
                                     ),
 
-                                    SizedBox(
+                                    Container(
                                         width: 320,
                                         height: 56,
+                                        decoration: hardShadowDecoration(
+                                            color: Colors.white,
+                                            borderColor: const Color(0xFF6B7280),
+                                        ),
                                         child: TextField(
                                             controller: emailController, // LoginPageで定義したcontrollerをTextFieldに渡す
-                                            decoration: InputDecoration(
-                                                filled: true, // 色を塗ることを許可する
-                                                fillColor: Colors.white, // colorの代わりにfillColor
-                                                
-                                                border: OutlineInputBorder( // shapeの代わりにborderを使う
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: const Color(0xFF6B7280),
-                                                    ),
-                                                ),
-
-                                                hintText: 'your@email.com'
+                                            decoration: const InputDecoration(
+                                                hintText: 'your@email.com',
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                                             ),
                                         ),
                                     ),
+                                    const SizedBox(height: 16), // 影との重なりを防ぐための余白
 
                                     // PASSWORD
                                     Text(
@@ -123,18 +121,9 @@ class SignupBody extends StatelessWidget {
                                         width: 320,
                                         height: 56,
 
-                                        decoration: BoxDecoration(
+                                        decoration: hardShadowDecoration(
                                             color: Colors.white,
-                                            border: Border.all(
-                                                color: const Color(0xFF6B7280), 
-                                                width: 1,
-                                            ),
-                                            boxShadow: const [
-                                                BoxShadow(
-                                                    color: Colors.black,
-                                                    offset: Offset(4, 4), // 右下のくっきりした影
-                                                ),
-                                            ],
+                                            borderColor: const Color(0xFF6B7280),
                                         ),
 
                                         child: TextField(
@@ -155,16 +144,7 @@ class SignupBody extends StatelessWidget {
                                             width: 320,
                                             height: 56,
                                             padding: const EdgeInsets.only(top: 0, bottom: 0), // ボタン自体が中央に寄るので0でOK
-                                            decoration: BoxDecoration(
-                                                color: const Color(0xFFEC5B13), // オレンジ色
-                                                border: Border.all(color: Colors.black, width: 1), // 枠線
-                                                boxShadow: const [
-                                                BoxShadow(
-                                                    color: Colors.black,
-                                                    offset: Offset(4, 4), // あの影！
-                                                ),
-                                                ],
-                                            ),
+                                            decoration: hardShadowDecoration(color: kBrandOrange),
                                             child: ElevatedButton(
                                                 onPressed: isLoading ? null : onRegisterPressed, // 引数で受け取ったonRegisterPressedをここで呼び出す
                                                 style: ElevatedButton.styleFrom(
@@ -185,18 +165,8 @@ class SignupBody extends StatelessWidget {
                                     width: 320,
                                     height: 48,
                                     // 💡 ポイント：paddingをEdgeInsets.zeroにしてズレを防ぐ
-                                    padding: EdgeInsets.zero, 
-                                    decoration: BoxDecoration(
-                                        // ✅ 解決策：ここを不透明な「白」にする
-                                        color: Colors.white, 
-                                        border: Border.all(color: Colors.black, width: 1), // 枠線
-                                        boxShadow: const [
-                                        BoxShadow(
-                                            color: Colors.black,
-                                            offset: Offset(4, 4), // 影
-                                        ),
-                                        ],
-                                    ),
+                                    padding: EdgeInsets.zero,
+                                    decoration: hardShadowDecoration(color: Colors.white),
                                     child: ElevatedButton(
                                         onPressed: onReturnToLoginPressed,
                                         style: ElevatedButton.styleFrom(
