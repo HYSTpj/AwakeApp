@@ -1,80 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common_layout.dart';
 
 class MemberSetTimeViewData {
   final String memberName;
   final TimeOfDay wakeUpTime;
   final TimeOfDay leaveHomeTime;
-  final TimeOfDay arrivalGoalTime;
+  final TimeOfDay arrivalTime;
 
   const MemberSetTimeViewData({
     required this.memberName,
     required this.wakeUpTime,
     required this.leaveHomeTime,
-    required this.arrivalGoalTime,
+    required this.arrivalTime,
   });
 
   MemberSetTimeViewData copyWith({
     String? memberName,
     TimeOfDay? wakeUpTime,
     TimeOfDay? leaveHomeTime,
-    TimeOfDay? arrivalGoalTime,
+    TimeOfDay? arrivalTime,
   }) {
     return MemberSetTimeViewData(
       memberName: memberName ?? this.memberName,
       wakeUpTime: wakeUpTime ?? this.wakeUpTime,
       leaveHomeTime: leaveHomeTime ?? this.leaveHomeTime,
-      arrivalGoalTime: arrivalGoalTime ?? this.arrivalGoalTime,
+      arrivalTime: arrivalTime ?? this.arrivalTime,
     );
   }
 }
 
-class MemberSetTimePage extends StatefulWidget {
-  final List<MemberSetTimeViewData> initialMembers;
+class SetTimePage extends StatefulWidget {
+  final String groupId;
+  final String eventId;
+  final String eventTitle;
+  final int myRole;
+  final DateTime arrivalTime;
+  final List<MemberSetTimeViewData>? initialMembers;
 
-  const MemberSetTimePage({
+  const SetTimePage({
     super.key,
-    required this.initialMembers,
+    required this.groupId,
+    required this.eventId,
+    required this.eventTitle,
+    required this.myRole,
+    required this.arrivalTime,
+    this.initialMembers,
   });
 
-  factory MemberSetTimePage.withDummyData({Key? key}) {
-    return MemberSetTimePage(
-      key: key,
-      initialMembers: const [
-        MemberSetTimeViewData(
-          memberName: 'Sora Tanaka',
-          wakeUpTime: TimeOfDay(hour: 6, minute: 10),
-          leaveHomeTime: TimeOfDay(hour: 7, minute: 5),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-        MemberSetTimeViewData(
-          memberName: 'Yui Sato',
-          wakeUpTime: TimeOfDay(hour: 6, minute: 30),
-          leaveHomeTime: TimeOfDay(hour: 7, minute: 20),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-        MemberSetTimeViewData(
-          memberName: 'Ren Kato',
-          wakeUpTime: TimeOfDay(hour: 5, minute: 50),
-          leaveHomeTime: TimeOfDay(hour: 6, minute: 55),
-          arrivalGoalTime: TimeOfDay(hour: 8, minute: 0),
-        ),
-      ],
-    );
-  }
-
   @override
-  State<MemberSetTimePage> createState() => _MemberSetTimePageState();
+  State<SetTimePage> createState() => _SetTimePageState();
 }
 
-class _MemberSetTimePageState extends State<MemberSetTimePage> {
+class _SetTimePageState extends State<SetTimePage> {
   late List<MemberSetTimeViewData> _members;
   int _selectedMemberIndex = 0;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _members = List<MemberSetTimeViewData>.from(widget.initialMembers);
+    // 1. まずは初期値（渡された値またはデフォルト値）をセット
+    if (widget.initialMembers != null && widget.initialMembers!.isNotEmpty) {
+      _members = List<MemberSetTimeViewData>.from(widget.initialMembers!);
+    } else {
+      final localArrival = widget.arrivalTime.toLocal();
+      final arrivalTimeOfDay = TimeOfDay(
+        hour: localArrival.hour,
+        minute: localArrival.minute,
+      );
+      _members = [
+        MemberSetTimeViewData(
+          memberName: 'ME',
+          wakeUpTime: TimeOfDay(
+            hour: (localArrival.hour - 2 + 24) % 24,
+            minute: localArrival.minute,
+          ),
+          leaveHomeTime: TimeOfDay(
+            hour: (localArrival.hour - 1 + 24) % 24,
+            minute: localArrival.minute,
+          ),
+          arrivalTime: arrivalTimeOfDay,
+        ),
+      ];
+
+      // 2. 保存済みのスケジュールが存在する場合は非同期で復元
+      _loadSavedSchedule();
+    }
+  }
+
+  Future<void> _loadSavedSchedule() async {
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) return;
+
+      final response = await client
+          .from('event_reports')
+          .select('planned_wakeup_time, planned_departure_time')
+          .eq('event_id', widget.eventId)
+          .eq('user_id', uid)
+          .maybeSingle();
+
+      if (!mounted || response == null) return;
+
+      final wakeupStr = response['planned_wakeup_time'] as String?;
+      final departureStr = response['planned_departure_time'] as String?;
+
+      if (wakeupStr == null && departureStr == null) return;
+
+      setState(() {
+        TimeOfDay? savedWakeup;
+        TimeOfDay? savedDeparture;
+
+        if (wakeupStr != null) {
+          final wakeupUtc = DateTime.parse(wakeupStr).toLocal();
+          savedWakeup = TimeOfDay(hour: wakeupUtc.hour, minute: wakeupUtc.minute);
+        }
+
+        if (departureStr != null) {
+          final depUtc = DateTime.parse(departureStr).toLocal();
+          savedDeparture = TimeOfDay(hour: depUtc.hour, minute: depUtc.minute);
+        }
+
+        final current = _members[0];
+        _members[0] = current.copyWith(
+          wakeUpTime: savedWakeup ?? current.wakeUpTime,
+          leaveHomeTime: savedDeparture ?? current.leaveHomeTime,
+        );
+      });
+    } catch (e) {
+      debugPrint('保存済みスケジュールの読み込みに失敗: $e');
+    }
   }
 
   Future<void> _pickTime({
@@ -106,14 +163,10 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
           _members[_selectedMemberIndex] = member.copyWith(wakeUpTime: picked);
           break;
         case 'leave':
-          _members[_selectedMemberIndex] = member.copyWith(
-            leaveHomeTime: picked,
-          );
+          _members[_selectedMemberIndex] = member.copyWith(leaveHomeTime: picked);
           break;
         case 'arrival':
-          _members[_selectedMemberIndex] = member.copyWith(
-            arrivalGoalTime: picked,
-          );
+          _members[_selectedMemberIndex] = member.copyWith(arrivalTime: picked);
           break;
       }
     });
@@ -125,18 +178,80 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
     return '$hour:$minute';
   }
 
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) {
+        throw Exception('ログイン情報が見つかりません');
+      }
+
+      final selected = _members[_selectedMemberIndex];
+      final localArrival = widget.arrivalTime.toLocal();
+
+      DateTime atOrBefore(TimeOfDay t) {
+        var d = DateTime(
+          localArrival.year,
+          localArrival.month,
+          localArrival.day,
+          t.hour,
+          t.minute,
+        );
+        if (d.isAfter(localArrival)) {
+          d = d.subtract(const Duration(days: 1));
+        }
+        return d;
+      }
+
+      final plannedWakeup = atOrBefore(selected.wakeUpTime).toUtc().toIso8601String();
+      final plannedDeparture = atOrBefore(selected.leaveHomeTime).toUtc().toIso8601String();
+
+      await client.from('event_reports').upsert({
+        'event_id': widget.eventId,
+        'user_id': uid,
+        'planned_wakeup_time': plannedWakeup,
+        'planned_departure_time': plannedDeparture,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'event_id,user_id');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('スケジュールを保存しました')),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      debugPrint('スケジュール保存エラー: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('保存に失敗しました: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final MemberSetTimeViewData selected = _members[_selectedMemberIndex];
 
     return CommonLayout(
+      groupId: widget.groupId,
+      myRole: widget.myRole,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildMemberDropdown(),
-            const SizedBox(height: 24),
+            if (_members.length > 1) ...[
+              _buildMemberDropdown(),
+              const SizedBox(height: 24),
+            ],
             const Text(
               'My Schedule',
               style: TextStyle(
@@ -181,11 +296,7 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
                   _ScheduleRow(
                     icon: Icons.calendar_month,
                     title: 'Arrival Goal',
-                    timeLabel: _timeLabel(selected.arrivalGoalTime),
-                    onTap: () => _pickTime(
-                      field: 'arrival',
-                      current: selected.arrivalGoalTime,
-                    ),
+                    timeLabel: _timeLabel(selected.arrivalTime),
                     highlight: true,
                   ),
                 ],
@@ -203,11 +314,8 @@ class _MemberSetTimePageState extends State<MemberSetTimePage> {
             ),
             const SizedBox(height: 36),
             _SaveChangesButton(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Dummy UI: save action.')),
-                );
-              },
+              isLoading: _isSaving,
+              onTap: _handleSave,
             ),
           ],
         ),
@@ -258,14 +366,14 @@ class _ScheduleRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String timeLabel;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool highlight;
 
   const _ScheduleRow({
     required this.icon,
     required this.title,
     required this.timeLabel,
-    required this.onTap,
+    this.onTap,
     this.highlight = false,
   });
 
@@ -377,13 +485,17 @@ class _ActionCardButton extends StatelessWidget {
 
 class _SaveChangesButton extends StatelessWidget {
   final VoidCallback onTap;
+  final bool isLoading;
 
-  const _SaveChangesButton({required this.onTap});
+  const _SaveChangesButton({
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -402,15 +514,24 @@ class _SaveChangesButton extends StatelessWidget {
             color: const Color(0xFFFF5C00),
             border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
           ),
-          child: const Text(
-            'SAVE CHANGES',
-            style: TextStyle(
-              fontSize: 40,
-              letterSpacing: 3,
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+              : const Text(
+                  'SAVE CHANGES',
+                  style: TextStyle(
+                    fontSize: 40,
+                    letterSpacing: 3,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
         ),
       ),
     );
