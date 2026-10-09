@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screen/create_account_body.dart';
@@ -45,12 +46,25 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
   // 画像選択の処理
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImage = File(pickedFile.path);
-      });
-    }
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile == null) return;
+
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: pickedFile.path,
+      aspectRatio: const CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ),
+    );
+
+    if (croppedFile == null) return;
+
+    setState(() {
+      _pickedImage = File(croppedFile.path);
+    });
   }
 
   // アカウント作成の処理(Supabaseへの保存など)
