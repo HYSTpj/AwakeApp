@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
+import 'loading_button_label.dart';
 import '../common_effects.dart';
 
 class SignupBody extends StatelessWidget {
@@ -7,6 +8,7 @@ class SignupBody extends StatelessWidget {
   final TextEditingController passwordController;
   final VoidCallback onRegisterPressed;
   final VoidCallback onReturnToLoginPressed;
+  final bool isLoading; // サインアップ処理中は true になり、多重タップによる多重送信を防ぐ
 
   const SignupBody({
     super.key,
@@ -14,6 +16,7 @@ class SignupBody extends StatelessWidget {
     required this.passwordController,
     required this.onRegisterPressed,
     required this.onReturnToLoginPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -143,20 +146,16 @@ class SignupBody extends StatelessWidget {
                                             padding: const EdgeInsets.only(top: 0, bottom: 0), // ボタン自体が中央に寄るので0でOK
                                             decoration: hardShadowDecoration(color: kBrandOrange),
                                             child: ElevatedButton(
-                                                onPressed: onRegisterPressed, // 引数で受け取ったonRegisterPressedをここで呼び出す
+                                                onPressed: isLoading ? null : onRegisterPressed, // 引数で受け取ったonRegisterPressedをここで呼び出す
                                                 style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.transparent, // 背景を透明にしてContainerの色を出す
                                                 shadowColor: Colors.transparent,     // ボタン自体の影を消す
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero), // 四角いボタンにする
                                                 ),
-                                                child: const Text(
-                                                'CREATE ACCOUNT',
-                                                style: TextStyle(
-                                                    color: Colors.white, // 文字色
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                ),
-                                                ),
+                                                child: LoadingButtonLabel(
+                                                isLoading: isLoading,
+                                                label: 'CREATE ACCOUNT',
+                                            ),
                                             ),
                                         ),
                                     ),

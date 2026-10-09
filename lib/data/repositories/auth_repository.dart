@@ -1,13 +1,20 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/profile.dart';
 
+// サインアップ後、メール確認が完了するまでセッションが発行されない状態を示す例外
+// （メール/パスワード不正などの通常の失敗とは区別して扱うためのマーカー）
+class EmailConfirmationPendingException implements Exception {
+  const EmailConfirmationPendingException();
+}
+
 // 認証および認証ユーザープロフィールのデータ操作を抽象化するインターフェース
 abstract class AuthRepository {
-  // メールアドレスとパスワード、ニックネームを用いて新規アカウントを登録する
+  // メールアドレスとパスワードを用いて新規アカウントを登録する
   Future<Profile> signUp({
     required String email,
     required String password,
-    String? nickname,
   });
 
   // メールアドレスとパスワードでサインインする
@@ -27,6 +34,12 @@ abstract class AuthRepository {
 
   // パスワード再設定メールを送信する
   Future<void> resetPassword({required String email});
+
+  // ニックネーム・プロフィール画像を更新する（画像が無ければニックネームのみ更新）
+  Future<Profile> updateProfile({
+    required String nickname,
+    File? avatarImage,
+  });
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -42,25 +55,17 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Profile> signUp({
     required String email,
     required String password,
-    String? nickname,
   }) async {
-    // ユーザー作成時、raw_user_meta_data に nickname を保持させる
-    // （DB側の handle_new_user トリガーで profiles に自動挿入される）
-    final res = await _client.auth.signUp(
-      email: email,
-      password: password,
-      data: {'nickname': nickname},
-    );
+    final res = await _client.auth.signUp(email: email, password: password);
 
-    // signUp 内で res.session == null のチェックを追加
     final user = res.user;
     if (user == null) {
       throw const AuthException('User creation failed');
     }
 
     if (res.session == null) {
-      // メール確認が必要な場合はここで明確な例外を投げるか結果を分岐
-      throw const AuthException('確認メールを送信しました。メール内のリンクからログインしてください。');
+      // メール確認待ち（通常の失敗ではない）であることを専用の例外で伝える
+      throw const EmailConfirmationPendingException();
     }
 
     return _fetchProfileWithRetry(user.id);
@@ -136,5 +141,50 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<void> resetPassword({required String email}) async {
     await _client.auth.resetPasswordForEmail(email);
+  }
+
+  @override
+  Future<Profile> updateProfile({
+    required String nickname,
+    File? avatarImage,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('ログインしていません');
+    }
+
+    String? avatarUrl;
+    if (avatarImage != null) {
+      final filePath =
+          '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      await _client.storage.from('avatars').upload(
+            filePath,
+            avatarImage,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
+          );
+
+      avatarUrl = _client.storage.from('avatars').getPublicUrl(filePath);
+    }
+
+    final updateData = <String, dynamic>{
+      'id': user.id,
+      'nickname': nickname,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (avatarUrl != null) {
+      updateData['avatar_url'] = avatarUrl;
+    }
+
+    await _client.from('profiles').upsert(updateData);
+
+    final profile = await getCurrentProfile();
+    if (profile == null) {
+      throw const AuthException('Profile not found');
+    }
+    return profile;
   }
 }

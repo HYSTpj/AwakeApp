@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'login_header_screen.dart';
+import 'loading_button_label.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../common_effects.dart';
@@ -139,7 +140,7 @@ Widget createAccountBody(
                     height: 52, // 💡 少し高さを出して押しやすく
                     decoration: hardShadowDecoration(showBorder: false),
                     child: ElevatedButton(
-                      onPressed: onCreateAccountPressed,
+                      onPressed: isLoading ? null : onCreateAccountPressed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kBrandOrange,
                         foregroundColor: Colors.white,
@@ -147,7 +148,11 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: const Text('CREATE ACCOUNT', style: TextStyle(fontWeight: FontWeight.w900)),
+                      child: LoadingButtonLabel(
+                        isLoading: isLoading,
+                        label: 'CREATE ACCOUNT',
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
 
