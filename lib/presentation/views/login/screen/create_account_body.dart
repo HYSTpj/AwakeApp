@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'login_header_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import '../common_effects.dart';
 
 Widget createAccountBody(
   BuildContext context,
@@ -109,13 +110,7 @@ Widget createAccountBody(
                       width: double.infinity, // 💡 画面幅に統一
                       height: 48,
                       padding: EdgeInsets.zero, 
-                      decoration: BoxDecoration(
-                          color: Colors.white, 
-                          border: Border.all(color: Colors.black, width: 1),
-                          boxShadow: const [
-                              BoxShadow(color: Colors.black, offset: Offset(4, 4)),
-                          ],
-                      ),
+                      decoration: hardShadowDecoration(color: Colors.white),
                       child: ElevatedButton(
                           onPressed: onUploadImagePressed,
                           style: ElevatedButton.styleFrom(
@@ -142,15 +137,11 @@ Widget createAccountBody(
                   Container(
                     width: double.infinity,
                     height: 52, // 💡 少し高さを出して押しやすく
-                    decoration: const BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(color: Colors.black, offset: Offset(4, 4)),
-                      ],
-                    ),
+                    decoration: hardShadowDecoration(showBorder: false),
                     child: ElevatedButton(
                       onPressed: onCreateAccountPressed,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC5B13),
+                        backgroundColor: kBrandOrange,
                         foregroundColor: Colors.white,
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                         side: const BorderSide(color: Colors.black, width: 1),
@@ -166,13 +157,7 @@ Widget createAccountBody(
                   Container(
                     width: double.infinity,
                     height: 48,
-                    decoration: BoxDecoration(
-                        color: Colors.white, 
-                        border: Border.all(color: Colors.black, width: 1),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black, offset: Offset(4, 4)),
-                        ],
-                    ),
+                    decoration: hardShadowDecoration(color: Colors.white),
                     child: ElevatedButton(
                         onPressed: onReturnToLoginPressed,
                         style: ElevatedButton.styleFrom(

@@ -22,7 +22,6 @@ const _kValueStyle = TextStyle(
   color: Colors.black,
 );
 
-
 class _LabelText extends StatelessWidget {
   final String text;
   const _LabelText(this.text);
@@ -36,7 +35,6 @@ class _LabelText extends StatelessWidget {
   }
 }
 
-// 枠付きの入力フィールドコンテナ
 class _InputBox extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
@@ -63,7 +61,6 @@ class _InputBox extends StatelessWidget {
   }
 }
 
-// 枠付きの選択ボタン（時間・日付）
 class _PickerButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -109,13 +106,13 @@ class CreateEventPage extends StatefulWidget {
 class _CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   DateTime _scheduledTime = DateTime.now();
 
   GoogleMapController? _mapController;
   LatLng _selectedLocation = const LatLng(35.136405122360785, 136.97564747897678);
   Set<Marker> _markers = {};
 
-  // 時刻表示文字列
   String get _timeLabel {
     final h = _scheduledTime.hour % 12 == 0 ? 12 : _scheduledTime.hour % 12;
     final m = _scheduledTime.minute.toString().padLeft(2, '0');
@@ -123,7 +120,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
     return '${h.toString().padLeft(2, '0')} : $m $period';
   }
 
-  // 日付表示文字列
   String get _dateLabel {
     final month = _scheduledTime.month.toString().padLeft(2, '0');
     final day = _scheduledTime.day.toString().padLeft(2, '0');
@@ -194,6 +190,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
+    _passwordController.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -207,8 +204,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // 戻るボタン
             Padding(
               padding: const EdgeInsets.only(left: 14, top: 9),
               child: InkWell(
@@ -232,8 +227,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 ),
               ),
             ),
-
-            // タイトル
             const Padding(
               padding: EdgeInsets.only(top: 8, bottom: 16),
               child: Center(
@@ -250,14 +243,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // イベント名
                   const _LabelText('EVENT NAME'),
                   const SizedBox(height: 4),
                   _InputBox(
@@ -273,16 +263,26 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       ),
                     ),
                   ),
-
-                  // 時間
                   const _LabelText('TIME'),
                   _PickerButton(label: _timeLabel, onTap: _pickTime),
-
-                  // 日付
                   const _LabelText('DATE'),
                   _PickerButton(label: _dateLabel, onTap: _pickDate),
-
-                  // 場所
+                  const _LabelText('CHECK-IN PASSWORD'),
+                  const SizedBox(height: 4),
+                  _InputBox(
+                    child: TextField(
+                      controller: _passwordController,
+                      textAlignVertical: TextAlignVertical.center,
+                      style: _kValueStyle,
+                      keyboardType: TextInputType.number,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter backup numeric passcode...',
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                    ),
+                  ),
                   const _LabelText('Location'),
                   const SizedBox(height: 4),
                   _InputBox(
@@ -299,8 +299,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       onSubmitted: _searchLocation,
                     ),
                   ),
-
-                  // Google Map
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
@@ -322,40 +320,47 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       },
                     ),
                   ),
-
-                  // Confirm Participantボタン
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
                       onTap: () async {
-                        // 1. 入力チェック
-                        if (_nameController.text.trim().isEmpty || _locationController.text.trim().isEmpty) {
+                        final title = _nameController.text.trim();
+                        final location = _locationController.text.trim();
+                        final password = _passwordController.text.trim();
+
+                        if (title.isEmpty || location.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill in all fields.')),
+                            const SnackBar(content: Text('Please enter event name and location.')),
                           );
                           return;
                         }
 
-                        // 2. 次の画面（参加者選択ページ）へ入力パラメータを渡して遷移
-                        // ※ SupabaseAdminEventRepository では、参加者確定時に RPC (create_event_with_participants) で一括生成するため
+                        if (password.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a check-in passcode.')),
+                          );
+                          return;
+                        }
+
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectParticipantsPage(
                               groupId: widget.groupId,
-                              title: _nameController.text.trim(),
-                              destinationName: _locationController.text.trim(),
+                              title: title,
+                              destinationName: location,
                               latitude: _selectedLocation.latitude,
                               longitude: _selectedLocation.longitude,
                               arrivalTime: _scheduledTime,
+                              password: password,
+                              myRole: widget.myRole,
                             ),
                           ),
                         );
 
-                        // SelectParticipantsPage で作成が完了して true などが返ってきたら自分も閉じる
                         if (!context.mounted) return;
                         if (result == true) {
-                          Navigator.pop(context);
+                          Navigator.pop(context, true);
                         }
                       },
                       child: Container(
