@@ -43,7 +43,7 @@ class UserTile extends StatelessWidget {
             child: CircleAvatar(
               backgroundColor: Colors.grey,
               backgroundImage: avatarUrl.isNotEmpty
-                  ? NetworkImage(avatarUrl) // 画像がある時は写真を表示
+                  ? NetworkImage(avatarUrl)
                   : null,
               child: avatarUrl.isEmpty
                   ? const Icon(
@@ -91,6 +91,8 @@ class SelectParticipantsPage extends StatefulWidget {
   final double? latitude;
   final double? longitude;
   final DateTime arrivalTime;
+  final String password;
+  final int? myRole;
 
   const SelectParticipantsPage({
     super.key,
@@ -100,6 +102,8 @@ class SelectParticipantsPage extends StatefulWidget {
     this.latitude,
     this.longitude,
     required this.arrivalTime,
+    required this.password,
+    this.myRole,
   });
 
   @override
@@ -145,12 +149,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
   }
 
-  String _generateRandomCode([int length = 6]) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    final rand = Random.secure();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
-  }
-
   Future<void> _saveAndNavigate() async {
     if (_isLoading) return;
 
@@ -164,8 +162,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     setState(() => _isLoading = true);
 
     try {
-      final password = _generateRandomCode(6);
-      // 時刻由来を廃止し、暗号学的に安全なランダム文字列を生成
+      // ランダム生成をやめ、CreateEventPageで入力された widget.password を使用する
       final qrcodeId = 'qr_${_generateSecureToken(32)}';
 
       await _repository.createEventWithParticipants(
@@ -175,7 +172,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
         latitude: widget.latitude,
         longitude: widget.longitude,
         qrcodeId: qrcodeId,
-        password: password,
+        password: widget.password, // 入力されたパスワードを反映
         arrivalTime: widget.arrivalTime,
         participantUserIds: _selectedMembers.toList(),
       );
@@ -205,149 +202,151 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 戻るボタン
-                Padding(
-                  padding: const EdgeInsets.only(left: 14, top: 9),
-                  child: InkWell(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: const ShapeDecoration(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(side: _kBorderSide),
+      groupId: widget.groupId,
+      myRole: widget.myRole,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 戻るボタン
+                  Padding(
+                    padding: const EdgeInsets.only(left: 14, top: 9),
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: const ShapeDecoration(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(side: _kBorderSide),
+                        ),
+                        child: const Icon(Icons.arrow_back, color: Colors.black),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.black),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 32,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // メインタイトル
-                      Transform.translate(
-                        offset: const Offset(0, -1),
-                        child: const Text(
-                          'Select Participants',
-                          style: TextStyle(
-                            fontSize: 22, 
-                            fontWeight: FontWeight.bold, 
-                            height: 1.0,
-                            leadingDistribution: TextLeadingDistribution.even,
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 32,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // メインタイトル
+                        Transform.translate(
+                          offset: const Offset(0, -1),
+                          child: const Text(
+                            'Select Participants',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              height: 1.0,
+                              leadingDistribution: TextLeadingDistribution.even,
+                            ),
                           ),
                         ),
-                      ),
-                      // カウントラベル
-                      Positioned(
-                        right: 12,
-                        top: 0,
-                        bottom: 0,
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: const BoxDecoration(color: Colors.black),
-                            child: Text(
-                              '${_selectedMembers.length} SELECTED',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontFamily: 'Space Grotesk',
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.48,
-                                height: 1.0,
+                        // カウントラベル
+                        Positioned(
+                          right: 12,
+                          top: 0,
+                          bottom: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: const BoxDecoration(color: Colors.black),
+                              child: Text(
+                                '${_selectedMembers.length} SELECTED',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontFamily: 'Space Grotesk',
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.48,
+                                  height: 1.0,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // メンバーリスト
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.all(16),
-                  decoration: const ShapeDecoration(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(width: 3, color: Color(0xFF475569)),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: _allMembers.map((member) {
-                      final memberName = member.nickname.isNotEmpty ? member.nickname : 'No Name';
-                      final memberId = member.id;
-                      final memberAvatar = member.avatarUrl ?? '';
-                      final isSelected = _selectedMembers.contains(memberId); 
-                      
-                      return UserTile(
-                        nickname: memberName,
-                        userId: memberId,
-                        avatarUrl: memberAvatar,
-                        isAttending: isSelected,
-                        onToggle: () {
-                          setState(() {
-                            if (isSelected) {
-                              _selectedMembers.remove(memberId);
-                            } else {
-                              _selectedMembers.add(memberId);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
 
-                // SAVEボタン
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
-                  child: SizedBox(
+                  // メンバーリスト
+                  Container(
                     width: double.infinity,
-                    child: InkWell(
-                      onTap: _saveAndNavigate,
-                      child: Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFFF5C00),
-                          shape: const RoundedRectangleBorder(side: _kBorderSide),
-                          shadows: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              offset: const Offset(4, 4),
+                    margin: const EdgeInsets.all(16),
+                    decoration: const ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(width: 3, color: Color(0xFF475569)),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: _allMembers.map((member) {
+                        final memberName = member.nickname.isNotEmpty ? member.nickname : 'No Name';
+                        final memberId = member.id;
+                        final memberAvatar = member.avatarUrl ?? '';
+                        final isSelected = _selectedMembers.contains(memberId);
+
+                        return UserTile(
+                          nickname: memberName,
+                          userId: memberId,
+                          avatarUrl: memberAvatar,
+                          isAttending: isSelected,
+                          onToggle: () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedMembers.remove(memberId);
+                              } else {
+                                _selectedMembers.add(memberId);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // SAVEボタン
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: InkWell(
+                        onTap: _saveAndNavigate,
+                        child: Container(
+                          height: 48,
+                          alignment: Alignment.center,
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFFF5C00),
+                            shape: const RoundedRectangleBorder(side: _kBorderSide),
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                offset: const Offset(4, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'SAVE',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: 'Space Grotesk',
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
                             ),
-                          ],
-                        ),
-                        child: const Text(
-                          'SAVE',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Space Grotesk',
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
     );
   }
 }
