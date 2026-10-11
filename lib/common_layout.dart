@@ -35,6 +35,17 @@ class CommonLayout extends StatefulWidget {
 class _CommonLayoutState extends State<CommonLayout> {
   User? _currentUser;
   late Future<Map<String, dynamic>?> _avatarFuture;
+    Future<Map<String, dynamic>?> _fetchAvatar() {
+    if (_currentUser == null) {
+      return Future.value(null);
+    }
+
+    return Supabase.instance.client
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', _currentUser!.id)
+        .maybeSingle();
+  }
   static const _bottomNavigationItems = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Padding(
@@ -66,15 +77,15 @@ class _CommonLayoutState extends State<CommonLayout> {
   @override
   void initState() {
     super.initState();
-    final client = Supabase.instance.client;
-    _currentUser = client.auth.currentUser;
-    _avatarFuture = _currentUser == null
-      ? Future.value(null)
-      : client
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', _currentUser!.id)
-      .maybeSingle();
+
+    _currentUser = Supabase.instance.client.auth.currentUser;
+    _avatarFuture = _fetchAvatar();
+  }
+
+  void _reloadAvatar() {
+    setState(() {
+      _avatarFuture = _fetchAvatar();
+    });
   }
 
   @override
@@ -155,9 +166,24 @@ class _CommonLayoutState extends State<CommonLayout> {
         child: FutureBuilder<Map<String, dynamic>?>(
           future: _avatarFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting ||
-                snapshot.hasError ||
-                !snapshot.hasData) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircleAvatar(
+                backgroundColor: Colors.grey,
+                child: Icon(Icons.person, color: Colors.white),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return GestureDetector(
+                onTap: _reloadAvatar,
+                child: const CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.refresh, color: Colors.white),
+                ),
+              );
+            }
+
+            if (!snapshot.hasData) {
               return const CircleAvatar(
                 backgroundColor: Colors.grey,
                 child: Icon(Icons.person, color: Colors.white),
