@@ -3,11 +3,13 @@ import 'package:intl/intl.dart';
 
 import '../../../../common_layout.dart';
 import '../../../../models/event_report.dart';
+import '../../../../models/profile.dart';
 import '../../../../widgets/return_button.dart';
 
 class MemberPostPage extends StatelessWidget {
-  final Map<String, dynamic> member;
-  final dynamic report; // EventReport インスタンス または Map<String, dynamic> の両方を受け入れ可能
+  final Profile profile;
+  final EventReport report;
+  final int status;
   final String groupId;
   final String eventId;
   final String eventTitle;
@@ -15,27 +17,14 @@ class MemberPostPage extends StatelessWidget {
 
   const MemberPostPage({
     super.key,
-    required this.member,
+    required this.profile,
     required this.report,
+    required this.status,
     required this.groupId,
     required this.eventId,
     required this.eventTitle,
     required this.myRole,
   });
-
-  EventReport? get _parsedReport {
-    if (report is EventReport) {
-      return report as EventReport;
-    }
-    if (report is Map<String, dynamic>) {
-      try {
-        return EventReport.fromJson(report as Map<String, dynamic>);
-      } catch (e) {
-        debugPrint('EventReportパースエラー: $e');
-      }
-    }
-    return null;
-  }
 
   String _formatLocation(dynamic location) {
     if (location == null) return 'Unknown';
@@ -59,34 +48,20 @@ class MemberPostPage extends StatelessWidget {
     return location.toString();
   }
 
-  String _formatTime(DateTime? time, dynamic rawFallback) {
+  String _formatTime(DateTime? time) {
     if (time != null) {
       return DateFormat('M/dd HH:mm').format(time);
-    }
-    if (rawFallback is String) {
-      final parsed = DateTime.tryParse(rawFallback);
-      if (parsed != null) {
-        return DateFormat('M/dd HH:mm').format(parsed);
-      }
     }
     return '--:--';
   }
 
   @override
   Widget build(BuildContext context) {
-    final parsed = _parsedReport;
-
-    // EventReport がある場合はそこから、ない場合は Map から取得
-    final String? photoUrl = parsed?.photoUrl ?? (report is Map ? report['photo_url'] : null);
-    final String? lateReason = parsed?.lateReason ?? (report is Map ? report['late_reason'] : null);
-    final dynamic rawLocation = report is Map ? report['location'] : null;
-    final DateTime? wakeupTime = parsed?.actualWakeupTime;
-    final dynamic rawWakeupTime = report is Map ? report['actual_wakeup_time'] : null;
-
-    final displayTime = _formatTime(wakeupTime, rawWakeupTime);
-
-    final avatarUrl = member['avatar_url'] as String?;
-    final nickname = member['nickname'] as String? ?? 'No name';
+    final photoUrl = report.photoUrl;
+    final lateReason = report.lateReason;
+    final displayTime = _formatTime(report.actualWakeupTime);
+    final avatarUrl = profile.avatarUrl;
+    final nickname = profile.nickname.isNotEmpty ? profile.nickname : 'No name';
 
     return CommonLayout(
       groupId: groupId,
@@ -99,15 +74,14 @@ class MemberPostPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            // 戻るボタン
             ReturnButton(
               onTap: () {
                 Navigator.pop(context);
                 debugPrint('1画面戻る');
               },
             ),
-
             const SizedBox(height: 10),
+
             // ユーザー情報（アイコンと名前）
             Row(
               children: [
@@ -177,7 +151,9 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 _infoTag(
                   Icons.location_on,
-                  _formatLocation(rawLocation),
+                  _formatLocation(report.latitude != null && report.longitude != null
+                      ? '(${report.latitude}, ${report.longitude})'
+                      : null),
                 ),
                 _infoTag(Icons.alarm, 'WAKE-UP: $displayTime'),
               ],

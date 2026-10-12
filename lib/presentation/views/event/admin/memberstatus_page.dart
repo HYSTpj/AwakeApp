@@ -45,6 +45,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
   void didUpdateWidget(MemberStatusPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.eventId != widget.eventId) {
+      setState(() {
+        selectedFilter = null;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<AdminEventViewModel>().loadEventMemberStatuses(widget.eventId);
       });
@@ -90,6 +93,227 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
     );
   }
 
+  Widget _buildMemberList(AdminEventState state) {
+    // 1. 取得失敗時のエラー表示
+    if (state.statusesError != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
+            const SizedBox(height: 8),
+            Text(
+              '参加状況の取得に失敗しました\n${state.statusesError}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<AdminEventViewModel>().loadEventMemberStatuses(widget.eventId);
+              },
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('再試行'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5C00),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final List<EventMemberStatus> eventMembers = state.memberStatuses;
+
+    final List<EventMemberStatus> filterMembers = selectedFilter == null
+        ? eventMembers
+        : eventMembers.where((m) => m.currentStatus == selectedFilter).toList();
+
+    // 2. 該当メンバーなし
+    if (filterMembers.isEmpty) {
+      return const Center(
+        child: Text('No members match this status.'),
+      );
+    }
+
+    // 3. リスト表示
+    return ListView.builder(
+      key: ValueKey(selectedFilter),
+      itemCount: filterMembers.length,
+      itemBuilder: (context, index) {
+        final memberStatus = filterMembers[index];
+        final profile = memberStatus.profile;
+        final int status = memberStatus.currentStatus;
+
+        Color statusColor;
+        String statusText;
+
+        switch (status) {
+          case 0:
+            statusColor = Colors.grey;
+            statusText = 'SLEEPING';
+            break;
+          case 1:
+            statusColor = Colors.greenAccent;
+            statusText = 'AWAKE';
+            break;
+          case 2:
+            statusColor = Colors.pinkAccent;
+            statusText = 'OVERSLEPT';
+            break;
+          case 3:
+            statusColor = Colors.lightBlueAccent;
+            statusText = 'MOVING';
+            break;
+          case 4:
+            statusColor = Colors.orangeAccent;
+            statusText = 'ARRIVED';
+            break;
+          case 5:
+            statusColor = Colors.redAccent;
+            statusText = 'ARRIVED (LATE)';
+            break;
+          default:
+            statusColor = Colors.grey;
+            statusText = 'SLEEPING';
+            break;
+        }
+
+        return GestureDetector(
+          onTap: () async {
+            final String memberId = profile.id;
+            final viewModel = context.read<AdminEventViewModel>();
+
+            try {
+              await viewModel.loadMemberReport(
+                eventId: widget.eventId,
+                userId: memberId,
+              );
+
+              if (!context.mounted) return;
+
+              final currentReportState = viewModel.state;
+
+              // 画面イベント・ユーザーの整合性照合（別イベント切り替え・別ユーザー切り替えの防止）
+              if (currentReportState.selectedEventId != widget.eventId ||
+                  currentReportState.selectedReportUserId != memberId) {
+                return;
+              }
+
+              if (currentReportState.memberReportError != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('レポート取得に失敗しました: ${currentReportState.memberReportError}'),
+                  ),
+                );
+                return;
+              }
+
+              final latestReport = currentReportState.selectedMemberReport;
+
+              // レポート自体の eventId / userId と現在の対象が一致しているかを検証
+              if (latestReport != null &&
+                  latestReport.eventId == widget.eventId &&
+                  latestReport.userId == memberId) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MemberPostPage(
+                      profile: profile,
+                      report: latestReport,
+                      status: status,
+                      groupId: widget.groupId,
+                      eventId: widget.eventId,
+                      eventTitle: widget.eventTitle,
+                      myRole: widget.myRole,
+                    ),
+                  ),
+                );
+                debugPrint('ポスト画面へ移動');
+              } else if (latestReport == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('There are no posts yet.'),
+                  ),
+                );
+              }
+            } catch (e) {
+              debugPrint('個別レポート取得エラー: $e');
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('レポート取得中にエラーが発生しました: $e')),
+                );
+              }
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 15,
+              vertical: 5,
+            ),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 2),
+              color: Colors.white,
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  backgroundImage: (profile.avatarUrl != null &&
+                          profile.avatarUrl!.isNotEmpty)
+                      ? NetworkImage(profile.avatarUrl!)
+                      : null,
+                  child: (profile.avatarUrl == null ||
+                          profile.avatarUrl!.isEmpty)
+                      ? const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Text(
+                    profile.nickname.isNotEmpty
+                        ? profile.nickname
+                        : 'No name',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1,
+                        ),
+                        color: statusColor,
+                      ),
+                      child: Text(
+                        statusText,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminEventViewModel>();
@@ -103,18 +327,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (state.statusesError != null) {
-      return Center(
-        child: Text('参加状況の取得に失敗しました: ${state.statusesError}'),
-      );
-    }
-
     final List<EventMemberStatus> eventMembers = state.memberStatuses;
-
-    final List<EventMemberStatus> filterMembers = selectedFilter == null
-        ? eventMembers
-        : eventMembers.where((m) => m.currentStatus == selectedFilter).toList();
-
     final int all = eventMembers.length;
     final int arrived = eventMembers
         .where((m) => m.currentStatus == 4 || m.currentStatus == 5)
@@ -247,165 +460,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
           ),
         ),
 
-        // メンバー一覧
+        // メンバー一覧・エラー・空状態
         Expanded(
-          child: filterMembers.isEmpty
-              ? const Center(
-                  child: Text('No members match this status.'),
-                )
-              : ListView.builder(
-                  key: ValueKey(selectedFilter),
-                  itemCount: filterMembers.length,
-                  itemBuilder: (context, index) {
-                    final memberStatus = filterMembers[index];
-                    final profile = memberStatus.profile;
-                    final int status = memberStatus.currentStatus;
-
-                    Color statusColor;
-                    String statusText;
-
-                    switch (status) {
-                      case 0:
-                        statusColor = Colors.grey;
-                        statusText = 'SLEEPING';
-                        break;
-                      case 1:
-                        statusColor = Colors.greenAccent;
-                        statusText = 'AWAKE';
-                        break;
-                      case 2:
-                        statusColor = Colors.pinkAccent;
-                        statusText = 'OVERSLEPT';
-                        break;
-                      case 3:
-                        statusColor = Colors.lightBlueAccent;
-                        statusText = 'MOVING';
-                        break;
-                      case 4:
-                        statusColor = Colors.orangeAccent;
-                        statusText = 'ARRIVED';
-                        break;
-                      case 5:
-                        statusColor = Colors.redAccent;
-                        statusText = 'ARRIVED (LATE)';
-                        break;
-                      default:
-                        statusColor = Colors.grey;
-                        statusText = 'SLEEPING';
-                        break;
-                    }
-
-                    return GestureDetector(
-                      onTap: () async {
-                        final String memberId = profile.id;
-
-                        try {
-                          await context.read<AdminEventViewModel>().loadMemberReport(
-                            eventId: widget.eventId,
-                            userId: memberId,
-                          );
-
-                          if (!context.mounted) return;
-
-                          final latestReport =
-                              context.read<AdminEventViewModel>().state.selectedMemberReport;
-
-                          if (latestReport != null) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MemberPostPage(
-                                  member: {
-                                    'user_id': profile.id,
-                                    'nickname': profile.nickname,
-                                    'avatar_url': profile.avatarUrl,
-                                    'status': status,
-                                  },
-                                  report: latestReport, // 型安全な EventReport インスタンスを渡す
-                                  groupId: widget.groupId,
-                                  eventId: widget.eventId,
-                                  eventTitle: widget.eventTitle,
-                                  myRole: widget.myRole,
-                                ),
-                              ),
-                            );
-                            debugPrint('ポスト画面へ移動');
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('There are no posts yet.'),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          debugPrint('$e');
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 5,
-                        ),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 2),
-                          color: Colors.white,
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              backgroundImage: (profile.avatarUrl != null &&
-                                      profile.avatarUrl!.isNotEmpty)
-                                  ? NetworkImage(profile.avatarUrl!)
-                                  : null,
-                              child: (profile.avatarUrl == null ||
-                                      profile.avatarUrl!.isEmpty)
-                                  ? const Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: Text(
-                                profile.nickname.isNotEmpty
-                                    ? profile.nickname
-                                    : 'No name',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.black,
-                                      width: 1,
-                                    ),
-                                    color: statusColor,
-                                  ),
-                                  child: Text(
-                                    statusText,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+          child: _buildMemberList(state),
         ),
       ],
     );
