@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/event.dart';
+import '../../models/event_member_status.dart';
+import '../../models/event_report.dart';
 import '../../models/profile.dart';
 
 abstract class AdminEventRepository {
@@ -15,6 +17,15 @@ abstract class AdminEventRepository {
     required String password,
     required DateTime arrivalTime,
     required List<String> participantUserIds,
+  });
+
+  /// 対象イベントの参加メンバー一覧と各レポート状況（DTO）を取得
+  Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId);
+
+  /// 特定メンバーの個別レポート詳細を取得（存在しない場合は null）
+  Future<EventReport?> getMemberReport({
+    required String eventId,
+    required String userId,
   });
 }
 
@@ -109,5 +120,36 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
       return res['event_id'] as String;
     }
     throw const PostgrestException(message: 'Failed to create event');
+  }
+
+  @override
+  Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId) async {
+    // event_reports と profiles を JOIN して取得
+    final data = await _client
+        .from('event_reports')
+        .select('*, profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')
+        .eq('event_id', eventId);
+
+    final list = <EventMemberStatus>[];
+    for (final item in data as List<dynamic>) {
+      list.add(EventMemberStatus.fromJson(item as Map<String, dynamic>));
+    }
+    return list;
+  }
+
+  @override
+  Future<EventReport?> getMemberReport({
+    required String eventId,
+    required String userId,
+  }) async {
+    final data = await _client
+        .from('event_reports')
+        .select()
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data == null) return null;
+    return EventReport.fromJson(data);
   }
 }
