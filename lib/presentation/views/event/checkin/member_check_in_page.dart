@@ -10,12 +10,16 @@ class MemberCheckInPage extends StatefulWidget {
   final String eventId;
   final String eventTitle;
   final String groupId;
+  final String groupName;
+  final int myRole;
 
   const MemberCheckInPage({
     super.key,
     required this.eventId,
     required this.eventTitle,
     required this.groupId,
+    required this.groupName,
+    required this.myRole,
   });
 
   @override
@@ -63,41 +67,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
-  Widget _buildGroupDropdown() {
-    return Container(
-      width: 362,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF1A1C1C), width: 4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _viewModel.myGroups.any((g) => g['group_id'] == _viewModel.groupId) ? _viewModel.groupId : null,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
-          items: _viewModel.myGroups.map((group) {
-            return DropdownMenuItem<String>(
-              value: group['group_id'],
-              child: Text(
-                group['group_name'] ?? 'Unnamed Group',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-            );
-          }).toList(),
-          onChanged: (String? newGroupId) {
-            if (newGroupId != null && newGroupId != _viewModel.groupId) {
-              // 現在の画面を閉じて、イベント一覧（EventListPage）に戻る
-              Navigator.pop(context);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _viewModel.dispose();
@@ -107,7 +76,6 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
   Future<void> _handleCheckIn() async {
     if (_viewModel.isCheckInPressed || !_viewModel.isParticipant) return;
 
-    // QRスキャナーまたはパスコード画面へ遷移して結果を受け取る
     final scannedResult = await Navigator.push<Map<String, String>>(
       context,
       MaterialPageRoute(
@@ -115,7 +83,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
           groupId: widget.groupId,
           eventId: widget.eventId,
           eventTitle: widget.eventTitle,
-          myRole: 1,
+          myRole: widget.myRole,
         ),
       ),
     );
@@ -123,15 +91,15 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     if (scannedResult != null) {
       final type = scannedResult['type'];
       final value = scannedResult['value'];
-      
+
       if (type == null || value == null) return;
 
-      final ctx = context;
       final isValid = await _viewModel.verifyAndCheckIn(type, value);
-      if (!ctx.mounted) return;
+
+      if (!mounted) return;
 
       if (isValid) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             backgroundColor: Colors.green,
@@ -139,7 +107,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         );
       } else {
         final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
-        ScaffoldMessenger.of(ctx).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             backgroundColor: Colors.red,
@@ -149,7 +117,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     }
   }
 
-  // 取得失敗時に表示する再試行ビュー
+  Future<void> _handleReportLate() async {
+    final reportId = await _viewModel.getOrCreateReportId();
+
+    if (!mounted) return;
+
+    if (reportId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'ログイン情報が見つかりません。再度ログインしてください。',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final res = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LateReportPage(
+          reportId: reportId,
+          eventId: widget.eventId,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (res == true) {
+      await _viewModel.loadData();
+    }
+  }
+
   Widget _buildErrorRetryView() {
     return Center(
       child: Padding(
@@ -188,11 +190,15 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ViewModelの変更を監視してUIを自動再描画
     return AnimatedBuilder(
       animation: _viewModel,
       builder: (context, _) {
         return CommonLayout(
+          groupId: widget.groupId,
+          groupName: widget.groupName,
+          eventId: widget.eventId,
+          eventTitle: widget.eventTitle,
+          myRole: widget.myRole,
           body: _viewModel.loadError == CheckInLoadError.fetchFailed
               ? _buildErrorRetryView()
               : SingleChildScrollView(
@@ -222,34 +228,7 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                         ),
                         const SizedBox(height: 16),
                         ReportLateButton(
-                          onTap: !_viewModel.isParticipant
-                              ? null
-                              : () async {
-                                  final ctx = context;
-                                  final reportId = await _viewModel.getOrCreateReportId();
-                                  if (!ctx.mounted) return;
-
-                                  if (reportId == null) {
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('ログイン情報が見つかりません。再度ログインしてください。', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    return;
-                                  }
-
-                                  final res = await Navigator.push<bool>(
-                                    ctx,
-                                    MaterialPageRoute(
-                                      builder: (context) => LateReportPage(reportId: reportId, eventId: widget.eventId),
-                                    ),
-                                  );
-
-                                  if (res == true) {
-                                    await _viewModel.loadData();
-                                  }
-                                },
+                          onTap: !_viewModel.isParticipant ? null : _handleReportLate,
                         ),
                       ],
                     ),
@@ -257,6 +236,64 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                 ),
         );
       },
+    );
+  }
+
+  Widget _buildGroupDropdown() {
+    return GroupNameDropdown(
+      title: widget.groupName,
+      onTap: () => Navigator.of(context).pop(),
+    );
+  }
+}
+
+class GroupNameDropdown extends StatelessWidget {
+  final String title;
+  final VoidCallback? onTap;
+
+  const GroupNameDropdown({
+    super.key,
+    required this.title,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const borderColor = Color(0xFF1A1C1C);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 362,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: borderColor, width: 4),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: borderColor,
+                  letterSpacing: 0.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
+          ],
+        ),
+      ),
     );
   }
 }
