@@ -26,26 +26,9 @@ class MemberPostPage extends StatelessWidget {
     required this.myRole,
   });
 
-  String _formatLocation(dynamic location) {
-    if (location == null) return 'Unknown';
-
-    try {
-      if (location is String) {
-        final clean = location.replaceAll('(', '').replaceAll(')', '').trim();
-        final parts = clean.split(',');
-        if (parts.length == 2) {
-          final lat = double.tryParse(parts[0].trim());
-          final lng = double.tryParse(parts[1].trim());
-          if (lat != null && lng != null) {
-            return '${lat.toStringAsFixed(1)}, ${lng.toStringAsFixed(1)}';
-          }
-        }
-        return location;
-      }
-    } catch (e) {
-      debugPrint('位置情報変換エラー: $e');
-    }
-    return location.toString();
+  String _formatLocation(double? lat, double? lng) {
+    if (lat == null || lng == null) return 'Unknown';
+    return '${lat.toStringAsFixed(1)}, ${lng.toStringAsFixed(1)}';
   }
 
   String _formatTime(DateTime? time) {
@@ -60,6 +43,7 @@ class MemberPostPage extends StatelessWidget {
     final photoUrl = report.photoUrl;
     final lateReason = report.lateReason;
     final displayTime = _formatTime(report.actualWakeupTime);
+    final displayLocation = _formatLocation(report.latitude, report.longitude);
     final avatarUrl = profile.avatarUrl;
     final nickname = profile.nickname.isNotEmpty ? profile.nickname : 'No name';
 
@@ -151,9 +135,7 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 _infoTag(
                   Icons.location_on,
-                  _formatLocation(report.latitude != null && report.longitude != null
-                      ? '(${report.latitude}, ${report.longitude})'
-                      : null),
+                  displayLocation,
                 ),
                 _infoTag(Icons.alarm, 'WAKE-UP: $displayTime'),
               ],
