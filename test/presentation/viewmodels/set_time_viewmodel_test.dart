@@ -4,14 +4,20 @@ import 'package:flutter_application_1/data/repositories/member_event_repository.
 import 'package:flutter_application_1/models/event_report.dart';
 import 'package:flutter_application_1/services/alarm_service.dart';
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 
 // DB通信をモック化
 class FakeMemberEventRepository implements MemberEventRepository {
+  EventReport? reportToReturn;
+  bool shouldFailSetReport = false;
+  bool shouldFailReportWakeUp = false;
+  bool shouldFailReportDeparture = false;
+  bool shouldFailCheckIn = false;
   DateTime? savedWakeupTime;
   DateTime? savedDepartureTime;
 
   @override
-  Future<EventReport?> getMyReport(String eventId) async => null;
+  Future<EventReport?> getMyReport(String eventId) async => reportToReturn;
 
   @override
   Stream<List<EventReport>> watchEventReports(String eventId) => const Stream.empty();
@@ -22,21 +28,28 @@ class FakeMemberEventRepository implements MemberEventRepository {
     required DateTime wakeupTime,
     required DateTime departureTime,
   }) async {
+    if (shouldFailSetReport) {
+      throw Exception('setReport failed');
+    }
     savedWakeupTime = wakeupTime;
     savedDepartureTime = departureTime;
   }
 
   @override
-  Future<Map<String, dynamic>> reportWakeUp(String eventId) async => {'success': true};
+  Future<Map<String, dynamic>> reportWakeUp(String eventId) async =>
+      {'success': !shouldFailReportWakeUp};
 
   @override
-  Future<Map<String, dynamic>> reportDeparture(String eventId) async => {'success': true};
+  Future<Map<String, dynamic>> reportDeparture(String eventId) async =>
+      {'success': !shouldFailReportDeparture};
 
   @override
-  Future<Map<String, dynamic>> checkInWithQr(String eventId, String qrCode) async => {'success': true};
+  Future<Map<String, dynamic>> checkInWithQr(String eventId, String qrCode) async =>
+      {'success': !shouldFailCheckIn};
 
   @override
-  Future<Map<String, dynamic>> checkInWithPasscode(String eventId, String passcode) async => {'success': true};
+  Future<Map<String, dynamic>> checkInWithPasscode(String eventId, String passcode) async =>
+      {'success': !shouldFailCheckIn};
 
   @override
   Future<void> submitLateReport({
@@ -48,13 +61,30 @@ class FakeMemberEventRepository implements MemberEventRepository {
   }) async {}
 }
 
-// ネイティブアラーム呼び出しを安全に回避
-class FakeAlarmService extends RealAlarmService {
-  @override
-  Future<void> setAlarm({required AlarmSettings alarmSettings}) async {}
+// AlarmServiceを直接implementsしてネイティブ呼び出しを回避する（extendsだと未実装分が実機能を呼んでしまう）。
+class FakeAlarmService implements AlarmService {
+  final List<AlarmSettings> setAlarmCalls = [];
+  final List<int> stopCalls = [];
+  bool shouldFailSetAlarm = false;
 
   @override
-  Future<void> stop(int id) async {}
+  Stream<AlarmSet> get ringing => const Stream.empty();
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<void> setAlarm({required AlarmSettings alarmSettings}) async {
+    if (shouldFailSetAlarm) {
+      throw Exception('setAlarm failed');
+    }
+    setAlarmCalls.add(alarmSettings);
+  }
+
+  @override
+  Future<void> stop(int id) async {
+    stopCalls.add(id);
+  }
 }
 
 void main() {
@@ -136,6 +166,92 @@ void main() {
       viewModel.setWakeupTime(time2);
       expect(viewModel.wakeupTime, equals(time2));
       expect(viewModel.wakeupTime, isNot(equals(time1)));
+    });
+  });
+
+  group('SetTimeViewModel loadTime/saveChanges テスト（アラーム・保存をfakeで注入）', () {
+    late FakeAlarmService alarmService;
+    late FakeMemberEventRepository repository;
+    late SetTimeViewModel viewModel;
+
+    SetTimeViewModel buildViewModel() {
+      return SetTimeViewModel(
+        eventId: 'event-1',
+        alarmService: alarmService,
+        repository: repository,
+      );
+    }
+
+    setUp(() {
+      alarmService = FakeAlarmService();
+      repository = FakeMemberEventRepository();
+      viewModel = buildViewModel();
+    });
+
+    test('リポジトリに保存済みの値がある場合、loadTime()はその値を反映する', () async {
+      repository.reportToReturn = EventReport(
+        id: 'report-1',
+        eventId: 'event-1',
+        userId: 'user-1',
+        plannedWakeupTime: DateTime(2026, 5, 14, 6, 30),
+        plannedDepartureTime: DateTime(2026, 5, 14, 7, 15),
+        status: 0,
+        updatedAt: DateTime(2026, 5, 14),
+      );
+
+      await viewModel.loadTime();
+
+      expect(viewModel.wakeupTime, DateTime(2026, 5, 14, 6, 30));
+      expect(viewModel.departureTime, DateTime(2026, 5, 14, 7, 15));
+    });
+
+    test('起床・出発時刻が未設定の場合、saveChanges()はfalseを返す', () async {
+      final result = await viewModel.saveChanges(DateTime(2026, 5, 14, 8, 0));
+
+      expect(result, isFalse);
+      expect(viewModel.errorMessage, '起床時刻と出発時刻を入力してください。');
+      expect(alarmService.setAlarmCalls, isEmpty);
+    });
+
+    test('正常系: アラーム登録とレポート保存が両方成功しtrueを返す', () async {
+      viewModel.setWakeupTime(DateTime(2026, 5, 14, 6, 30));
+      viewModel.setDepartureTime(DateTime(2026, 5, 14, 7, 15));
+
+      final result = await viewModel.saveChanges(DateTime(2026, 5, 14, 8, 0));
+
+      expect(result, isTrue);
+      expect(viewModel.errorMessage, isNull);
+      expect(viewModel.isSaving, isFalse);
+      expect(alarmService.setAlarmCalls, hasLength(2));
+      expect(repository.savedWakeupTime, isNotNull);
+      expect(repository.savedDepartureTime, isNotNull);
+    });
+
+    test('アラーム登録に失敗した場合、falseを返しレポートは保存されない', () async {
+      alarmService.shouldFailSetAlarm = true;
+      viewModel.setWakeupTime(DateTime(2026, 5, 14, 6, 30));
+      viewModel.setDepartureTime(DateTime(2026, 5, 14, 7, 15));
+
+      final result = await viewModel.saveChanges(DateTime(2026, 5, 14, 8, 0));
+
+      expect(result, isFalse);
+      expect(viewModel.errorMessage, 'アラームの登録に失敗しました。');
+      expect(viewModel.isSaving, isFalse);
+      expect(repository.savedWakeupTime, isNull);
+    });
+
+    test('レポート保存に失敗した場合、登録済みアラームをロールバックしfalseを返す', () async {
+      repository.shouldFailSetReport = true;
+      viewModel.setWakeupTime(DateTime(2026, 5, 14, 6, 30));
+      viewModel.setDepartureTime(DateTime(2026, 5, 14, 7, 15));
+
+      final result = await viewModel.saveChanges(DateTime(2026, 5, 14, 8, 0));
+
+      expect(result, isFalse);
+      expect(viewModel.errorMessage, '保存に失敗しました。');
+      expect(viewModel.isSaving, isFalse);
+      expect(alarmService.setAlarmCalls, hasLength(2));
+      expect(alarmService.stopCalls, hasLength(2));
     });
   });
 }

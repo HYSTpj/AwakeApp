@@ -258,7 +258,7 @@ class _SetTimePageState extends State<SetTimePage> {
                               final success = await _viewModel.saveChanges(widget.arrivalTime);
                               if (success && context.mounted) {
                                 Navigator.pop(context);
-                                debugPrint('保存画面へ移動');
+                                debugPrint('前の画面に戻る');
                               }
                             },
                       style: ElevatedButton.styleFrom(
