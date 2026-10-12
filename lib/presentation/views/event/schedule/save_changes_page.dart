@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../common_layout.dart';
-import '../../group/group_list_view.dart';
+import '../../group/group_list_page.dart';
 
 class SaveChangesPage extends StatefulWidget {
   final String eventId;

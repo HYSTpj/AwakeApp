@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_header_screen.dart'; // ヘッダーを定義したファイルをインポート
+import 'login_header.dart'; // ヘッダーを定義したファイルをインポート
 import '../common_effects.dart';
 
 class SignupBody extends StatelessWidget {
