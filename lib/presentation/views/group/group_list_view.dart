@@ -243,6 +243,7 @@ class _GroupListPageState extends State<GroupListPage> {
                         )
                       : EventListPage(
                           groupId: selectedGroupId!,
+                          myRole: myRole ?? 1,
                         ),
                 ),
               ],
