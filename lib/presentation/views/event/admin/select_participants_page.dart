@@ -1,10 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../common_layout.dart';
-import '../../../../../../data/repositories/admin_event_repository.dart';
-import '../../../../../../../models/profile.dart';
+import '../../../../../../presentation/viewmodels/admin_event_view_model.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
 
@@ -111,38 +110,16 @@ class SelectParticipantsPage extends StatefulWidget {
 }
 
 class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
-  late final AdminEventRepository _repository;
-  List<Profile> _allMembers = [];
-  Set<String> _selectedMembers = {};
-  bool _isLoading = true;
+  final Set<String> _selectedMembers = {};
 
   @override
   void initState() {
     super.initState();
-    _repository = SupabaseAdminEventRepository(Supabase.instance.client);
-    _loadMembers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminEventViewModel>().loadGroupMembers(widget.groupId);
+    });
   }
 
-  Future<void> _loadMembers() async {
-    try {
-      final members = await _repository.getGroupMembers(widget.groupId);
-      if (!mounted) return;
-      setState(() {
-        _allMembers = members;
-        _selectedMembers = {};
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('メンバー取得エラー: $e');
-      if (!mounted) return;
-      setState(() {
-        _selectedMembers = {};
-        _isLoading = false;
-      });
-    }
-  }
-
-  // 暗号学的に安全な推測不可能なトークンを生成
   String _generateSecureToken([int length = 32]) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
     final rand = Random.secure();
@@ -150,7 +127,11 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
   }
 
   Future<void> _saveAndNavigate() async {
-    if (_isLoading) return;
+    final viewModel = context.read<AdminEventViewModel>();
+    final state = viewModel.state;
+
+    // 作成中・読み込み中・エラー時は操作抑止
+    if (state.isCreatingEvent || state.isLoadingMembers) return;
 
     if (_selectedMembers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,52 +140,117 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final qrcodeId = 'qr_${_generateSecureToken(32)}';
 
-    try {
-      // ランダム生成をやめ、CreateEventPageで入力された widget.password を使用する
-      final qrcodeId = 'qr_${_generateSecureToken(32)}';
+    final eventId = await viewModel.createEventWithParticipants(
+      groupId: widget.groupId,
+      title: widget.title,
+      destinationName: widget.destinationName,
+      latitude: widget.latitude,
+      longitude: widget.longitude,
+      qrcodeId: qrcodeId,
+      password: widget.password,
+      arrivalTime: widget.arrivalTime,
+      participantUserIds: _selectedMembers.toList(),
+    );
 
-      await _repository.createEventWithParticipants(
-        groupId: widget.groupId,
-        title: widget.title,
-        destinationName: widget.destinationName,
-        latitude: widget.latitude,
-        longitude: widget.longitude,
-        qrcodeId: qrcodeId,
-        password: widget.password, // 入力されたパスワードを反映
-        arrivalTime: widget.arrivalTime,
-        participantUserIds: _selectedMembers.toList(),
-      );
+    if (!mounted) return;
 
-      if (!mounted) return;
-
+    if (eventId != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('イベントを作成しました')),
       );
-
-      // 成功フラグ (true) を持たせて戻る
       Navigator.pop(context, true);
-    } catch (e) {
-      debugPrint('保存エラー: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存に失敗しました: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } else if (viewModel.state.createEventError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('イベント作成失敗: ${viewModel.state.createEventError}')),
+      );
     }
+  }
+
+  Widget _buildMemberList(AdminEventState state) {
+    // 1. 取得失敗時のエラー表示
+    if (state.membersError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
+              const SizedBox(height: 8),
+              Text(
+                'メンバーの取得に失敗しました\n${state.membersError}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  context.read<AdminEventViewModel>().loadGroupMembers(widget.groupId);
+                },
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('再試行'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5C00),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // 2. 正常取得完了かつメンバーが0件の場合
+    if (state.groupMembers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(24.0),
+        child: Center(child: Text('メンバーがいません')),
+      );
+    }
+
+    // 3. 正常取得完了（リスト表示）
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: state.groupMembers.map((member) {
+        final memberName = member.nickname.isNotEmpty ? member.nickname : 'No Name';
+        final memberId = member.id;
+        final memberAvatar = member.avatarUrl ?? '';
+        final isSelected = _selectedMembers.contains(memberId);
+
+        return UserTile(
+          nickname: memberName,
+          userId: memberId,
+          avatarUrl: memberAvatar,
+          isAttending: isSelected,
+          onToggle: () {
+            setState(() {
+              if (isSelected) {
+                _selectedMembers.remove(memberId);
+              } else {
+                _selectedMembers.add(memberId);
+              }
+            });
+          },
+        );
+      }).toList(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<AdminEventViewModel>();
+    final state = viewModel.state;
+
+    // 画面整合性ガード：現在のグループとStateのIDが一致していない、または読み込み中はローディング
+    final isMatchingGroup = state.selectedMembersGroupId == widget.groupId;
+    final isLoading = state.isLoadingMembers || !isMatchingGroup;
+
     return CommonLayout(
       groupId: widget.groupId,
       myRole: widget.myRole,
-      body: _isLoading
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Column(
@@ -234,7 +280,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // メインタイトル
                         Transform.translate(
                           offset: const Offset(0, -1),
                           child: const Text(
@@ -247,7 +292,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                             ),
                           ),
                         ),
-                        // カウントラベル
                         Positioned(
                           right: 12,
                           top: 0,
@@ -274,7 +318,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     ),
                   ),
 
-                  // メンバーリスト
+                  // メンバーリスト（エラー / 0件 / リストを明確に分離）
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.all(16),
@@ -284,31 +328,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                         side: BorderSide(width: 3, color: Color(0xFF475569)),
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: _allMembers.map((member) {
-                        final memberName = member.nickname.isNotEmpty ? member.nickname : 'No Name';
-                        final memberId = member.id;
-                        final memberAvatar = member.avatarUrl ?? '';
-                        final isSelected = _selectedMembers.contains(memberId);
-
-                        return UserTile(
-                          nickname: memberName,
-                          userId: memberId,
-                          avatarUrl: memberAvatar,
-                          isAttending: isSelected,
-                          onToggle: () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedMembers.remove(memberId);
-                              } else {
-                                _selectedMembers.add(memberId);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
+                    child: _buildMemberList(state),
                   ),
 
                   // SAVEボタン
@@ -317,12 +337,16 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     child: SizedBox(
                       width: double.infinity,
                       child: InkWell(
-                        onTap: _saveAndNavigate,
+                        onTap: (state.isCreatingEvent || state.membersError != null)
+                            ? null
+                            : _saveAndNavigate,
                         child: Container(
                           height: 48,
                           alignment: Alignment.center,
                           decoration: ShapeDecoration(
-                            color: const Color(0xFFFF5C00),
+                            color: (state.isCreatingEvent || state.membersError != null)
+                                ? Colors.grey
+                                : const Color(0xFFFF5C00),
                             shape: const RoundedRectangleBorder(side: _kBorderSide),
                             shadows: [
                               BoxShadow(
@@ -331,15 +355,24 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                               ),
                             ],
                           ),
-                          child: const Text(
-                            'SAVE',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontFamily: 'Space Grotesk',
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
+                          child: state.isCreatingEvent
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'SAVE',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Space Grotesk',
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

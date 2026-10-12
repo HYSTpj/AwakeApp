@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../common_layout.dart';
-import 'package:intl/intl.dart'; //DateFormatを使用するために追加
+import '../../../../models/event_report.dart';
 import '../../../../widgets/return_button.dart';
 
 class MemberPostPage extends StatelessWidget {
-  final Map<String, dynamic> member; // 名前やアイコン用
-  final Map<String, dynamic> report; // 理由や写真用
+  final Map<String, dynamic> member;
+  final dynamic report; // EventReport インスタンス または Map<String, dynamic> の両方を受け入れ可能
   final String groupId;
   final String eventId;
   final String eventTitle;
@@ -22,7 +23,20 @@ class MemberPostPage extends StatelessWidget {
     required this.myRole,
   });
 
-  // 位置情報を文字に変換する関数
+  EventReport? get _parsedReport {
+    if (report is EventReport) {
+      return report as EventReport;
+    }
+    if (report is Map<String, dynamic>) {
+      try {
+        return EventReport.fromJson(report as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('EventReportパースエラー: $e');
+      }
+    }
+    return null;
+  }
+
   String _formatLocation(dynamic location) {
     if (location == null) return 'Unknown';
 
@@ -45,27 +59,34 @@ class MemberPostPage extends StatelessWidget {
     return location.toString();
   }
 
-  // 時間フォーマット処理 (DateTime / ISO8601 String 両対応)
-  String _formatTime(dynamic rawTime) {
-    if (rawTime == null) return '--:--';
-
-    try {
-      if (rawTime is DateTime) {
-        return DateFormat("M/dd HH:mm").format(rawTime);
+  String _formatTime(DateTime? time, dynamic rawFallback) {
+    if (time != null) {
+      return DateFormat('M/dd HH:mm').format(time);
+    }
+    if (rawFallback is String) {
+      final parsed = DateTime.tryParse(rawFallback);
+      if (parsed != null) {
+        return DateFormat('M/dd HH:mm').format(parsed);
       }
-      if (rawTime is String) {
-        final parsed = DateTime.parse(rawTime);
-        return DateFormat("M/dd HH:mm").format(parsed);
-      }
-    } catch (e) {
-      debugPrint('時間変換エラー: $e');
     }
     return '--:--';
   }
 
   @override
   Widget build(BuildContext context) {
-    final displayTime = _formatTime(report['actual_wakeup_time']);
+    final parsed = _parsedReport;
+
+    // EventReport がある場合はそこから、ない場合は Map から取得
+    final String? photoUrl = parsed?.photoUrl ?? (report is Map ? report['photo_url'] : null);
+    final String? lateReason = parsed?.lateReason ?? (report is Map ? report['late_reason'] : null);
+    final dynamic rawLocation = report is Map ? report['location'] : null;
+    final DateTime? wakeupTime = parsed?.actualWakeupTime;
+    final dynamic rawWakeupTime = report is Map ? report['actual_wakeup_time'] : null;
+
+    final displayTime = _formatTime(wakeupTime, rawWakeupTime);
+
+    final avatarUrl = member['avatar_url'] as String?;
+    final nickname = member['nickname'] as String? ?? 'No name';
 
     return CommonLayout(
       groupId: groupId,
@@ -79,10 +100,12 @@ class MemberPostPage extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             // 戻るボタン
-            ReturnButton(onTap: () {
-              Navigator.pop(context);
-              debugPrint('1画面戻る');
-            }),
+            ReturnButton(
+              onTap: () {
+                Navigator.pop(context);
+                debugPrint('1画面戻る');
+              },
+            ),
 
             const SizedBox(height: 10),
             // ユーザー情報（アイコンと名前）
@@ -90,16 +113,16 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
-                  backgroundImage: (member['avatar_url'] != null && member['avatar_url'] != '')
-                      ? NetworkImage(member['avatar_url'])
+                  backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                      ? NetworkImage(avatarUrl)
                       : null,
-                  child: (member['avatar_url'] == null || member['avatar_url'] == '')
+                  child: (avatarUrl == null || avatarUrl.isEmpty)
                       ? const Icon(Icons.person, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(width: 15),
                 Text(
-                  member['nickname'] ?? 'No name',
+                  nickname,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -112,26 +135,23 @@ class MemberPostPage extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black, width: 2),
-                color: Colors.white, // 画像がない時の背景色
+                color: Colors.white,
               ),
-              child: (report['photo_url'] != null && report['photo_url'] != "")
+              child: (photoUrl != null && photoUrl.isNotEmpty)
                   ? Image.network(
-                      // photo_urlに中身がある時
-                      report['photo_url'],
+                      photoUrl,
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return const Center(
-                          child: CircularProgressIndicator(), // 読み込み中はくるくるを表示
+                          child: CircularProgressIndicator(),
                         );
                       },
-                      // 万が一画像が読み込めなかった時のエラー表示
                       errorBuilder: (context, error, stackTrace) {
                         return const Center(child: Icon(Icons.error));
                       },
                     )
                   : const Center(
-                      // 中身がない時
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -157,7 +177,7 @@ class MemberPostPage extends StatelessWidget {
               children: [
                 _infoTag(
                   Icons.location_on,
-                  _formatLocation(report['location']),
+                  _formatLocation(rawLocation),
                 ),
                 _infoTag(Icons.alarm, 'WAKE-UP: $displayTime'),
               ],
@@ -180,7 +200,11 @@ class MemberPostPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   const SizedBox(height: 10),
-                  Text(report['late_reason'] ?? 'The reason is not entered.'),
+                  Text(
+                    (lateReason != null && lateReason.isNotEmpty)
+                        ? lateReason
+                        : 'The reason is not entered.',
+                  ),
                 ],
               ),
             ),
