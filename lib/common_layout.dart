@@ -178,7 +178,7 @@ class _CommonLayoutState extends State<CommonLayout> {
                 onTap: _reloadAvatar,
                 child: const CircleAvatar(
                   backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
+                  child: Icon(Icons.refresh, color: Colors.white),
                 ),
               );
             }
