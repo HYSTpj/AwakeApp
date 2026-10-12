@@ -13,7 +13,7 @@ import 'package:flutter_application_1/models/event_report.dart';
 import 'package:flutter_application_1/models/profile.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/checkin/memberpost_page.dart';
-import 'package:flutter_application_1/presentation/views/event/admin/event_list_view.dart';
+import 'package:flutter_application_1/presentation/views/event/admin/event_list_page.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/select_participants_page.dart';
 
