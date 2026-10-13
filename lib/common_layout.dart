@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'presentation/views/group/group_list_view.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
 import 'presentation/views/event/checkin/member_check_in.dart';
 import 'presentation/views/ranking/ranking_screen.dart';
 import 'presentation/views/event/event_selection_home.dart';
+import 'presentation/views/profile/profile_page.dart';
 
 class CommonLayout extends StatelessWidget {
   final Widget body; // 各画面の代入する中身
@@ -91,7 +91,7 @@ class CommonLayout extends StatelessWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: _buildRightIcons(),
+      actions: _buildRightIcons(context),
       backgroundColor: _themeColor,
       foregroundColor: Colors.black,
       elevation: 0,
@@ -121,7 +121,7 @@ class CommonLayout extends StatelessWidget {
   }
 
   ///AppBarの右側
-  List<Widget> _buildRightIcons() {
+  List<Widget> _buildRightIcons(BuildContext context) {
     final client = Supabase.instance.client;
     final currentUser = client.auth.currentUser;
 
@@ -140,7 +140,7 @@ class CommonLayout extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: GestureDetector(
-          onTap: _onProfilePressed,
+          onTap: () => _onProfilePressed(context),
           child: FutureBuilder<Map<String, dynamic>?>(
             future: client
                 .from('profiles')
@@ -299,7 +299,14 @@ class CommonLayout extends StatelessWidget {
   }
 
   // プロフィールボタンが押された時の処理
-  void _onProfilePressed() {
-    debugPrint('プロフィールボタンが押されました');
+  void _onProfilePressed(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    );
+
+    debugPrint('プロフィールページへ遷移');
   }
 }
