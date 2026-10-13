@@ -52,7 +52,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
     if (pickedFile == null) return;
 
-    final croppedFile = await ImageCropper().cropImage(
+    final CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile.path,
       aspectRatio: const CropAspectRatio(
         ratioX: 1,
@@ -61,6 +61,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     );
 
     if (croppedFile == null) return;
+
+    // CodeRabbit指摘箇所
+    if (!mounted) return;
 
     setState(() {
       _pickedImage = File(croppedFile.path);
