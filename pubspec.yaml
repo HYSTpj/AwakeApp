@@ -42,6 +42,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_localizations:
+    sdk: flutter
+
   # 以下の手順で，アプリケーションにCupertino Iconsフォントが追加されます。
   # iOSスタイルのアイコンには，CupertinoIconsクラスと組み合わせて使用​
 
