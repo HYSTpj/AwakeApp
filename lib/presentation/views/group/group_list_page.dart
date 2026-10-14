@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../data/repositories/group_repository.dart';
 import '../../../../models/group.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../common_layout.dart';
@@ -63,21 +63,13 @@ class _GroupListPageState extends State<GroupListPage> {
   }
 
   Future<int?> _fetchUserRole(String groupId) async {
-    final client = Supabase.instance.client;
-    final uid = client.auth.currentUser?.id;
-    if (uid == null) return null;
-
-    final response = await client
-        .from('groups_memberships')
-        .select('role')
-        .eq('group_id', groupId)
-        .eq('user_id', uid)
-        .maybeSingle();
-
-    if (response != null && response['role'] != null) {
-      return response['role'] as int;
+    try {
+      final role = await context.read<GroupRepository>().getRole(groupId);
+      return role;
+    } catch (e) {
+      debugPrint('ロール取得エラー: $e');
+      return null;
     }
-    return null;
   }
 
   @override

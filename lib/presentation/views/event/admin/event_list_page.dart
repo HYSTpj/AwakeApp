@@ -86,24 +86,36 @@ class _EventListPageState extends State<EventListPage> {
 
     final myEvents = state.events;
 
-    // インラインで参加状況詳細画面（MemberStatusPage）を表示する場合
+    // 詳細画面へインラインで切り替える場合の処理
     if (selectedEventId != null) {
-      final selectedEvent = myEvents.firstWhere(
-        (e) => e.id == selectedEventId,
-        orElse: () => myEvents.first,
-      );
+      // 安全に対象イベントを検索
+      final matches = myEvents.where((e) => e.id == selectedEventId);
 
-      final displayTime = _formatTime(selectedEvent.arrivalTime);
+      if (matches.isEmpty) {
+        // 対象イベントが既に存在しない場合は、安全のため一覧表示へフォールバック
+        // （必要に応じてフレーム完了後に setState で selectedEventId = null にリセット）
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              selectedEventId = null;
+              selectedEventTitle = null;
+            });
+          }
+        });
+      } else {
+        final selectedEvent = matches.first;
+        final displayTime = _formatTime(selectedEvent.arrivalTime);
 
-      return MemberStatusPage(
-        groupId: widget.groupId,
-        eventId: selectedEventId!,
-        eventTitle: selectedEventTitle ?? selectedEvent.title,
-        myRole: widget.myRole,
-        arrivalTime: displayTime,
-        password: selectedEvent.password ?? '',
-        qrcodeId: selectedEvent.qrcodeId ?? '',
-      );
+        return MemberStatusPage(
+          groupId: widget.groupId,
+          eventId: selectedEventId!,
+          eventTitle: selectedEventTitle ?? selectedEvent.title,
+          myRole: widget.myRole,
+          arrivalTime: displayTime,
+          password: selectedEvent.password ?? '',
+          qrcodeId: selectedEvent.qrcodeId ?? '',
+        );
+      }
     }
 
     return Column(

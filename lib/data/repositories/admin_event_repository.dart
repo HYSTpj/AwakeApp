@@ -37,7 +37,9 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
   @override
   Future<List<Event>> getEvents(String groupId) async {
     final uid = _client.auth.currentUser?.id;
-    if (uid == null) return [];
+    if (uid == null) {
+      throw const AuthException('User is not authenticated');
+    }
 
     // 管理者かどうか確認
     final membership = await _client
