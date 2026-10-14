@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import '../../../widgets/game_style_button.dart';
 import '../login/common_effects.dart';
 import 'create_group_page.dart';
 import 'add_group_page.dart';
 import 'delete_group_page.dart';
-
-const _kDangerRed = Color(0xFFF26A63);
 
 /// グループ作成、参加、脱退を選択するページ
 class CreateOrAddOrDeletePage extends StatelessWidget {
@@ -51,39 +50,9 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
     );
   }
 
-  Widget _actionButton(
-    BuildContext context, {
-    required String label,
-    required Color backgroundColor,
-    required Color textColor,
-    required VoidCallback onPressed,
-  }) {
-    const size = Size(400, 100);
-    return Container(
-      width: size.width,
-      height: size.height,
-      decoration: hardShadowDecoration(color: backgroundColor),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          minimumSize: size,
-          padding: EdgeInsets.zero,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 24, color: textColor, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
   // グループ作成ボタン
   Widget _createButton(BuildContext context) {
-    return _actionButton(
-      context,
+    return GameStyleButton(
       label: 'Create group',
       backgroundColor: kBrandOrange,
       textColor: Colors.white,
@@ -106,8 +75,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
 
   // グループ参加ボタン
   Widget _addButton(BuildContext context) {
-    return _actionButton(
-      context,
+    return GameStyleButton(
       label: 'Add group',
       backgroundColor: Colors.white,
       textColor: Colors.black,
@@ -130,10 +98,9 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
 
   // グループ脱退ボタン
   Widget _deleteButton(BuildContext context) {
-    return _actionButton(
-      context,
+    return GameStyleButton(
       label: 'Delete group',
-      backgroundColor: _kDangerRed,
+      backgroundColor: kDangerRed,
       textColor: Colors.white,
       onPressed: () async {
         final result = await Navigator.push<bool>(
