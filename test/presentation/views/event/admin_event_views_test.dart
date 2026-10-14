@@ -949,4 +949,224 @@ void main() {
           participantUserIds: any(named: 'participantUserIds'),
         )).called(1);
   });
+
+  // SelectParticipantsPage & MemberStatusPage 追加検証
+  group('SelectParticipantsPage 追加検証', () {
+    testWidgets('メンバー未選択のまま保存ボタンを押した場合、警告スナックバーが表示されること', (tester) async {
+      when(() => mockRepository.getGroupMembers('grp_1'))
+          .thenAnswer((_) async => [createDummyProfile(id: 'usr_1', nickname: 'Member 1')]);
+
+      await tester.pumpWidget(
+        buildTestableWidget(
+          SelectParticipantsPage(
+            groupId: 'grp_1',
+            title: 'Test Event',
+            destinationName: 'Tokyo',
+            arrivalTime: DateTime(2026, 10, 15, 9, 0),
+            password: 'pass',
+            myRole: 0,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final saveButton = find.text('SAVE');
+      await tester.ensureVisible(saveButton);
+      await tester.tap(saveButton);
+      // SnackBar の表示アニメーションを完了させる
+      await tester.pumpAndSettle();
+
+      // 1. SnackBar 自体が表示されていること
+      expect(find.byType(SnackBar), findsOneWidget);
+
+      // 2. SnackBar 内のテキストを絞り込んでアサート（ヘッダー等の「Select」との衝突を回避）
+      final snackBarTextFinder = find.descendant(
+        of: find.byType(SnackBar),
+        matching: find.byWidgetPredicate((widget) => widget is Text),
+      );
+      expect(snackBarTextFinder, findsOneWidget);
+    });
+  });
+
+  group('MemberStatusPage 追加検証', () {
+    testWidgets('statusesError がある場合、エラーメッセージと再試行ボタンが表示されること', (tester) async {
+      when(() => mockRepository.getEventMemberStatuses('evt_1'))
+          .thenThrow(Exception('参加状況の取得に失敗しました'));
+
+      await tester.pumpWidget(
+        buildTestableWidget(
+          const MemberStatusPage(
+            groupId: 'grp_1',
+            eventId: 'evt_1',
+            eventTitle: 'Test Event',
+            myRole: 0,
+            arrivalTime: '09:00',
+            password: 'pass',
+            qrcodeId: 'qr_1',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('参加状況の取得に失敗しました'), findsOneWidget);
+      expect(find.text('再試行'), findsOneWidget);
+    });
+
+    testWidgets('個別レポートが null の場合、MemberPostPage に遷移せず通知が表示されること', (tester) async {
+      when(() => mockRepository.getEventMemberStatuses('evt_1')).thenAnswer(
+        (_) async => [
+          EventMemberStatus(
+            profile: createDummyProfile(id: 'usr_1', nickname: 'Member 1'),
+            report: null,
+          ),
+        ],
+      );
+      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_1'))
+          .thenAnswer((_) async => null);
+
+      await tester.pumpWidget(
+        buildTestableWidget(
+          const MemberStatusPage(
+            groupId: 'grp_1',
+            eventId: 'evt_1',
+            eventTitle: 'Test Event',
+            myRole: 0,
+            arrivalTime: '09:00',
+            password: 'pass',
+            qrcodeId: 'qr_1',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Member 1'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MemberPostPage), findsNothing);
+      expect(find.text('There are no posts yet.'), findsOneWidget);
+    });
+
+    testWidgets('個別レポート取得中に画面が pop された場合、完了後に画面遷移が発生しないこと', (tester) async {
+      final cReport = Completer<EventReport?>();
+      when(() => mockRepository.getEventMemberStatuses('evt_1')).thenAnswer(
+        (_) async => [
+          EventMemberStatus(
+            profile: createDummyProfile(id: 'usr_1', nickname: 'Member 1'),
+            report: null,
+          ),
+        ],
+      );
+      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_1'))
+          .thenAnswer((_) => cReport.future);
+
+      final rootNavKey = GlobalKey<NavigatorState>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: rootNavKey,
+          home: Scaffold(
+            body: ElevatedButton(
+              onPressed: () {
+                rootNavKey.currentState!.push(
+                  MaterialPageRoute(
+                    builder: (_) => ChangeNotifierProvider.value(
+                      value: viewModel,
+                      child: const Scaffold(
+                        body: MemberStatusPage(
+                          groupId: 'grp_1',
+                          eventId: 'evt_1',
+                          eventTitle: 'Test Event',
+                          myRole: 0,
+                          arrivalTime: '09:00',
+                          password: 'pass',
+                          qrcodeId: 'qr_1',
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Member 1'));
+      await tester.pump();
+
+      rootNavKey.currentState!.pop();
+      await tester.pumpAndSettle();
+
+      cReport.complete(
+        EventReport(
+          id: 'rep_1',
+          eventId: 'evt_1',
+          userId: 'usr_1',
+          status: 4,
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MemberPostPage), findsNothing);
+      expect(find.text('Open'), findsOneWidget);
+    });
+
+    testWidgets('個別レポート取得成功時、遷移先の MemberPostPage に正しい値が引き渡されていること', (tester) async {
+      final dummyReport = EventReport(
+        id: 'rep_target_1',
+        eventId: 'evt_1',
+        userId: 'usr_1',
+        status: 4,
+        lateReason: null,
+        photoUrl: 'https://example.com/test.jpg',
+        latitude: 35.6812,
+        longitude: 139.7671,
+        updatedAt: DateTime(2026, 10, 14, 9, 30),
+      );
+
+      when(() => mockRepository.getEventMemberStatuses('evt_1')).thenAnswer(
+        (_) async => [
+          EventMemberStatus(
+            profile: createDummyProfile(id: 'usr_1', nickname: 'Member Target'),
+            report: null,
+          ),
+        ],
+      );
+      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_1'))
+          .thenAnswer((_) async => dummyReport);
+
+      await tester.pumpWidget(
+        buildTestableWidget(
+          const MemberStatusPage(
+            groupId: 'grp_1',
+            eventId: 'evt_1',
+            eventTitle: 'Test Event Title',
+            myRole: 0,
+            arrivalTime: '09:00',
+            password: 'pass',
+            qrcodeId: 'qr_1',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Member Target'));
+      await tester.pumpAndSettle();
+
+      final postPageFinder = find.byType(MemberPostPage);
+      expect(postPageFinder, findsOneWidget);
+
+      final postPageWidget = tester.widget<MemberPostPage>(postPageFinder);
+      expect(postPageWidget.profile.id, 'usr_1');
+      expect(postPageWidget.profile.nickname, 'Member Target');
+      expect(postPageWidget.report.id, 'rep_target_1');
+      expect(postPageWidget.report.latitude, 35.6812);
+      expect(postPageWidget.report.longitude, 139.7671);
+    });
+  });
 }
