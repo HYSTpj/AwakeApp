@@ -74,7 +74,7 @@ class SignupBody extends StatelessWidget {
                                     
                                     // EMAIL ADDRESS
                                     Text(
-                                        'EMAIL ADDRESS',
+                                        AppLocalizations.of(context)!.emailAddress,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -106,7 +106,7 @@ class SignupBody extends StatelessWidget {
 
                                     // PASSWORD
                                     Text(
-                                        'PASSWORD',
+                                        AppLocalizations.of(context)!.password,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -153,10 +153,14 @@ class SignupBody extends StatelessWidget {
                                                 shadowColor: Colors.transparent,     // ボタン自体の影を消す
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero), // 四角いボタンにする
                                                 ),
-                                                child: LoadingButtonLabel(
-                                                isLoading: isLoading,
-                                                label: 'CREATE ACCOUNT',
-                                            ),
+                                                child: Text(
+                                                AppLocalizations.of(context)!.signupTitle, 
+                                                style: TextStyle(
+                                                    color: Colors.white, // 文字色
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                ),
+                                                ),
                                             ),
                                         ),
                                     ),
@@ -178,8 +182,8 @@ class SignupBody extends StatelessWidget {
                                         padding: EdgeInsets.zero,
                                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                         ),
-                                        child: const Text(
-                                        'RETURN TO LOGIN',
+                                        child: Text(
+                                          AppLocalizations.of(context)!.returnToLogin,
                                         style: TextStyle(
                                             color: Colors.black, // 文字色
                                             fontFamily: 'Noto Sans JP',
