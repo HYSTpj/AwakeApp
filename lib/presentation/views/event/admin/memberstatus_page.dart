@@ -211,13 +211,18 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                       return;
                     }
 
-                    // 2. 整合性チェック（selectedReportEventId と selectedReportUserId を検証）
-                    final isTargetReport = currentState.selectedReportEventId == widget.eventId &&
+                    // 2. 整合性チェック（State 上のキー照合 + レポート本体のプロパティ照合）
+                    final isTargetState = currentState.selectedReportEventId == widget.eventId &&
                         currentState.selectedReportUserId == memberId;
 
                     final latestReport = currentState.selectedMemberReport;
 
-                    if (isTargetReport && latestReport != null) {
+                    // State の ID ペアに加え、取得された EventReport 本体の eventId / userId も二重照合
+                    final isValidReportData = latestReport != null &&
+                        latestReport.eventId == widget.eventId &&
+                        latestReport.userId == memberId;
+
+                    if (isTargetState && isValidReportData) {
                       navigator.push(
                         MaterialPageRoute(
                           builder: (_) => MemberPostPage(
@@ -232,7 +237,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                         ),
                       );
                       debugPrint('ポスト画面へ移動');
-                    } else if (isTargetReport && latestReport == null) {
+                    } else if (isTargetState && latestReport == null) {
                       scaffoldMessenger.showSnackBar(
                         const SnackBar(
                           content: Text('There are no posts yet.'),
