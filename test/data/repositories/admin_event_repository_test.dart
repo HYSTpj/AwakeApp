@@ -111,6 +111,9 @@ void main() {
       expect(events.length, 1);
       expect(events.first.title, 'Admin Event');
       expect(events.first.password, 'secret_pass');
+
+      // 管理者用 RPC が正しい引数で呼ばれたことを検証
+      verify(() => mockClient.rpc('get_admin_events', params: {'p_group_id': 'grp_1'})).called(1);
     });
 
     test('一般メンバー (role != 0) の場合は events_view から取得すること', () async {
@@ -125,31 +128,35 @@ void main() {
       );
 
       final mockEventsViewFrom = MockSupabaseQueryBuilder();
-      when(() => mockClient.from('events_view')).thenAnswer((_) => mockEventsViewFrom);
-      when(() => mockEventsViewFrom.select()).thenAnswer(
-        (_) => FakePostgrestBuilder<List<Map<String, dynamic>>>(
-          Future.value([
-            {
-              'id': 'evt_2',
-              'group_id': 'grp_1',
-              'title': 'Member Event',
-              'destination_name': 'Nagoya Station',
-              'qrcode_id': null,
-              'password': null,
-              'arrival_time': '2026-10-12T10:00:00.000Z',
-              'status': 'active',
-              'created_at': '2026-10-01T00:00:00.000Z',
-              'updated_at': '2026-10-01T00:00:00.000Z',
-            }
-          ]),
-        ),
+      final builder = FakePostgrestBuilder<List<Map<String, dynamic>>>(
+        Future.value([
+          {
+            'id': 'evt_2',
+            'group_id': 'grp_1',
+            'title': 'Member Event',
+            'destination_name': 'Nagoya Station',
+            'qrcode_id': null,
+            'password': null,
+            'arrival_time': '2026-10-12T10:00:00.000Z',
+            'status': 'active',
+            'created_at': '2026-10-01T00:00:00.000Z',
+            'updated_at': '2026-10-01T00:00:00.000Z',
+          }
+        ]),
       );
+
+      when(() => mockClient.from('events_view')).thenAnswer((_) => mockEventsViewFrom);
+      when(() => mockEventsViewFrom.select()).thenAnswer((_) => builder);
 
       final events = await repository.getEvents('grp_1');
 
       expect(events.length, 1);
       expect(events.first.title, 'Member Event');
       expect(events.first.password, isNull);
+
+      // events_view から取得されたことを検証
+      verify(() => mockClient.from('events_view')).called(1);
+      expect(builder.appliedFilters['group_id'], 'grp_1');
     });
   });
 
@@ -211,7 +218,6 @@ void main() {
 
       final report = await repository.getMemberReport(eventId: 'evt_1', userId: 'usr_1');
 
-      // event_id と user_id の両方がクエリ条件に正しく設定されていることを保証
       expect(builder.appliedFilters['event_id'], 'evt_1');
       expect(builder.appliedFilters['user_id'], 'usr_1');
 
@@ -239,7 +245,20 @@ void main() {
   });
 
   group('createEventWithParticipants 単体テスト', () {
-    test('成功時に event_id を返却すること', () async {
+    test('全引数が正確に渡され、成功時に event_id を返却すること', () async {
+      final arrivalTime = DateTime(2026, 10, 15, 9, 0);
+      final expectedParams = {
+        'p_group_id': 'grp_1',
+        'p_title': 'New Event',
+        'p_destination_name': 'Nagoya',
+        'p_latitude': 35.1709,
+        'p_longitude': 136.8815,
+        'p_qrcode_id': 'qr_1',
+        'p_password': 'pass',
+        'p_arrival_time': arrivalTime.toIso8601String(),
+        'p_participant_ids': ['usr_1', 'usr_2'],
+      };
+
       when(() => mockClient.rpc(
             'create_event_with_participants',
             params: any(named: 'params'),
@@ -253,13 +272,18 @@ void main() {
         groupId: 'grp_1',
         title: 'New Event',
         destinationName: 'Nagoya',
+        latitude: 35.1709,
+        longitude: 136.8815,
         qrcodeId: 'qr_1',
         password: 'pass',
-        arrivalTime: DateTime(2026, 10, 15, 9, 0),
+        arrivalTime: arrivalTime,
         participantUserIds: ['usr_1', 'usr_2'],
       );
 
       expect(eventId, 'new_event_123');
+
+      // 全引数が一過性なく厳密に RPC に渡されたことを verify で直接検証
+      verify(() => mockClient.rpc('create_event_with_participants', params: expectedParams)).called(1);
     });
 
     test('success が false または失敗時は PostgrestException をスローすること', () async {
