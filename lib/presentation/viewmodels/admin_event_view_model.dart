@@ -278,8 +278,8 @@ class AdminEventViewModel extends ChangeNotifier {
     required String groupId,
     required String title,
     required String destinationName,
-    double? latitude,
-    double? longitude,
+    required double? latitude,
+    required double? longitude,
     required String qrcodeId,
     required String password,
     required DateTime arrivalTime,
@@ -287,8 +287,7 @@ class AdminEventViewModel extends ChangeNotifier {
   }) async {
     if (_state.isCreatingEvent) return null;
 
-    // 作成開始時点のイベント一覧世代をスナップショット記録
-    final startEventsGen = _eventsGeneration;
+    final initialGen = _eventsGeneration; // 作成開始時の世代を記録
 
     _state = _state.copyWith(
       isCreatingEvent: true,
@@ -309,22 +308,22 @@ class AdminEventViewModel extends ChangeNotifier {
         participantUserIds: participantUserIds,
       );
 
-      _state = _state.copyWith(isCreatingEvent: false);
-      notifyListeners();
-
-      // 同一グループかつ作成中にイベント一覧の世代が進んでいない場合のみ再同期
-      if (_state.selectedGroupId == groupId && _eventsGeneration == startEventsGen) {
+      // 選択中グループであり、かつ作成中に一覧取得世代が進んでいない場合のみ再取得
+      if (_state.selectedGroupId == groupId && initialGen == _eventsGeneration) {
         await loadEvents(groupId);
       }
 
       return eventId;
     } catch (e) {
       _state = _state.copyWith(
-        isCreatingEvent: false,
         createEventError: e.toString(),
       );
-      notifyListeners();
       return null;
+    } finally {
+      _state = _state.copyWith(
+        isCreatingEvent: false,
+      );
+      notifyListeners();
     }
   }
 }

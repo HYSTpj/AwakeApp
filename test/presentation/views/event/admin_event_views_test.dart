@@ -864,4 +864,89 @@ void main() {
     // 遷移アニメーションを完了させてクリーンアップ
     await tester.pumpAndSettle();
   });
+
+  testWidgets('作成成功後の一覧再取得完了まで SAVE ボタンが無効化され、多重実行されないこと', (tester) async {
+    final createCompleter = Completer<String>();
+    final reloadCompleter = Completer<List<Event>>();
+
+    // 1. メンバー一覧取得をモック
+    when(() => mockRepository.getGroupMembers('group-1'))
+        .thenAnswer((_) async => [createDummyProfile(id: 'u-1', nickname: 'Alice')]);
+
+    // 2. 作成処理をモック（非同期保留）
+    when(() => mockRepository.createEventWithParticipants(
+          groupId: 'group-1',
+          title: any(named: 'title'),
+          destinationName: any(named: 'destinationName'),
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+          qrcodeId: any(named: 'qrcodeId'),
+          password: any(named: 'password'),
+          arrivalTime: any(named: 'arrivalTime'),
+          participantUserIds: any(named: 'participantUserIds'),
+        )).thenAnswer((_) => createCompleter.future);
+
+    // 3. 一覧再取得をモック（非同期保留）
+    when(() => mockRepository.getEvents('group-1'))
+        .thenAnswer((_) => reloadCompleter.future);
+
+    // 事前にグループIDだけを選択状態にする（非同期処理を待たない）
+    viewModel.loadEvents('group-1'); // await しない
+    reloadCompleter.complete([createDummyEvent()]); // 初回分を完了
+    await tester.pump();
+
+    // 改めて作成後の一覧再取得用 Completer をセット
+    final afterCreateReloadCompleter = Completer<List<Event>>();
+    when(() => mockRepository.getEvents('group-1'))
+        .thenAnswer((_) => afterCreateReloadCompleter.future);
+
+    await tester.pumpWidget(
+      buildTestableWidget(
+        SelectParticipantsPage(
+          groupId: 'group-1',
+          title: 'テスト',
+          destinationName: '目的地',
+          arrivalTime: DateTime.now(),
+          password: 'pass',
+          myRole: 0,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // メンバー選択
+    await tester.tap(find.byType(Switch).first);
+    await tester.pumpAndSettle();
+
+    // 4. SAVE をタップ（作成開始）
+    final saveButtonFinder = find.widgetWithText(InkWell, 'SAVE');
+    await tester.tap(saveButtonFinder);
+    await tester.pump();
+
+    // 5. 作成処理が完了するが、一覧再取得は保留状態にする
+    createCompleter.complete('event-1');
+    await tester.pump(); // 作成完了と loadEvents 開始を反映
+
+    //【検証】一覧再取得中も isCreatingEvent が true でボタンが無効化されていること
+    expect(viewModel.state.isCreatingEvent, isTrue);
+    // ローディングインジケータが表示されていること
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // 6. 一覧再取得を完了させる
+    afterCreateReloadCompleter.complete([createDummyEvent()]);
+    await tester.pumpAndSettle();
+
+    // 7. 作成 API が1回しか呼ばれていないことを検証
+    verify(() => mockRepository.createEventWithParticipants(
+          groupId: 'group-1',
+          title: any(named: 'title'),
+          destinationName: any(named: 'destinationName'),
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+          qrcodeId: any(named: 'qrcodeId'),
+          password: any(named: 'password'),
+          arrivalTime: any(named: 'arrivalTime'),
+          participantUserIds: any(named: 'participantUserIds'),
+        )).called(1);
+  });
 }
