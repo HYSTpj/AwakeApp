@@ -183,6 +183,33 @@ void main() {
       expect(viewModel.state.selectedReportUserId, 'usr_new');
       expect(viewModel.state.selectedMemberReport?.id, 'rep_new');
     });
+
+    test('同一 groupId に対する連続 loadGroupMembers で、遅れた第1リクエストが結果を上書きしないこと', () async {
+      final c1 = Completer<List<Profile>>();
+      final c2 = Completer<List<Profile>>();
+
+      when(() => mockRepository.getGroupMembers('grp_1'))
+          .thenAnswer((_) => c1.future);
+
+      final f1 = viewModel.loadGroupMembers('grp_1');
+
+      when(() => mockRepository.getGroupMembers('grp_1'))
+          .thenAnswer((_) => c2.future);
+
+      final f2 = viewModel.loadGroupMembers('grp_1');
+
+      // 第2リクエスト（最新）が先に完了
+      c2.complete([createDummyProfile('usr_latest', 'Latest Member')]);
+      await f2;
+
+      // 遅れて第1リクエストが完了
+      c1.complete([createDummyProfile('usr_stale', 'Stale Member')]);
+      await f1;
+
+      // 最新のメンバー一覧が維持されていることを検証
+      expect(viewModel.state.groupMembers.first.id, 'usr_latest');
+      expect(viewModel.state.groupMembers.first.nickname, 'Latest Member');
+    });
   });
 
   group('異常系・エラー分離 & ローディング解除テスト', () {
@@ -394,6 +421,53 @@ void main() {
       await fCreate;
 
       verifyNever(() => mockRepository.getEvents('grp_1'));
+    });
+
+    test('作成処理中に別グループへ切り替わった場合、作成完了後の旧グループ一覧再取得がスキップされること', () async {
+      final cCreate = Completer<String>();
+
+      when(() => mockRepository.getEvents('grp_1')).thenAnswer((_) async => []);
+      when(() => mockRepository.getEvents('grp_2')).thenAnswer((_) async => []);
+      when(() => mockRepository.createEventWithParticipants(
+            groupId: 'grp_1',
+            title: 'Event',
+            destinationName: 'Tokyo',
+            latitude: null,
+            longitude: null,
+            qrcodeId: 'qr',
+            password: 'pass',
+            arrivalTime: any(named: 'arrivalTime'),
+            participantUserIds: ['u1'],
+          )).thenAnswer((_) => cCreate.future);
+
+      // grp_1 で初期一覧を取得
+      await viewModel.loadEvents('grp_1');
+      clearInteractions(mockRepository);
+
+      // grp_1 でイベント作成を開始（非同期保留）
+      final fCreate = viewModel.createEventWithParticipants(
+        groupId: 'grp_1',
+        title: 'Event',
+        destinationName: 'Tokyo',
+        latitude: null,
+        longitude: null,
+        qrcodeId: 'qr',
+        password: 'pass',
+        arrivalTime: DateTime.now(),
+        participantUserIds: ['u1'],
+      );
+
+      // 作成処理が完了する前に別グループ grp_2 へ画面・状態を切り替える
+      await viewModel.loadEvents('grp_2');
+      clearInteractions(mockRepository);
+
+      // 作成処理が完了
+      cCreate.complete('evt_created_1');
+      await fCreate;
+
+      // grp_1 の一覧再取得はスキップされ、呼ばれていないことを検証
+      verifyNever(() => mockRepository.getEvents('grp_1'));
+      expect(viewModel.state.selectedGroupId, 'grp_2');
     });
   });
 
