@@ -1,0 +1,25 @@
+{
+  "loginRequiredFields": "Please enter your email address and password",
+  "loginFailed": "Login failed",
+  "userNameRequired": "Please enter a username",
+  "notLoggedIn": "You are not logged in",
+  "profileSaveFailed": "Failed to save profile",
+
+  "createProfile": "CREATE PROFILE",
+  "createProfileDescription": "Show the world who you are. Customize your look.",
+  "userName": "USER NAME",
+  "enterUserName": "Enter your username",
+  "profilePicture": "PROFILE PICTURE",
+  "uploadImage": "UPLOAD IMAGE",
+  "createAccount": "CREATE ACCOUNT",
+  "returnToLogin": "RETURN TO LOGIN",
+
+  "signIn": "SIGN IN",
+  "loginCatchCopy": "We give medals to the timely and\nshame to the tardy",
+  "emailAddress": "EMAIL ADDRESS",
+  "password": "PASSWORD",
+  "login": "LOGIN",
+
+  "signupTitle": "CREATE ACCOUNT",
+  "signupCatchCopy": "Join us among the elite who master time.\nLet's AWAKE!"
+}

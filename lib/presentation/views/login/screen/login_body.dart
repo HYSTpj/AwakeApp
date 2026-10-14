@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_header.dart';
 import '../common_effects.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 Widget loginBody(
     BuildContext context, {
@@ -24,7 +25,7 @@ Widget loginBody(
                             children: [
                                 // ロゴ
                                 Text(
-                                    'SIGN IN',
+                                    AppLocalizations.of(context)!.signIn,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                     color: const Color(0xFF0F172A),
@@ -38,7 +39,7 @@ Widget loginBody(
 
                                 // キャッチコピー
                                 Text(
-                                    'We give medals to the timely and\nshame to the tardy',
+                                    AppLocalizations.of(context)!.loginCatchCopy,
                                     textAlign: TextAlign.center,
                                         style: TextStyle(
                                             color: const Color(0xFF334155),
@@ -61,7 +62,7 @@ Widget loginBody(
                                 
                                 // EMAIL ADDRESS
                                 Text(
-                                    'EMAIL ADDRESS',
+                                    AppLocalizations.of(context)!.emailAddress,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                     color: const Color(0xFF0F172A),
@@ -93,7 +94,7 @@ Widget loginBody(
 
                                 // PASSWORD
                                 Text(
-                                    'PASSWORD',
+                                    AppLocalizations.of(context)!.password,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                     color: const Color(0xFF0F172A),
@@ -141,8 +142,8 @@ Widget loginBody(
                                                 shadowColor: Colors.transparent,
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                             ),
-                                            child: const Text(
-                                                'LOGIN',
+                                            child: Text(
+                                                AppLocalizations.of(context)!.login,
                                                 style: TextStyle(
                                                     color: Colors.white,
                                                     fontWeight: FontWeight.bold,
@@ -170,8 +171,8 @@ Widget loginBody(
                                             padding: EdgeInsets.zero,
                                             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                         ),
-                                        child: const Text(
-                                            'CREATE ACCOUNT',
+                                        child: Text(
+                                            AppLocalizations.of(context)!.createAccount,
                                             style: TextStyle(
                                                 color: Colors.black, // 文字色
                                                 fontFamily: 'Noto Sans JP',
