@@ -396,4 +396,43 @@ void main() {
       verifyNever(() => mockRepository.getEvents('grp_1'));
     });
   });
+
+  test('同一 userId で別イベントのレポート取得に切り替えた場合、遅れて完了した旧イベントのレポートが破棄されること', () async {
+      final cOld = Completer<EventReport?>();
+      final cNew = Completer<EventReport?>();
+
+      when(() => mockRepository.getMemberReport(eventId: 'evt_old', userId: 'u_same'))
+          .thenAnswer((_) => cOld.future);
+      when(() => mockRepository.getMemberReport(eventId: 'evt_new', userId: 'u_same'))
+          .thenAnswer((_) => cNew.future);
+
+      final fOld = viewModel.loadMemberReport(eventId: 'evt_old', userId: 'u_same');
+      final fNew = viewModel.loadMemberReport(eventId: 'evt_new', userId: 'u_same');
+
+      final newReport = EventReport(
+        id: 'rep_new',
+        eventId: 'evt_new',
+        userId: 'u_same',
+        status: 4,
+        updatedAt: DateTime.now(),
+      );
+      cNew.complete(newReport);
+      await fNew;
+
+      final oldReport = EventReport(
+        id: 'rep_old',
+        eventId: 'evt_old',
+        userId: 'u_same',
+        status: 2,
+        updatedAt: DateTime.now(),
+      );
+      cOld.complete(oldReport);
+      await fOld;
+
+      // selectedReportEventId も含めて新しいイベント側のレポートが保持されていることを検証
+      expect(viewModel.state.selectedReportEventId, 'evt_new');
+      expect(viewModel.state.selectedReportUserId, 'u_same');
+      expect(viewModel.state.selectedMemberReport?.id, 'rep_new');
+      expect(viewModel.state.selectedMemberReport?.eventId, 'evt_new');
+    });
 }

@@ -182,72 +182,72 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
         return GestureDetector(
           onTap: state.isLoadingMemberReport
-            ? null // 💡 取得中はタップを無効化
-            : () async {
-              final String memberId = profile.id;
-              final viewModel = context.read<AdminEventViewModel>();
+              ? null
+              : () async {
+                  final String memberId = profile.id;
+                  final viewModel = context.read<AdminEventViewModel>();
+                  // 非同期処理の前に Navigator と ScaffoldMessenger を退避
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-              try {
-                await viewModel.loadMemberReport(
-                  eventId: widget.eventId,
-                  userId: memberId,
-                );
+                  try {
+                    await viewModel.loadMemberReport(
+                      eventId: widget.eventId,
+                      userId: memberId,
+                    );
 
-                if (!context.mounted) return;
+                    if (!mounted) return;
 
-                final currentReportState = viewModel.state;
+                    // context.read ではなく退避済み viewModel から直接 state を参照
+                    final currentState = viewModel.state;
 
-                // 整合性チェック
-                if (currentReportState.selectedEventId != widget.eventId ||
-                  currentReportState.selectedReportUserId != memberId) {
-                  return;
-                }
+                    // 1. エラー時の処理
+                    if (currentState.memberReportError != null) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('レポート取得に失敗しました: ${currentState.memberReportError}'),
+                        ),
+                      );
+                      return;
+                    }
 
-                if (currentReportState.memberReportError != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('レポート取得に失敗しました: ${currentReportState.memberReportError}'),
-                    ),
-                  );
-                  return;
-                }
+                    // 2. 整合性チェック（selectedReportEventId と selectedReportUserId を検証）
+                    final isTargetReport = currentState.selectedReportEventId == widget.eventId &&
+                        currentState.selectedReportUserId == memberId;
 
-                final latestReport = currentReportState.selectedMemberReport;
+                    final latestReport = currentState.selectedMemberReport;
 
-                if (latestReport != null &&
-                  latestReport.eventId == widget.eventId &&
-                  latestReport.userId == memberId) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MemberPostPage(
-                        profile: profile,
-                        report: latestReport,
-                        status: status,
-                        groupId: widget.groupId,
-                        eventId: widget.eventId,
-                        eventTitle: widget.eventTitle,
-                        myRole: widget.myRole,
-                      ),
-                    ),
-                  );
-                  debugPrint('ポスト画面へ移動');
-                } else if (latestReport == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('There are no posts yet.'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                debugPrint('個別レポート取得エラー: $e');
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('レポート取得中にエラーが発生しました: $e')),
-                  );
-                }
-              } 
-            },
+                    if (isTargetReport && latestReport != null) {
+                      navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => MemberPostPage(
+                            profile: profile,
+                            report: latestReport,
+                            status: status,
+                            groupId: widget.groupId,
+                            eventId: widget.eventId,
+                            eventTitle: widget.eventTitle,
+                            myRole: widget.myRole,
+                          ),
+                        ),
+                      );
+                      debugPrint('ポスト画面へ移動');
+                    } else if (isTargetReport && latestReport == null) {
+                      scaffoldMessenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('There are no posts yet.'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('個別レポート取得エラー: $e');
+                    if (mounted) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(content: Text('レポート取得中にエラーが発生しました: $e')),
+                      );
+                    }
+                  }
+                },
           child: Container(
             margin: const EdgeInsets.symmetric(
               horizontal: 15,

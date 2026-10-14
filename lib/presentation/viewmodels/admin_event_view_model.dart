@@ -28,6 +28,7 @@ class AdminEventState {
   final String? statusesError;
 
   // 4. 個別レポート詳細画面用
+  final String? selectedReportEventId;
   final String? selectedReportUserId;
   final EventReport? selectedMemberReport;
   final bool isLoadingMemberReport;
@@ -48,6 +49,7 @@ class AdminEventState {
     this.memberStatuses = const [],
     this.isLoadingStatuses = false,
     this.statusesError,
+    this.selectedReportEventId,
     this.selectedReportUserId,
     this.selectedMemberReport,
     this.isLoadingMemberReport = false,
@@ -76,6 +78,8 @@ class AdminEventState {
     bool? isLoadingStatuses,
     String? statusesError,
     bool clearStatusesError = false,
+    String? selectedReportEventId,
+    bool clearReportEventId = false,
     String? selectedReportUserId,
     bool clearReportUserId = false,
     EventReport? selectedMemberReport,
@@ -108,6 +112,9 @@ class AdminEventState {
       isLoadingStatuses: isLoadingStatuses ?? this.isLoadingStatuses,
       statusesError:
           clearStatusesError ? null : (statusesError ?? this.statusesError),
+      selectedReportEventId: clearReportEventId
+          ? null
+          : (selectedReportEventId ?? this.selectedReportEventId),
       selectedReportUserId: clearReportUserId
           ? null
           : (selectedReportUserId ?? this.selectedReportUserId),
@@ -239,12 +246,15 @@ class AdminEventViewModel extends ChangeNotifier {
     required String userId,
   }) async {
     final currentGen = ++_memberReportGeneration;
-    final isNewUser = _state.selectedReportUserId != userId;
+    // eventId と userId のペアで新規対象かどうかを判定
+    final isNewTarget = _state.selectedReportEventId != eventId ||
+                        _state.selectedReportUserId != userId;
 
     _state = _state.copyWith(
+      selectedReportEventId: eventId,
       selectedReportUserId: userId,
-      selectedMemberReport: isNewUser ? null : _state.selectedMemberReport,
-      clearMemberReport: isNewUser,
+      selectedMemberReport: isNewTarget ? null : _state.selectedMemberReport,
+      clearMemberReport: isNewTarget,
       isLoadingMemberReport: true,
       clearMemberReportError: true,
     );
