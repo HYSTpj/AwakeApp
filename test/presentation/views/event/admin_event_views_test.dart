@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:geocoding_platform_interface/geocoding_platform_interface.dart';
 
 import 'package:flutter_application_1/data/repositories/admin_event_repository.dart';
 import 'package:flutter_application_1/models/event.dart';
@@ -16,8 +17,27 @@ import 'package:flutter_application_1/presentation/views/event/checkin/memberpos
 import 'package:flutter_application_1/presentation/views/event/admin/event_list_page.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/select_participants_page.dart';
+import 'package:flutter_application_1/presentation/views/event/admin/create_event_page.dart';
 
 class MockAdminEventRepository extends Mock implements AdminEventRepository {}
+
+class MockGeocodingPlatform extends GeocodingPlatform {
+  @override
+  Future<List<Location>> locationFromAddress(
+    String address, {
+    String? localeIdentifier,
+  }) async {
+    // 非同期遅延をシミュレート
+    await Future.delayed(const Duration(milliseconds: 100));
+    return [
+      Location(
+        latitude: 35.681236,
+        longitude: 139.767125,
+        timestamp: DateTime.now(),
+      ),
+    ];
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -662,5 +682,51 @@ void main() {
       expect(locationFinder, findsOneWidget);
       expect(find.text('電車遅延のため'), findsOneWidget);
     });
+  });
+
+  testWidgets('場所検索の非同期応答待ち時に入力が変更された場合、古い座標で確定されないこと', (WidgetTester tester) async {
+    // GeocodingPlatform のモックを適用
+    GeocodingPlatform.instance = MockGeocodingPlatform();
+
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CreateEventPage(groupId: 'test-group', myRole: 0),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. 必須項目（イベント名・パスワード）を入力
+    final textFields = find.byType(TextField);
+    // 画面の構造順: 0=イベント名, 1=パスコード, 2=場所
+    await tester.enterText(textFields.at(0), 'テストイベント');
+    await tester.pump();
+
+    await tester.enterText(textFields.at(1), '1234');
+    await tester.pump();
+
+    // 2. 初期の地名を入力
+    final locationField = textFields.at(2);
+    await tester.enterText(locationField, 'Initial Location');
+    await tester.pump();
+
+    // 3. 検索を実行（MockGeocodingPlatform の Future.delayed が走る）
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump(); // 検索の非同期処理開始
+
+    // 4. 応答が返る前に入力テキストを変更（世代番号が進む）
+    await tester.enterText(locationField, 'Modified Location');
+    await tester.pump();
+
+    // 5. 非同期処理を完了させる（遅延した古い応答は世代不一致で破棄される）
+    await tester.pumpAndSettle();
+
+    // 6. 「Confirm Participant」をタップ
+    final confirmButton = find.text('Confirm Participant');
+    await tester.ensureVisible(confirmButton);
+    await tester.tap(confirmButton);
+    await tester.pump();
+
+    // 7. 座標未確定スナックバーが表示されることを検証
+    expect(find.text('目的地の場所をキーボードの「検索」で確定してください'), findsOneWidget);
   });
 }

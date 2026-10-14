@@ -116,6 +116,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
   LatLng? _selectedLocation;
   Set<Marker> _markers = {};
 
+  // 検索の世代番号（古い非同期リクエストの上書きを防止）
+  int _searchGeneration = 0;
+
   String get _timeLabel {
     final h = _scheduledTime.hour % 12 == 0 ? 12 : _scheduledTime.hour % 12;
     final m = _scheduledTime.minute.toString().padLeft(2, '0');
@@ -168,12 +171,23 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> _searchLocation(String address) async {
-    if (address.isEmpty) return;
+    final query = address.trim();
+    if (query.isEmpty) return;
+
+    // 検索開始時に世代番号を進め、リクエスト時の世代を保持
+    final currentGeneration = ++_searchGeneration;
+
     try {
-      final locations = await locationFromAddress(address);
+      final locations = await locationFromAddress(query);
+
+      // 非同期待機中に地名が変更された、または別の検索が走った場合は破棄
+      if (!mounted) return;
+      if (currentGeneration != _searchGeneration || _locationController.text.trim() != query) {
+        return;
+      }
+
       if (locations.isNotEmpty) {
         final target = LatLng(locations.first.latitude, locations.first.longitude);
-        if (!mounted) return;
         setState(() {
           _selectedLocation = target;
           _markers = {
@@ -184,7 +198,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
           CameraUpdate.newCameraPosition(CameraPosition(target: target, zoom: 15)),
         );
       } else {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('場所が見つかりませんでした')),
         );
@@ -192,6 +205,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
     } catch (e) {
       debugPrint('検索エラー: $e');
       if (!mounted) return;
+      if (currentGeneration != _searchGeneration || _locationController.text.trim() != query) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('場所の検索に失敗しました。住所や地名を確認してください')),
       );
@@ -357,8 +373,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         isDense: true,
                         suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
                       ),
-                      // テキスト変更時に座標とマーカーをリセットして不整合を防止
                       onChanged: (value) {
+                        // テキスト変更時に世代番号を進めて先行リクエストを無効化
+                        _searchGeneration++;
                         if (_selectedLocation != null) {
                           setState(() {
                             _selectedLocation = null;
