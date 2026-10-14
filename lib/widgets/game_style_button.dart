@@ -31,6 +31,7 @@ class GameStyleButton extends StatelessWidget {
     return Container(
       width: size.width,
       height: size.height,
+      clipBehavior: Clip.antiAlias,
       decoration: hardShadowDecoration(
         color: backgroundColor,
         borderRadius: radius,
