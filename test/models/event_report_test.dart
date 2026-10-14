@@ -145,4 +145,58 @@ void main() {
       expect(memberStatus.currentStatus, 0);
     });
   });
+
+  group('EventReport.fromJson - status のパース検証', () {
+    Map<String, dynamic> createBaseJson(dynamic statusValue) {
+      return {
+        'id': 'rep_1',
+        'event_id': 'evt_1',
+        'user_id': 'u_1',
+        'status': statusValue,
+        'updated_at': '2026-10-20T10:00:00.000Z',
+      };
+    }
+
+    test('整数値 0〜5 がそのまま保持されること', () {
+      final expectedValues = [0, 1, 2, 3, 4, 5];
+      for (final val in expectedValues) {
+        final report = EventReport.fromJson(createBaseJson(val));
+        expect(report.status, equals(val), reason: 'status $val should be preserved');
+      }
+    });
+
+    test('範囲外の整数値（-1, 6 等）が渡された場合に 0 へフォールバックすること', () {
+      final outOfRangeValues = [-99, -1, 6, 100];
+      for (final val in outOfRangeValues) {
+        final report = EventReport.fromJson(createBaseJson(val));
+        expect(report.status, equals(0), reason: 'status $val should fallback to 0');
+      }
+    });
+
+    test('互換性文字列（sleeping, awake, overslept, moving, arrived, late）が 0〜5 に変換されること', () {
+      final stringToExpected = {
+        'sleeping': 0,
+        'awake': 1,
+        'overslept': 2,
+        'moving': 3,
+        'arrived': 4,
+        'late': 5,
+        'AWAKE': 1,
+        'Arrived': 4,
+      };
+
+      stringToExpected.forEach((input, expected) {
+        final report = EventReport.fromJson(createBaseJson(input));
+        expect(report.status, equals(expected), reason: 'status "$input" should convert to $expected');
+      }); // 💡 ここを修正
+    });
+
+    test('未知の文字列や null / 不正な型が渡された場合に 0 へフォールバックすること', () {
+      final invalidValues = ['unknown', 'invalid_status', '', null, 3.14, true, []];
+      for (final val in invalidValues) {
+        final report = EventReport.fromJson(createBaseJson(val));
+        expect(report.status, equals(0), reason: 'status $val should fallback to 0');
+      }
+    });
+  });
 }
