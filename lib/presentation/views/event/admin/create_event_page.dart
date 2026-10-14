@@ -116,8 +116,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
   LatLng? _selectedLocation;
   Set<Marker> _markers = {};
 
-  // 検索の世代番号（古い非同期リクエストの上書きを防止）
   int _searchGeneration = 0;
+
+  // 多重遷移を防止するためのフラグを追加
+  bool _isNavigating = false;
 
   String get _timeLabel {
     final h = _scheduledTime.hour % 12 == 0 ? 12 : _scheduledTime.hour % 12;
@@ -215,6 +217,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> _onNextPressed() async {
+    // 既に遷移中の場合は即座に処理を中断
+    if (_isNavigating) return;
+
     final title = _nameController.text.trim();
     final location = _locationController.text.trim();
     final password = _passwordController.text.trim();
@@ -233,7 +238,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
       return;
     }
 
-    // 座標が確定しているかを厳密にチェック（固定値での誤登録を防止）
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('目的地の場所をキーボードの「検索」で確定してください')),
@@ -241,25 +245,38 @@ class _CreateEventPageState extends State<CreateEventPage> {
       return;
     }
 
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectParticipantsPage(
-          groupId: widget.groupId,
-          title: title,
-          destinationName: location,
-          latitude: _selectedLocation!.latitude,
-          longitude: _selectedLocation!.longitude,
-          arrivalTime: _scheduledTime,
-          password: password,
-          myRole: widget.myRole,
-        ),
-      ),
-    );
+    setState(() {
+      _isNavigating = true;
+    });
 
-    if (!mounted) return;
-    if (result == true) {
-      Navigator.pop(context, true);
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectParticipantsPage(
+            groupId: widget.groupId,
+            title: title,
+            destinationName: location,
+            latitude: _selectedLocation!.latitude,
+            longitude: _selectedLocation!.longitude,
+            arrivalTime: _scheduledTime,
+            password: password,
+            myRole: widget.myRole,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+      if (result == true) {
+        Navigator.pop(context, true);
+      }
+    } finally {
+      // 画面から戻ってきた場合に再度タップできるようにフラグを解除
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
     }
   }
 
@@ -414,14 +431,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
-                      // 一本化したバリデーション関数を呼び出す
-                      onTap: _onNextPressed,
+                      // 遷移中はタップ自体を受け付けない
+                      onTap: _isNavigating ? null : _onNextPressed,
                       child: Container(
                         width: double.infinity,
                         height: 48,
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
-                          color: AppColors.orange,
+                          // 遷移中はグレーアウトさせるとUX的にも親切
+                          color: _isNavigating ? Colors.grey : AppColors.orange,
                           shape: const RoundedRectangleBorder(side: _kBorderSide),
                           shadows: [
                             BoxShadow(

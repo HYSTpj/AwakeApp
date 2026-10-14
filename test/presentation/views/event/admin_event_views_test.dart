@@ -42,6 +42,9 @@ class MockGeocodingPlatform extends GeocodingPlatform {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // テスト全体で GeocodingPlatform のモックを適用
+  GeocodingPlatform.instance = MockGeocodingPlatform();
+
   setUpAll(() async {
     const channel = MethodChannel('plugins.flutter.io/shared_preferences');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -685,9 +688,6 @@ void main() {
   });
 
   testWidgets('場所検索の非同期応答待ち時に入力が変更された場合、古い座標で確定されないこと', (WidgetTester tester) async {
-    // GeocodingPlatform のモックを適用
-    GeocodingPlatform.instance = MockGeocodingPlatform();
-
     await tester.pumpWidget(
       buildTestableWidget(
         const CreateEventPage(groupId: 'test-group', myRole: 0),
@@ -697,7 +697,6 @@ void main() {
 
     // 1. 必須項目（イベント名・パスワード）を入力
     final textFields = find.byType(TextField);
-    // 画面の構造順: 0=イベント名, 1=パスコード, 2=場所
     await tester.enterText(textFields.at(0), 'テストイベント');
     await tester.pump();
 
@@ -705,13 +704,14 @@ void main() {
     await tester.pump();
 
     // 2. 初期の地名を入力
-    final locationField = textFields.at(2);
+    final locationField = find.widgetWithText(TextField, 'Search location...');
+    expect(locationField, findsOneWidget);
     await tester.enterText(locationField, 'Initial Location');
     await tester.pump();
 
     // 3. 検索を実行（MockGeocodingPlatform の Future.delayed が走る）
     await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump(); // 検索の非同期処理開始
+    await tester.pump(); // 非同期処理開始
 
     // 4. 応答が返る前に入力テキストを変更（世代番号が進む）
     await tester.enterText(locationField, 'Modified Location');
@@ -728,5 +728,47 @@ void main() {
 
     // 7. 座標未確定スナックバーが表示されることを検証
     expect(find.text('目的地の場所をキーボードの「検索」で確定してください'), findsOneWidget);
+  });
+
+  testWidgets('遷移処理中は Confirm Participant ボタンが無効化（onTap が null）されること', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CreateEventPage(groupId: 'test-group', myRole: 0),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. 必須項目の入力
+    final textFields = find.byType(TextField);
+    await tester.enterText(textFields.at(0), 'テストイベント');
+    await tester.pump();
+    await tester.enterText(textFields.at(1), '1234');
+    await tester.pump();
+
+    // 2. 地名入力と確定
+    final locationField = find.widgetWithText(TextField, 'Search location...');
+    await tester.enterText(locationField, 'Initial Location');
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    // 3. ボタンの初期状態を確認（onTap が存在する）
+    final buttonFinder = find.widgetWithText(InkWell, 'Confirm Participant');
+    // 画面内にスクロールして確実に見える状態にする（画面外タップ警告を解消）
+    await tester.ensureVisible(buttonFinder);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<InkWell>(buttonFinder).onTap, isNotNull);
+
+    // 4. タップを実行し、タップイベント処理を進める
+    await tester.tap(buttonFinder);
+    // 短い時間を進めて _onNextPressed の setState(_isNavigating = true) を反映
+    await tester.pump(const Duration(milliseconds: 50));
+
+    // ガード自体の検証: _isNavigating により onTap が null になっていることを直接アサート
+    expect(tester.widget<InkWell>(buttonFinder).onTap, isNull);
+
+    // 遷移アニメーションを完了させてクリーンアップ
+    await tester.pumpAndSettle();
   });
 }
