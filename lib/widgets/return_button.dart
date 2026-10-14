@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../presentation/views/login/common_effects.dart';
+import 'game_style_box.dart';
 
 /// 戻るボタンウィジェット
 class ReturnButton extends StatelessWidget {
@@ -13,16 +13,13 @@ class ReturnButton extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap ?? () => Navigator.pop(context),
-      child: Container(
+      child: GameStyleBox(
         width: 45,
         height: 45,
-        decoration: hardShadowDecoration(
-          color: Colors.white,
-          borderColor: borderColor,
-          borderRadius: BorderRadius.circular(12),
-          borderWidth: 3,
-          shadowOffset: 4,
-        ),
+        color: Colors.white,
+        borderColor: borderColor,
+        borderRadius: BorderRadius.circular(12),
+        shadowOffset: 4,
         child: const Center(
           child: Icon(
             Icons.arrow_back,

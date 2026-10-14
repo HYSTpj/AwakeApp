@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../presentation/views/login/common_effects.dart';
+import 'game_style_box.dart';
 
 /// ログイン画面系と同じネオブルータリズム風（角丸＋黒枠線＋黒いハードシャドウ）のボタン。
 class GameStyleButton extends StatelessWidget {
@@ -28,16 +28,11 @@ class GameStyleButton extends StatelessWidget {
     final size = Size(width, height);
     final radius = BorderRadius.circular(16);
 
-    return Container(
+    return GameStyleBox(
       width: size.width,
       height: size.height,
-      clipBehavior: Clip.antiAlias,
-      decoration: hardShadowDecoration(
-        color: backgroundColor,
-        borderRadius: radius,
-        borderWidth: 3,
-        shadowOffset: 8,
-      ),
+      color: backgroundColor,
+      borderRadius: radius,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
