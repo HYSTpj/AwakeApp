@@ -382,4 +382,19 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
             ),
     );
   }
+  @override
+  void didUpdateWidget(SelectParticipantsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.groupId != widget.groupId) {
+      setState(() {
+        _selectedMembers.clear(); // 💡 _selectedUserIds ではなく _selectedMembers をクリア
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<AdminEventViewModel>().loadGroupMembers(widget.groupId);
+        }
+      });
+    }
+  }
 }

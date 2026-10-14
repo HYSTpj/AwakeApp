@@ -181,72 +181,73 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
         }
 
         return GestureDetector(
-          onTap: () async {
-            final String memberId = profile.id;
-            final viewModel = context.read<AdminEventViewModel>();
+          onTap: state.isLoadingMemberReport
+            ? null // 💡 取得中はタップを無効化
+            : () async {
+              final String memberId = profile.id;
+              final viewModel = context.read<AdminEventViewModel>();
 
-            try {
-              await viewModel.loadMemberReport(
-                eventId: widget.eventId,
-                userId: memberId,
-              );
-
-              if (!context.mounted) return;
-
-              final currentReportState = viewModel.state;
-
-              // 画面イベント・ユーザーの整合性照合（別イベント切り替え・別ユーザー切り替えの防止）
-              if (currentReportState.selectedEventId != widget.eventId ||
-                  currentReportState.selectedReportUserId != memberId) {
-                return;
-              }
-
-              if (currentReportState.memberReportError != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('レポート取得に失敗しました: ${currentReportState.memberReportError}'),
-                  ),
+              try {
+                await viewModel.loadMemberReport(
+                  eventId: widget.eventId,
+                  userId: memberId,
                 );
-                return;
-              }
 
-              final latestReport = currentReportState.selectedMemberReport;
+                if (!context.mounted) return;
 
-              // レポート自体の eventId / userId と現在の対象が一致しているかを検証
-              if (latestReport != null &&
+                final currentReportState = viewModel.state;
+
+                // 整合性チェック
+                if (currentReportState.selectedEventId != widget.eventId ||
+                  currentReportState.selectedReportUserId != memberId) {
+                  return;
+                }
+
+                if (currentReportState.memberReportError != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('レポート取得に失敗しました: ${currentReportState.memberReportError}'),
+                    ),
+                  );
+                  return;
+                }
+
+                final latestReport = currentReportState.selectedMemberReport;
+
+                if (latestReport != null &&
                   latestReport.eventId == widget.eventId &&
                   latestReport.userId == memberId) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MemberPostPage(
-                      profile: profile,
-                      report: latestReport,
-                      status: status,
-                      groupId: widget.groupId,
-                      eventId: widget.eventId,
-                      eventTitle: widget.eventTitle,
-                      myRole: widget.myRole,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MemberPostPage(
+                        profile: profile,
+                        report: latestReport,
+                        status: status,
+                        groupId: widget.groupId,
+                        eventId: widget.eventId,
+                        eventTitle: widget.eventTitle,
+                        myRole: widget.myRole,
+                      ),
                     ),
-                  ),
-                );
-                debugPrint('ポスト画面へ移動');
-              } else if (latestReport == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('There are no posts yet.'),
-                  ),
-                );
-              }
-            } catch (e) {
-              debugPrint('個別レポート取得エラー: $e');
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('レポート取得中にエラーが発生しました: $e')),
-                );
-              }
-            }
-          },
+                  );
+                  debugPrint('ポスト画面へ移動');
+                } else if (latestReport == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('There are no posts yet.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                debugPrint('個別レポート取得エラー: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('レポート取得中にエラーが発生しました: $e')),
+                  );
+                }
+              } 
+            },
           child: Container(
             margin: const EdgeInsets.symmetric(
               horizontal: 15,

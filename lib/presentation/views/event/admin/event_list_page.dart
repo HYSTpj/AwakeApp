@@ -80,7 +80,30 @@ class _EventListPageState extends State<EventListPage> {
 
     if (state.eventsError != null) {
       return Center(
-        child: Text('イベント取得エラー: ${state.eventsError}'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
+            const SizedBox(height: 8),
+            Text(
+              'イベント取得エラー:\n${state.eventsError}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.redAccent),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<AdminEventViewModel>().loadEvents(widget.groupId);
+              },
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('再試行'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5C00),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
