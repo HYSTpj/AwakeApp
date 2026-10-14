@@ -207,7 +207,7 @@ class _GroupListPageState extends State<GroupListPage> {
                               MaterialPageRoute(
                                 builder: (context) => EventSelectionHome(
                                   groupId: value,
-                                  groupName: targetGroup.groupName, // 💡 正しいグループ名を渡す
+                                  groupName: targetGroup.groupName,
                                   myRole: role,
                                 ),
                               ),

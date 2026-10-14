@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'event_report.dart';
-import 'profile.dart'; // 既存の Profile モデルを再利用
+import 'profile.dart';
 
 @immutable
 class EventMemberStatus {
@@ -12,15 +12,13 @@ class EventMemberStatus {
     this.report,
   });
 
-  /// レポートがない場合のステータスは 0: sleeping 扱い
+  /// レポート未提出時は 0（sleeping）を返す
   int get currentStatus => report?.status ?? 0;
 
   factory EventMemberStatus.fromJson(Map<String, dynamic> json) {
-    // profiles テーブルの結合結果をパース
     final profileData = json['profiles'] as Map<String, dynamic>? ?? json;
     final profile = Profile.fromJson(profileData);
 
-    // event_reports テーブルの結合結果をパース
     final reportData = json['event_reports'] as Map<String, dynamic>? ??
         (json.containsKey('status') ? json : null);
     final report = reportData != null ? EventReport.fromJson(reportData) : null;

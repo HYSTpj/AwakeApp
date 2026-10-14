@@ -188,7 +188,7 @@ void main() {
       stringToExpected.forEach((input, expected) {
         final report = EventReport.fromJson(createBaseJson(input));
         expect(report.status, equals(expected), reason: 'status "$input" should convert to $expected');
-      }); // 💡 ここを修正
+      });
     });
 
     test('未知の文字列や null / 不正な型が渡された場合に 0 へフォールバックすること', () {

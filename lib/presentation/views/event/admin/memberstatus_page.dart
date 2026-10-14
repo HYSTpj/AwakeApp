@@ -94,7 +94,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
   }
 
   Widget _buildMemberList(AdminEventState state) {
-    // 1. 取得失敗時のエラー表示
     if (state.statusesError != null) {
       return Center(
         child: Column(
@@ -130,14 +129,12 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
         ? eventMembers
         : eventMembers.where((m) => m.currentStatus == selectedFilter).toList();
 
-    // 2. 該当メンバーなし
     if (filterMembers.isEmpty) {
       return const Center(
         child: Text('No members match this status.'),
       );
     }
 
-    // 3. リスト表示
     return ListView.builder(
       key: ValueKey(selectedFilter),
       itemCount: filterMembers.length,
@@ -198,10 +195,8 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
                     if (!mounted) return;
 
-                    // context.read ではなく退避済み viewModel から直接 state を参照
                     final currentState = viewModel.state;
 
-                    // 1. エラー時の処理
                     if (currentState.memberReportError != null) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(
@@ -211,13 +206,11 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                       return;
                     }
 
-                    // 2. 整合性チェック（State 上のキー照合 + レポート本体のプロパティ照合）
                     final isTargetState = currentState.selectedReportEventId == widget.eventId &&
                         currentState.selectedReportUserId == memberId;
 
                     final latestReport = currentState.selectedMemberReport;
 
-                    // State の ID ペアに加え、取得された EventReport 本体の eventId / userId も二重照合
                     final isValidReportData = latestReport != null &&
                         latestReport.eventId == widget.eventId &&
                         latestReport.userId == memberId;
@@ -341,7 +334,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
     return Column(
       children: [
-        // QR code 表示ボタン
         Padding(
           padding: const EdgeInsets.all(15),
           child: SizedBox(
@@ -389,7 +381,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
           ),
         ),
 
-        // ステータス選択ボタン群
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -438,7 +429,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
 
         const SizedBox(height: 20),
 
-        // 見出しテキスト & 到着カウント
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Row(
@@ -466,7 +456,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
           ),
         ),
 
-        // メンバー一覧・エラー・空状態
         Expanded(
           child: _buildMemberList(state),
         ),

@@ -258,7 +258,7 @@ void main() {
     });
 
     testWidgets('イベント作成成功時、一覧の再取得が1回だけ実行されること', (tester) async {
-      // 1. 初回一覧取得をモック
+      // 初回一覧取得をモック
       when(() => mockRepository.getEvents('group-1'))
           .thenAnswer((_) async => [createDummyEvent(title: '既存イベント')]);
 
@@ -290,11 +290,11 @@ void main() {
       // 初回表示時の一覧取得（1回）を確認
       verify(() => mockRepository.getEvents('group-1')).called(1);
 
-      // 2. Add Events 画面を開く
+      // Add Events 画面を開く
       await tester.tap(find.text('Add Events'));
       await tester.pumpAndSettle();
 
-      // 3. CreateEventPage の入力と確定
+      // CreateEventPage の入力と確定
       final textFields = find.byType(TextField);
       await tester.enterText(textFields.at(0), '新規イベント');
       await tester.enterText(textFields.at(1), '1234');
@@ -309,14 +309,14 @@ void main() {
       await tester.tap(confirmButton);
       await tester.pumpAndSettle();
 
-      // 4. SelectParticipantsPage でメンバーを選択して SAVE
+      // SelectParticipantsPage でメンバーを選択して SAVE
       await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('SAVE'));
       await tester.pumpAndSettle();
 
-      // 5. 作成成功後、一覧再取得（loadEvents）が合計2回（初回1回 + 作成後1回）呼ばれたことを検証
+      // 作成成功後、一覧再取得（loadEvents）が合計2回（初回1回 + 作成後1回）呼ばれたことを検証
       verify(() => mockRepository.getEvents('group-1')).called(1);
     });
 
@@ -788,7 +788,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 1. 必須項目（イベント名・パスワード）を入力
+    // 必須項目（イベント名・パスワード）を入力
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), 'テストイベント');
     await tester.pump();
@@ -796,30 +796,30 @@ void main() {
     await tester.enterText(textFields.at(1), '1234');
     await tester.pump();
 
-    // 2. 初期の地名を入力
+    // 初期の地名を入力
     final locationField = find.widgetWithText(TextField, 'Search location...');
     expect(locationField, findsOneWidget);
     await tester.enterText(locationField, 'Initial Location');
     await tester.pump();
 
-    // 3. 検索を実行（MockGeocodingPlatform の Future.delayed が走る）
+    // 検索を実行（MockGeocodingPlatform の Future.delayed が走る）
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump(); // 非同期処理開始
 
-    // 4. 応答が返る前に入力テキストを変更（世代番号が進む）
+    // 応答が返る前に入力テキストを変更（世代番号が進む）
     await tester.enterText(locationField, 'Modified Location');
     await tester.pump();
 
-    // 5. 非同期処理を完了させる（遅延した古い応答は世代不一致で破棄される）
+    // 非同期処理を完了させる（遅延した古い応答は世代不一致で破棄される）
     await tester.pumpAndSettle();
 
-    // 6. 「Confirm Participant」をタップ
+    // 「Confirm Participant」をタップ
     final confirmButton = find.text('Confirm Participant');
     await tester.ensureVisible(confirmButton);
     await tester.tap(confirmButton);
     await tester.pump();
 
-    // 7. 座標未確定スナックバーが表示されることを検証
+    // 座標未確定スナックバーが表示されることを検証
     expect(find.text('目的地の場所をキーボードの「検索」で確定してください'), findsOneWidget);
   });
 
@@ -831,21 +831,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 1. 必須項目の入力
+    // 必須項目の入力
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), 'テストイベント');
     await tester.pump();
     await tester.enterText(textFields.at(1), '1234');
     await tester.pump();
 
-    // 2. 地名入力と確定
+    // 地名入力と確定
     final locationField = find.widgetWithText(TextField, 'Search location...');
     await tester.enterText(locationField, 'Initial Location');
     await tester.pump();
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
-    // 3. ボタンの初期状態を確認（onTap が存在する）
+    // ボタンの初期状態を確認（onTap が存在する）
     final buttonFinder = find.widgetWithText(InkWell, 'Confirm Participant');
     // 画面内にスクロールして確実に見える状態にする（画面外タップ警告を解消）
     await tester.ensureVisible(buttonFinder);
@@ -853,7 +853,7 @@ void main() {
 
     expect(tester.widget<InkWell>(buttonFinder).onTap, isNotNull);
 
-    // 4. タップを実行し、タップイベント処理を進める
+    // タップを実行し、タップイベント処理を進める
     await tester.tap(buttonFinder);
     // 短い時間を進めて _onNextPressed の setState(_isNavigating = true) を反映
     await tester.pump(const Duration(milliseconds: 50));
@@ -869,11 +869,10 @@ void main() {
     final createCompleter = Completer<String>();
     final reloadCompleter = Completer<List<Event>>();
 
-    // 1. メンバー一覧取得をモック
     when(() => mockRepository.getGroupMembers('group-1'))
         .thenAnswer((_) async => [createDummyProfile(id: 'u-1', nickname: 'Alice')]);
 
-    // 2. 作成処理をモック（非同期保留）
+    // 作成処理をモック（非同期保留）
     when(() => mockRepository.createEventWithParticipants(
           groupId: 'group-1',
           title: any(named: 'title'),
@@ -886,7 +885,7 @@ void main() {
           participantUserIds: any(named: 'participantUserIds'),
         )).thenAnswer((_) => createCompleter.future);
 
-    // 3. 一覧再取得をモック（非同期保留）
+    // 一覧再取得をモック（非同期保留）
     when(() => mockRepository.getEvents('group-1'))
         .thenAnswer((_) => reloadCompleter.future);
 
@@ -914,29 +913,23 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // メンバー選択
     await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
 
-    // 4. SAVE をタップ（作成開始）
     final saveButtonFinder = find.widgetWithText(InkWell, 'SAVE');
     await tester.tap(saveButtonFinder);
     await tester.pump();
 
-    // 5. 作成処理が完了するが、一覧再取得は保留状態にする
+    // 作成処理が完了するが、一覧再取得は保留状態にする
     createCompleter.complete('event-1');
     await tester.pump(); // 作成完了と loadEvents 開始を反映
 
-    //【検証】一覧再取得中も isCreatingEvent が true でボタンが無効化されていること
     expect(viewModel.state.isCreatingEvent, isTrue);
-    // ローディングインジケータが表示されていること
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    // 6. 一覧再取得を完了させる
     afterCreateReloadCompleter.complete([createDummyEvent()]);
     await tester.pumpAndSettle();
 
-    // 7. 作成 API が1回しか呼ばれていないことを検証
     verify(() => mockRepository.createEventWithParticipants(
           groupId: 'group-1',
           title: any(named: 'title'),
@@ -950,7 +943,9 @@ void main() {
         )).called(1);
   });
 
-  // SelectParticipantsPage & MemberStatusPage 追加検証
+  // ==========================================
+  // 5. SelectParticipantsPage & MemberStatusPage 追加検証
+  // ==========================================
   group('SelectParticipantsPage 追加検証', () {
     testWidgets('メンバー未選択のまま保存ボタンを押した場合、警告スナックバーが表示されること', (tester) async {
       when(() => mockRepository.getGroupMembers('grp_1'))
@@ -976,10 +971,10 @@ void main() {
       // SnackBar の表示アニメーションを完了させる
       await tester.pumpAndSettle();
 
-      // 1. SnackBar 自体が表示されていること
+      // SnackBar 自体が表示されていること
       expect(find.byType(SnackBar), findsOneWidget);
 
-      // 2. SnackBar 内のテキストを絞り込んでアサート（ヘッダー等の「Select」との衝突を回避）
+      // SnackBar 内のテキストを絞り込んでアサート（ヘッダー等の「Select」との衝突を回避）
       final snackBarTextFinder = find.descendant(
         of: find.byType(SnackBar),
         matching: find.byWidgetPredicate((widget) => widget is Text),

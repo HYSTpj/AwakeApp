@@ -66,7 +66,6 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // ユーザー情報（アイコンと名前）
             Row(
               children: [
                 CircleAvatar(
@@ -87,7 +86,6 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 証拠写真
             Container(
               width: double.infinity,
               height: 300,
@@ -129,7 +127,6 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 起きた時間と場所
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -142,7 +139,6 @@ class MemberPostPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 遅刻理由（LATE REASON）
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(15),

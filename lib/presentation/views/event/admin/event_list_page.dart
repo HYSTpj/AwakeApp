@@ -66,7 +66,6 @@ class _EventListPageState extends State<EventListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 共有 Provider の ViewModel / State を購読
     final viewModel = context.watch<AdminEventViewModel>();
     final state = viewModel.state;
 
@@ -109,14 +108,11 @@ class _EventListPageState extends State<EventListPage> {
 
     final myEvents = state.events;
 
-    // 詳細画面へインラインで切り替える場合の処理
     if (selectedEventId != null) {
-      // 安全に対象イベントを検索
       final matches = myEvents.where((e) => e.id == selectedEventId);
 
       if (matches.isEmpty) {
         // 対象イベントが既に存在しない場合は、安全のため一覧表示へフォールバック
-        // （必要に応じてフレーム完了後に setState で selectedEventId = null にリセット）
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
@@ -143,7 +139,6 @@ class _EventListPageState extends State<EventListPage> {
 
     return Column(
       children: [
-        // 管理者（widget.myRole == 0）のみイベント追加ボタンを表示
         if (widget.myRole == 0)
           Padding(
             padding: const EdgeInsets.all(15),
@@ -183,7 +178,6 @@ class _EventListPageState extends State<EventListPage> {
             ),
           ),
 
-        // イベント一覧リスト
         Expanded(
           child: myEvents.isEmpty
               ? const Center(
@@ -223,7 +217,6 @@ class _EventListPageState extends State<EventListPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 集合時間
                             Row(
                               children: [
                                 const Icon(
@@ -246,7 +239,6 @@ class _EventListPageState extends State<EventListPage> {
                             ),
                             const SizedBox(height: 10),
 
-                            // 集合場所
                             Row(
                               children: [
                                 const Icon(
@@ -272,7 +264,6 @@ class _EventListPageState extends State<EventListPage> {
                             ),
                             const SizedBox(height: 10),
 
-                            // イベント名 & 設定アイコン
                             Row(
                               mainAxisAlignment:
                                   MainAxisAlignment.spaceBetween,

@@ -9,7 +9,7 @@ import 'supabase_test_mocks.dart';
 class MockUser extends Mock implements User {}
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 
-/// select() や rpc() の戻り値としてチェーンを受け流し、引数条件の検証も可能にする Fake
+// select() や rpc() の戻り値としてチェーンを受け流し、引数条件の検証も可能にする Fake
 class FakePostgrestBuilder<T> extends Fake
     implements PostgrestFilterBuilder<T>, PostgrestTransformBuilder<T> {
   final Future<T> _future;
@@ -112,7 +112,6 @@ void main() {
       expect(events.first.title, 'Admin Event');
       expect(events.first.password, 'secret_pass');
 
-      // 管理者用 RPC が正しい引数で呼ばれたことを検証
       verify(() => mockClient.rpc('get_admin_events', params: {'p_group_id': 'grp_1'})).called(1);
     });
 
@@ -154,7 +153,6 @@ void main() {
       expect(events.first.title, 'Member Event');
       expect(events.first.password, isNull);
 
-      // events_view から取得されたことを検証
       verify(() => mockClient.from('events_view')).called(1);
       expect(builder.appliedFilters['group_id'], 'grp_1');
     });
@@ -282,7 +280,6 @@ void main() {
 
       expect(eventId, 'new_event_123');
 
-      // 全引数が一過性なく厳密に RPC に渡されたことを verify で直接検証
       verify(() => mockClient.rpc('create_event_with_participants', params: expectedParams)).called(1);
     });
 

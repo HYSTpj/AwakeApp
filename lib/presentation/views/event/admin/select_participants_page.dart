@@ -130,7 +130,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     final viewModel = context.read<AdminEventViewModel>();
     final state = viewModel.state;
 
-    // 作成中・読み込み中・エラー時は操作抑止
+    // 作成中またはメンバー読み込み中は保存処理を開始しない
     if (state.isCreatingEvent || state.isLoadingMembers) return;
 
     if (_selectedMembers.isEmpty) {
@@ -169,7 +169,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
   }
 
   Widget _buildMemberList(AdminEventState state) {
-    // 1. 取得失敗時のエラー表示
+    // 取得失敗時のエラー表示
     if (state.membersError != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
@@ -202,7 +202,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
       );
     }
 
-    // 2. 正常取得完了かつメンバーが0件の場合
     if (state.groupMembers.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(24.0),
@@ -210,7 +209,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
       );
     }
 
-    // 3. 正常取得完了（リスト表示）
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: state.groupMembers.map((member) {
@@ -256,7 +254,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 戻るボタン
                   Padding(
                     padding: const EdgeInsets.only(left: 14, top: 9),
                     child: InkWell(
@@ -318,7 +315,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     ),
                   ),
 
-                  // メンバーリスト（エラー / 0件 / リストを明確に分離）
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.all(16),
@@ -331,7 +327,6 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     child: _buildMemberList(state),
                   ),
 
-                  // SAVEボタン
                   Padding(
                     padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
                     child: SizedBox(
@@ -388,7 +383,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
 
     if (oldWidget.groupId != widget.groupId) {
       setState(() {
-        _selectedMembers.clear(); // 💡 _selectedUserIds ではなく _selectedMembers をクリア
+        _selectedMembers.clear();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

@@ -7,13 +7,13 @@ import '../../models/profile.dart';
 
 @immutable
 class AdminEventState {
-  // 1. イベント一覧画面用
+  // イベント一覧画面用
   final String? selectedGroupId;
   final List<Event> events;
   final bool isLoadingEvents;
   final String? eventsError;
 
-  // 2. メンバー選択・イベント作成画面用
+  // メンバー選択・イベント作成画面用
   final String? selectedMembersGroupId;
   final List<Profile> groupMembers;
   final bool isLoadingMembers;
@@ -21,13 +21,13 @@ class AdminEventState {
   final bool isCreatingEvent;
   final String? createEventError;
 
-  // 3. 参加メンバー状況一覧画面用
+  // 参加メンバー状況一覧画面用
   final String? selectedEventId;
   final List<EventMemberStatus> memberStatuses;
   final bool isLoadingStatuses;
   final String? statusesError;
 
-  // 4. 個別レポート詳細画面用
+  // 個別レポート詳細画面用
   final String? selectedReportEventId;
   final String? selectedReportUserId;
   final EventReport? selectedMemberReport;
@@ -144,7 +144,6 @@ class AdminEventViewModel extends ChangeNotifier {
 
   AdminEventState get state => _state;
 
-  /// イベント一覧読み込み
   Future<void> loadEvents(String groupId) async {
     final currentGen = ++_eventsGeneration;
     final isNewGroup = _state.selectedGroupId != groupId;
@@ -176,7 +175,6 @@ class AdminEventViewModel extends ChangeNotifier {
     }
   }
 
-  /// グループメンバー一覧読み込み
   Future<void> loadGroupMembers(String groupId) async {
     final currentGen = ++_membersGeneration;
     final isNewGroup = _state.selectedMembersGroupId != groupId;
@@ -208,7 +206,6 @@ class AdminEventViewModel extends ChangeNotifier {
     }
   }
 
-  /// 参加メンバー状況一覧読み込み
   Future<void> loadEventMemberStatuses(String eventId) async {
     final currentGen = ++_statusesGeneration;
     final isNewEvent = _state.selectedEventId != eventId;
@@ -240,7 +237,6 @@ class AdminEventViewModel extends ChangeNotifier {
     }
   }
 
-  /// 個別レポート詳細読み込み
   Future<void> loadMemberReport({
     required String eventId,
     required String userId,
@@ -283,7 +279,7 @@ class AdminEventViewModel extends ChangeNotifier {
     }
   }
 
-  /// イベント新規作成（二重送信ガード & 世代照合付き再同期）
+  // イベント新規作成（二重送信ガード & 世代照合付き再同期）
   Future<String?> createEventWithParticipants({
     required String groupId,
     required String title,

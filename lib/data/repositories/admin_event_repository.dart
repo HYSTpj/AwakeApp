@@ -84,7 +84,6 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
 
   @override
   Future<List<Profile>> getGroupMembers(String groupId) async {
-    // groups_memberships 経由で対象グループのメンバー Profiles を JOIN 取得
     final data = await _client
         .from('groups_memberships')
         .select('profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')
@@ -133,7 +132,6 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
 
   @override
   Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId) async {
-    // event_reports と profiles を JOIN して取得
     final data = await _client
         .from('event_reports')
         .select('*, profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')

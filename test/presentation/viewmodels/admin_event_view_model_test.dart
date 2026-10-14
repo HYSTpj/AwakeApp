@@ -258,7 +258,6 @@ void main() {
     });
 
     test('createEventWithParticipants 失敗時に createEventError が設定され isCreatingEvent が false にリセットされること', () async {
-      // 💡 構文エラーを修正
       when(() => mockRepository.createEventWithParticipants(
             groupId: 'grp_1',
             title: 'Event',

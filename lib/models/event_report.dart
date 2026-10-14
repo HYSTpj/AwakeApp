@@ -13,7 +13,6 @@ class EventReport {
   final double? longitude;
   final DateTime updatedAt;
 
-  // UI表示用ヘルパープロパティ
   bool get isAwake => status >= 1;
   bool get isOverslept => status == 2;
   bool get isMoving => status == 3;
@@ -36,7 +35,7 @@ class EventReport {
     required this.updatedAt,
   });
 
-  /// DBの整数値 (0〜5) を基準とし、範囲外や文字列互換形式も安全に正規化
+  /// 0〜5の整数・ステータス名・数値文字列を対応する値に変換し、未知の値は0（sleeping）にする
   static int parseStatus(dynamic rawStatus) {
     if (rawStatus is int) {
       if (rawStatus >= 0 && rawStatus <= 5) {

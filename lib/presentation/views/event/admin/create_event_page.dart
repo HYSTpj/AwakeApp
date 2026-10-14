@@ -118,7 +118,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
   int _searchGeneration = 0;
 
-  // 多重遷移を防止するためのフラグを追加
   bool _isNavigating = false;
 
   String get _timeLabel {
@@ -157,7 +156,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       context: context,
       initialDate: _scheduledTime,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime(2030, 12, 31), // 2030年末まで選択可能に
+      lastDate: DateTime(2030, 12, 31),
     );
     if (picked != null) {
       setState(() {
@@ -217,7 +216,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> _onNextPressed() async {
-    // 既に遷移中の場合は即座に処理を中断
     if (_isNavigating) return;
 
     final title = _nameController.text.trim();
@@ -431,14 +429,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
-                      // 遷移中はタップ自体を受け付けない
                       onTap: _isNavigating ? null : _onNextPressed,
                       child: Container(
                         width: double.infinity,
                         height: 48,
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
-                          // 遷移中はグレーアウトさせるとUX的にも親切
                           color: _isNavigating ? Colors.grey : AppColors.orange,
                           shape: const RoundedRectangleBorder(side: _kBorderSide),
                           shadows: [
