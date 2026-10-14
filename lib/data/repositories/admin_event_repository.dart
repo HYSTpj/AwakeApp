@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/event.dart';
 import '../../models/event_member_status.dart';
@@ -57,10 +58,16 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
         'get_admin_events',
         params: {'p_group_id': groupId},
       );
+
       if (res is List<dynamic>) {
-        return res.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
+        return res
+          .map((e) => Event.fromJson(e as Map<String, dynamic>))
+          .toList();
       }
-      return [];
+
+      // 予期しないレスポンス形式の場合は例外を投げて異常を通知
+      debugPrint('get_admin_events の戻り値が不正です: $res');
+      throw const FormatException('Unexpected response format from get_admin_events');
     } else {
       // 一般メンバーは安全な events_view を取得
       final data = await _client

@@ -22,6 +22,9 @@ const _kValueStyle = TextStyle(
   color: Colors.black,
 );
 
+// 地図の初期表示フォールバック位置（東京）
+const _kDefaultMapCenter = LatLng(35.681236, 139.767125);
+
 class _LabelText extends StatelessWidget {
   final String text;
   const _LabelText(this.text);
@@ -110,7 +113,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
   DateTime _scheduledTime = DateTime.now();
 
   GoogleMapController? _mapController;
-  LatLng _selectedLocation = const LatLng(35.136405122360785, 136.97564747897678);
+  LatLng? _selectedLocation;
   Set<Marker> _markers = {};
 
   String get _timeLabel {
@@ -148,8 +151,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _scheduledTime,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2030),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime(2030, 12, 31), // 2030年末まで選択可能に
     );
     if (picked != null) {
       setState(() {
@@ -180,9 +183,67 @@ class _CreateEventPageState extends State<CreateEventPage> {
         _mapController?.animateCamera(
           CameraUpdate.newCameraPosition(CameraPosition(target: target, zoom: 15)),
         );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('場所が見つかりませんでした')),
+        );
       }
     } catch (e) {
       debugPrint('検索エラー: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('場所の検索に失敗しました。住所や地名を確認してください')),
+      );
+    }
+  }
+
+  Future<void> _onNextPressed() async {
+    final title = _nameController.text.trim();
+    final location = _locationController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (title.isEmpty || location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('イベント名と場所を入力してください')),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('チェックイン用パスコードを入力してください')),
+      );
+      return;
+    }
+
+    // 座標が確定しているかを厳密にチェック（固定値での誤登録を防止）
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('目的地の場所をキーボードの「検索」で確定してください')),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SelectParticipantsPage(
+          groupId: widget.groupId,
+          title: title,
+          destinationName: location,
+          latitude: _selectedLocation!.latitude,
+          longitude: _selectedLocation!.longitude,
+          arrivalTime: _scheduledTime,
+          password: password,
+          myRole: widget.myRole,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == true) {
+      Navigator.pop(context, true);
     }
   }
 
@@ -296,6 +357,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         isDense: true,
                         suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
                       ),
+                      // テキスト変更時に座標とマーカーをリセットして不整合を防止
+                      onChanged: (value) {
+                        if (_selectedLocation != null) {
+                          setState(() {
+                            _selectedLocation = null;
+                            _markers = {};
+                          });
+                        }
+                      },
                       onSubmitted: _searchLocation,
                     ),
                   ),
@@ -309,7 +379,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       shape: RoundedRectangleBorder(side: _kBorderSide),
                     ),
                     child: GoogleMap(
-                      initialCameraPosition: CameraPosition(target: _selectedLocation, zoom: 15),
+                      // null の場合はフォールバック座標を使用
+                      initialCameraPosition: CameraPosition(
+                        target: _selectedLocation ?? _kDefaultMapCenter,
+                        zoom: 15,
+                      ),
                       onMapCreated: (controller) => _mapController = controller,
                       markers: _markers,
                       rotateGesturesEnabled: false,
@@ -323,46 +397,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
-                      onTap: () async {
-                        final title = _nameController.text.trim();
-                        final location = _locationController.text.trim();
-                        final password = _passwordController.text.trim();
-
-                        if (title.isEmpty || location.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter event name and location.')),
-                          );
-                          return;
-                        }
-
-                        if (password.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a check-in passcode.')),
-                          );
-                          return;
-                        }
-
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SelectParticipantsPage(
-                              groupId: widget.groupId,
-                              title: title,
-                              destinationName: location,
-                              latitude: _selectedLocation.latitude,
-                              longitude: _selectedLocation.longitude,
-                              arrivalTime: _scheduledTime,
-                              password: password,
-                              myRole: widget.myRole,
-                            ),
-                          ),
-                        );
-
-                        if (!context.mounted) return;
-                        if (result == true) {
-                          Navigator.pop(context, true);
-                        }
-                      },
+                      // 一本化したバリデーション関数を呼び出す
+                      onTap: _onNextPressed,
                       child: Container(
                         width: double.infinity,
                         height: 48,
