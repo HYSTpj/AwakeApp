@@ -256,6 +256,99 @@ void main() {
       completer.complete([]);
       await tester.pump();
     });
+
+    testWidgets('イベント作成成功時、一覧の再取得が1回だけ実行されること', (tester) async {
+      // 1. 初回一覧取得をモック
+      when(() => mockRepository.getEvents('group-1'))
+          .thenAnswer((_) async => [createDummyEvent(title: '既存イベント')]);
+
+      // 参加者一覧と作成処理をモック
+      when(() => mockRepository.getGroupMembers('group-1'))
+          .thenAnswer((_) async => [createDummyProfile(id: 'u-1', nickname: 'Alice')]);
+      when(() => mockRepository.createEventWithParticipants(
+            groupId: 'group-1',
+            title: any(named: 'title'),
+            destinationName: any(named: 'destinationName'),
+            latitude: any(named: 'latitude'),
+            longitude: any(named: 'longitude'),
+            qrcodeId: any(named: 'qrcodeId'),
+            password: any(named: 'password'),
+            arrivalTime: any(named: 'arrivalTime'),
+            participantUserIds: any(named: 'participantUserIds'),
+          )).thenAnswer((_) async => 'new-event-id');
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdminEventViewModel>.value(
+          value: viewModel,
+          child: const MaterialApp(
+            home: EventListPage(groupId: 'group-1', myRole: 0),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 初回表示時の一覧取得（1回）を確認
+      verify(() => mockRepository.getEvents('group-1')).called(1);
+
+      // 2. Add Events 画面を開く
+      await tester.tap(find.text('Add Events'));
+      await tester.pumpAndSettle();
+
+      // 3. CreateEventPage の入力と確定
+      final textFields = find.byType(TextField);
+      await tester.enterText(textFields.at(0), '新規イベント');
+      await tester.enterText(textFields.at(1), '1234');
+
+      final locationField = find.widgetWithText(TextField, 'Search location...');
+      await tester.enterText(locationField, 'Initial Location');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      final confirmButton = find.text('Confirm Participant');
+      await tester.ensureVisible(confirmButton);
+      await tester.tap(confirmButton);
+      await tester.pumpAndSettle();
+
+      // 4. SelectParticipantsPage でメンバーを選択して SAVE
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SAVE'));
+      await tester.pumpAndSettle();
+
+      // 5. 作成成功後、一覧再取得（loadEvents）が合計2回（初回1回 + 作成後1回）呼ばれたことを検証
+      verify(() => mockRepository.getEvents('group-1')).called(1);
+    });
+
+    testWidgets('イベント作成を途中でキャンセルして戻った場合、不要な一覧再取得が呼ばれないこと', (tester) async {
+      when(() => mockRepository.getEvents('group-1'))
+          .thenAnswer((_) async => [createDummyEvent(title: '既存イベント')]);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdminEventViewModel>.value(
+          value: viewModel,
+          child: const MaterialApp(
+            home: EventListPage(groupId: 'group-1', myRole: 0),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 初回表示時の一覧取得（1回）を確認
+      verify(() => mockRepository.getEvents('group-1')).called(1);
+
+      // Add Events 画面へ遷移
+      await tester.tap(find.text('Add Events'));
+      await tester.pumpAndSettle();
+
+      // 何も作成せず戻るボタンでキャンセル復帰
+      final backButton = find.byIcon(Icons.arrow_back);
+      await tester.tap(backButton);
+      await tester.pumpAndSettle();
+
+      // 復帰時に不要な一覧再取得が走っていないことを検証（呼び出し回数0）
+      verifyNever(() => mockRepository.getEvents('group-1'));
+    });
   });
 
   // ==========================================
