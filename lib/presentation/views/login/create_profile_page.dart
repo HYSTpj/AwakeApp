@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'screen/create_account_body.dart';
 import '../../viewmodels/auth_view_model.dart';
-import '../group/group_list_view.dart';
+import '../group/group_list_page.dart';
 
 class CreateAccountProfile extends StatefulWidget {
   const CreateAccountProfile({super.key});

@@ -4,9 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../common_layout.dart';
-import '../group/create_add_delete_view.dart';
-import 'checkin/member_check_in.dart';
-import '../../views/member_settime.dart';
+import '../group/create_add_delete_page.dart';
+import 'checkin/member_check_in_page.dart';
+import 'schedule/set_time_page.dart';
 
 class EventSelectionHome extends StatefulWidget {
   final String groupId;

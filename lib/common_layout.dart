@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'presentation/views/group/group_list_view.dart';
+import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
-import 'presentation/views/event/checkin/member_check_in.dart';
-import 'presentation/views/ranking/ranking_screen.dart';
-import 'presentation/views/event/event_selection_home.dart';
+import 'presentation/views/event/checkin/member_check_in_page.dart';
+import 'presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/profile/profile_page.dart';
 
-class CommonLayout extends StatelessWidget {
-  final Widget body;
-  final Widget? floatingActionButton;
+class CommonLayout extends StatefulWidget {
+  final Widget body; // 各画面の代入する中身
+  final Widget? floatingActionButton; // それぞれのページで使うボタン
   final String? groupId;
   final String? groupName;
   final String? eventId;
@@ -27,6 +27,12 @@ class CommonLayout extends StatelessWidget {
     this.myRole,
   });
 
+
+  @override
+  State<CommonLayout> createState() => _CommonLayoutState();
+}
+
+class _CommonLayoutState extends State<CommonLayout> {
   static const _bottomNavigationItems = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Padding(
@@ -70,9 +76,10 @@ class CommonLayout extends StatelessWidget {
           child: _buildAppBar(context),
         ),
       ),
-      body: body,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: widget.body,
+      floatingActionButton: widget.floatingActionButton,
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
@@ -86,13 +93,12 @@ class CommonLayout extends StatelessWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: _buildRightIcons(),
+      actions: _buildRightIcons(context),
       backgroundColor: _themeColor,
       foregroundColor: Colors.black,
       elevation: 0,
     );
   }
-
   Widget _buildLeftIcons(BuildContext context) {
     return Row(
       children: [
@@ -100,21 +106,20 @@ class CommonLayout extends StatelessWidget {
           icon: const Icon(Icons.flag, color: Colors.black),
           onPressed: () {
             _onLeaderPressed(context);
-            debugPrint("管理者ボタン");
           },
         ),
         IconButton(
           icon: const Icon(Icons.schedule, color: Colors.black),
           onPressed: () {
             _onMemberPressed(context);
-            debugPrint("利用者ボタン");
           },
         ),
       ],
     );
   }
 
-  List<Widget> _buildRightIcons() {
+  ///AppBarの右側
+  List<Widget> _buildRightIcons(BuildContext context) {
     final client = Supabase.instance.client;
     final currentUser = client.auth.currentUser;
 
@@ -133,7 +138,7 @@ class CommonLayout extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: GestureDetector(
-          onTap: _onProfilePressed,
+          onTap: () => _onProfilePressed(context),
           child: FutureBuilder<Map<String, dynamic>?>(
             future: client
                 .from('profiles')
@@ -152,12 +157,13 @@ class CommonLayout extends StatelessWidget {
 
               final profileData = snapshot.data ?? {};
               final String? avatarUrl = profileData['avatar_url'];
-              final bool hasValidAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
               return CircleAvatar(
                 backgroundColor: Colors.grey,
-                backgroundImage: hasValidAvatar ? NetworkImage(avatarUrl) : null,
-                child: !hasValidAvatar
+                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: (avatarUrl == null || avatarUrl.isEmpty)
                     ? const Icon(Icons.person, color: Colors.white)
                     : null,
               );
@@ -167,6 +173,7 @@ class CommonLayout extends StatelessWidget {
       ),
     ];
   }
+
 
   Widget _buildBottomNavigationBar(BuildContext context) {
     return Container(
@@ -195,7 +202,7 @@ class CommonLayout extends StatelessWidget {
 
   void _onNavigationTap(BuildContext context, int index) {
     if (index != 0) {
-      if (groupId == null || myRole == null) {
+      if (widget.groupId == null || widget.myRole == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select group.')),
         );
@@ -205,29 +212,28 @@ class CommonLayout extends StatelessWidget {
     Widget? nextPage;
     switch (index) {
       case 0:
-        nextPage = GroupListPage(initialGroupId: groupId);
+        nextPage = GroupListPage(initialGroupId: widget.groupId);
         break;
       case 1:
-        if (myRole == 0) {
-          nextPage = CreateEventPage(
-            groupId: groupId!,
-            myRole: myRole!,
+
+        if (widget.myRole == 0) {
+            nextPage = CreateEventPage(
+              groupId: widget.groupId!,
+              myRole: widget.myRole!
           );
         } else {
-          // イベント未選択の場合はイベント選択画面へ遷移
-          if (eventId == null) {
-            nextPage = EventSelectionHome(
-              groupId: groupId!,
-              groupName: groupName ?? 'Group',
-              myRole: myRole!,
+          // 利用者の時
+          if (widget.eventId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please select event.')),
             );
-          } else {
+          }else {
             nextPage = MemberCheckInPage(
-              eventId: eventId!,
-              eventTitle: eventTitle ?? '',
-              groupId: groupId!,
-              groupName: groupName ?? 'Group',
-              myRole: myRole!,
+              eventId: widget.eventId!,
+              eventTitle: widget.eventTitle ?? '',
+              groupId: widget.groupId!,
+              groupName: widget.groupName ?? 'Group',
+              myRole: widget.myRole!,
             );
           }
         }
@@ -245,17 +251,19 @@ class CommonLayout extends StatelessWidget {
   }
 
   void _onLeaderPressed(BuildContext context) {
-    if (myRole == null) {
+    // グループが選ばれていないとき
+    if (widget.myRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
       return;
     }
 
-    if (myRole == 0) {
+    // 管理者のときだけ遷移を許可
+    if (widget.myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: groupId)),
+        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: widget.groupId)),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,7 +273,7 @@ class CommonLayout extends StatelessWidget {
   }
 
   void _onMemberPressed(BuildContext context) {
-    if (groupId == null || myRole == null) {
+    if (widget.groupId == null || widget.myRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
@@ -276,15 +284,23 @@ class CommonLayout extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => EventSelectionHome(
-          groupId: groupId!,
-          groupName: groupName ?? 'Group',
-          myRole: myRole!,
+          groupId: widget.groupId!,
+          groupName: widget.groupName ?? 'Group',
+          myRole: widget.myRole!,
         ),
       ),
     );
   }
 
-  void _onProfilePressed() {
-    debugPrint('プロフィールボタンが押されました');
+  // プロフィールボタンが押された時の処理
+  void _onProfilePressed(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    );
+
+    debugPrint('プロフィールページへ遷移');
   }
 }

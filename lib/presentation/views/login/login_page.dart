@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../viewmodels/auth_view_model.dart';
 
 // 画面遷移先
-import '../group/group_list_view.dart';
+import '../group/group_list_page.dart';
 import 'signup_page.dart'; // アカウント作成画面への遷移に必要
 import 'screen/login_body.dart'; // ログイン画面のUIを定義したファイル
 

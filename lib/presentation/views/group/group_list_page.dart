@@ -6,9 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../models/group.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../common_layout.dart';
-import 'create_add_delete_view.dart';
-import '../event/admin/event_list_view.dart';
-import '../event/event_selection_home.dart';
+import 'create_add_delete_page.dart';
+import '../event/admin/event_list_page.dart';
+import '../event/event_selection_home_page.dart';
 
 class GroupListPage extends StatefulWidget {
   final String? initialGroupId;
