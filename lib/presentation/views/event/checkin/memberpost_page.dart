@@ -99,9 +99,7 @@ class MemberPostPage extends StatelessWidget {
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (context, error, stackTrace) {
                         return const Center(child: Icon(Icons.error));
@@ -130,10 +128,7 @@ class MemberPostPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _infoTag(
-                  Icons.location_on,
-                  displayLocation,
-                ),
+                _infoTag(Icons.location_on, displayLocation),
                 _infoTag(Icons.alarm, 'WAKE-UP: $displayTime'),
               ],
             ),

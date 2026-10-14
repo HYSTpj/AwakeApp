@@ -89,29 +89,32 @@ class AdminEventState {
     bool clearMemberReportError = false,
   }) {
     return AdminEventState(
-      selectedGroupId:
-          clearGroupId ? null : (selectedGroupId ?? this.selectedGroupId),
+      selectedGroupId: clearGroupId
+          ? null
+          : (selectedGroupId ?? this.selectedGroupId),
       events: events ?? this.events,
       isLoadingEvents: isLoadingEvents ?? this.isLoadingEvents,
-      eventsError:
-          clearEventsError ? null : (eventsError ?? this.eventsError),
+      eventsError: clearEventsError ? null : (eventsError ?? this.eventsError),
       selectedMembersGroupId: clearMembersGroupId
           ? null
           : (selectedMembersGroupId ?? this.selectedMembersGroupId),
       groupMembers: groupMembers ?? this.groupMembers,
       isLoadingMembers: isLoadingMembers ?? this.isLoadingMembers,
-      membersError:
-          clearMembersError ? null : (membersError ?? this.membersError),
+      membersError: clearMembersError
+          ? null
+          : (membersError ?? this.membersError),
       isCreatingEvent: isCreatingEvent ?? this.isCreatingEvent,
       createEventError: clearCreateEventError
           ? null
           : (createEventError ?? this.createEventError),
-      selectedEventId:
-          clearEventId ? null : (selectedEventId ?? this.selectedEventId),
+      selectedEventId: clearEventId
+          ? null
+          : (selectedEventId ?? this.selectedEventId),
       memberStatuses: memberStatuses ?? this.memberStatuses,
       isLoadingStatuses: isLoadingStatuses ?? this.isLoadingStatuses,
-      statusesError:
-          clearStatusesError ? null : (statusesError ?? this.statusesError),
+      statusesError: clearStatusesError
+          ? null
+          : (statusesError ?? this.statusesError),
       selectedReportEventId: clearReportEventId
           ? null
           : (selectedReportEventId ?? this.selectedReportEventId),
@@ -160,10 +163,7 @@ class AdminEventViewModel extends ChangeNotifier {
       final events = await _repository.getEvents(groupId);
       if (currentGen != _eventsGeneration) return;
 
-      _state = _state.copyWith(
-        events: events,
-        isLoadingEvents: false,
-      );
+      _state = _state.copyWith(events: events, isLoadingEvents: false);
       notifyListeners();
     } catch (e) {
       if (currentGen != _eventsGeneration) return;
@@ -191,10 +191,7 @@ class AdminEventViewModel extends ChangeNotifier {
       final members = await _repository.getGroupMembers(groupId);
       if (currentGen != _membersGeneration) return;
 
-      _state = _state.copyWith(
-        groupMembers: members,
-        isLoadingMembers: false,
-      );
+      _state = _state.copyWith(groupMembers: members, isLoadingMembers: false);
       notifyListeners();
     } catch (e) {
       if (currentGen != _membersGeneration) return;
@@ -243,8 +240,9 @@ class AdminEventViewModel extends ChangeNotifier {
   }) async {
     final currentGen = ++_memberReportGeneration;
     // eventId と userId のペアで新規対象かどうかを判定
-    final isNewTarget = _state.selectedReportEventId != eventId ||
-                        _state.selectedReportUserId != userId;
+    final isNewTarget =
+        _state.selectedReportEventId != eventId ||
+        _state.selectedReportUserId != userId;
 
     _state = _state.copyWith(
       selectedReportEventId: eventId,
@@ -315,20 +313,17 @@ class AdminEventViewModel extends ChangeNotifier {
       );
 
       // 選択中グループであり、かつ作成中に一覧取得世代が進んでいない場合のみ再取得
-      if (_state.selectedGroupId == groupId && initialGen == _eventsGeneration) {
+      if (_state.selectedGroupId == groupId &&
+          initialGen == _eventsGeneration) {
         await loadEvents(groupId);
       }
 
       return eventId;
     } catch (e) {
-      _state = _state.copyWith(
-        createEventError: e.toString(),
-      );
+      _state = _state.copyWith(createEventError: e.toString());
       return null;
     } finally {
-      _state = _state.copyWith(
-        isCreatingEvent: false,
-      );
+      _state = _state.copyWith(isCreatingEvent: false);
       notifyListeners();
     }
   }

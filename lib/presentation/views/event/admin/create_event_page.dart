@@ -183,30 +183,40 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
       // 非同期待機中に地名が変更された、または別の検索が走った場合は破棄
       if (!mounted) return;
-      if (currentGeneration != _searchGeneration || _locationController.text.trim() != query) {
+      if (currentGeneration != _searchGeneration ||
+          _locationController.text.trim() != query) {
         return;
       }
 
       if (locations.isNotEmpty) {
-        final target = LatLng(locations.first.latitude, locations.first.longitude);
+        final target = LatLng(
+          locations.first.latitude,
+          locations.first.longitude,
+        );
         setState(() {
           _selectedLocation = target;
           _markers = {
-            Marker(markerId: const MarkerId('selected_location'), position: target),
+            Marker(
+              markerId: const MarkerId('selected_location'),
+              position: target,
+            ),
           };
         });
         _mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(CameraPosition(target: target, zoom: 15)),
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: target, zoom: 15),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('場所が見つかりませんでした')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('場所が見つかりませんでした')));
       }
     } catch (e) {
       debugPrint('検索エラー: $e');
       if (!mounted) return;
-      if (currentGeneration != _searchGeneration || _locationController.text.trim() != query) {
+      if (currentGeneration != _searchGeneration ||
+          _locationController.text.trim() != query) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,16 +233,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final password = _passwordController.text.trim();
 
     if (title.isEmpty || location.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('イベント名と場所を入力してください')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('イベント名と場所を入力してください')));
       return;
     }
 
     if (password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('チェックイン用パスコードを入力してください')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('チェックイン用パスコードを入力してください')));
       return;
     }
 
@@ -315,7 +325,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -386,7 +400,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         hintText: 'Search location...',
                         border: InputBorder.none,
                         isDense: true,
-                        suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
+                        suffixIcon: Icon(
+                          Icons.search,
+                          color: Color(0xFF475569),
+                        ),
                       ),
                       onChanged: (value) {
                         // テキスト変更時に世代番号を進めて先行リクエストを無効化
@@ -422,7 +439,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       tiltGesturesEnabled: false,
                       myLocationButtonEnabled: false,
                       gestureRecognizers: {
-                        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                        Factory<OneSequenceGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                        ),
                       },
                     ),
                   ),
@@ -436,7 +455,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
                           color: _isNavigating ? Colors.grey : AppColors.orange,
-                          shape: const RoundedRectangleBorder(side: _kBorderSide),
+                          shape: const RoundedRectangleBorder(
+                            side: _kBorderSide,
+                          ),
                           shadows: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),

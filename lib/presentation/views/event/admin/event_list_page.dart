@@ -10,11 +10,7 @@ class EventListPage extends StatefulWidget {
   final String groupId;
   final int myRole;
 
-  const EventListPage({
-    super.key,
-    required this.groupId,
-    required this.myRole,
-  });
+  const EventListPage({super.key, required this.groupId, required this.myRole});
 
   @override
   State<EventListPage> createState() => _EventListPageState();
@@ -180,9 +176,7 @@ class _EventListPageState extends State<EventListPage> {
 
         Expanded(
           child: myEvents.isEmpty
-              ? const Center(
-                  child: Text('No events found for this group.'),
-                )
+              ? const Center(child: Text('No events found for this group.'))
               : ListView.builder(
                   itemCount: myEvents.length,
                   itemBuilder: (context, index) {
@@ -265,8 +259,7 @@ class _EventListPageState extends State<EventListPage> {
                             const SizedBox(height: 10),
 
                             Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Text(

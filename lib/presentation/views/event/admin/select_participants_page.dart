@@ -36,20 +36,14 @@ class UserTile extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-            ),
+            decoration: const BoxDecoration(shape: BoxShape.circle),
             child: CircleAvatar(
               backgroundColor: Colors.grey,
               backgroundImage: avatarUrl.isNotEmpty
                   ? NetworkImage(avatarUrl)
                   : null,
               child: avatarUrl.isEmpty
-                  ? const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 24,
-                    )
+                  ? const Icon(Icons.person, color: Colors.white, size: 24)
                   : null,
             ),
           ),
@@ -59,15 +53,30 @@ class UserTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(nickname, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('@$userId', style: TextStyle(color: Colors.black.withValues(alpha: 0.5), fontSize: 12)),
+                Text(
+                  nickname,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '@$userId',
+                  style: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
           // スイッチ部分
           Column(
             children: [
-              const Text('ATTENDING', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+              const Text(
+                'ATTENDING',
+                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
+              ),
               Switch(
                 value: isAttending,
                 onChanged: (bool value) {
@@ -121,9 +130,13 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
   }
 
   String _generateSecureToken([int length = 32]) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-';
     final rand = Random.secure();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(
+      length,
+      (index) => chars[rand.nextInt(chars.length)],
+    ).join();
   }
 
   Future<void> _saveAndNavigate() async {
@@ -134,9 +147,9 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     if (state.isCreatingEvent || state.isLoadingMembers) return;
 
     if (_selectedMembers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('メンバーを選んでください')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('メンバーを選んでください')));
       return;
     }
 
@@ -157,13 +170,15 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     if (!mounted) return;
 
     if (eventId != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('イベントを作成しました')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('イベントを作成しました')));
       Navigator.pop(context, true);
     } else if (viewModel.state.createEventError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('イベント作成失敗: ${viewModel.state.createEventError}')),
+        SnackBar(
+          content: Text('イベント作成失敗: ${viewModel.state.createEventError}'),
+        ),
       );
     }
   }
@@ -177,7 +192,11 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 36),
+              const Icon(
+                Icons.error_outline,
+                color: Colors.redAccent,
+                size: 36,
+              ),
               const SizedBox(height: 8),
               Text(
                 'メンバーの取得に失敗しました\n${state.membersError}',
@@ -187,7 +206,9 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
               const SizedBox(height: 12),
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<AdminEventViewModel>().loadGroupMembers(widget.groupId);
+                  context.read<AdminEventViewModel>().loadGroupMembers(
+                    widget.groupId,
+                  );
                 },
                 icon: const Icon(Icons.refresh, size: 16),
                 label: const Text('再試行'),
@@ -212,7 +233,9 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: state.groupMembers.map((member) {
-        final memberName = member.nickname.isNotEmpty ? member.nickname : 'No Name';
+        final memberName = member.nickname.isNotEmpty
+            ? member.nickname
+            : 'No Name';
         final memberId = member.id;
         final memberAvatar = member.avatarUrl ?? '';
         final isSelected = _selectedMembers.contains(memberId);
@@ -265,7 +288,10 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                           color: Colors.white,
                           shape: RoundedRectangleBorder(side: _kBorderSide),
                         ),
-                        child: const Icon(Icons.arrow_back, color: Colors.black),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -295,8 +321,13 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                           bottom: 0,
                           child: Center(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: const BoxDecoration(color: Colors.black),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                              ),
                               child: Text(
                                 '${_selectedMembers.length} SELECTED',
                                 style: const TextStyle(
@@ -332,17 +363,23 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
                     child: SizedBox(
                       width: double.infinity,
                       child: InkWell(
-                        onTap: (state.isCreatingEvent || state.membersError != null)
+                        onTap:
+                            (state.isCreatingEvent ||
+                                state.membersError != null)
                             ? null
                             : _saveAndNavigate,
                         child: Container(
                           height: 48,
                           alignment: Alignment.center,
                           decoration: ShapeDecoration(
-                            color: (state.isCreatingEvent || state.membersError != null)
+                            color:
+                                (state.isCreatingEvent ||
+                                    state.membersError != null)
                                 ? Colors.grey
                                 : const Color(0xFFFF5C00),
-                            shape: const RoundedRectangleBorder(side: _kBorderSide),
+                            shape: const RoundedRectangleBorder(
+                              side: _kBorderSide,
+                            ),
                             shadows: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.2),
@@ -377,6 +414,7 @@ class _SelectParticipantsPageState extends State<SelectParticipantsPage> {
             ),
     );
   }
+
   @override
   void didUpdateWidget(SelectParticipantsPage oldWidget) {
     super.didUpdateWidget(oldWidget);

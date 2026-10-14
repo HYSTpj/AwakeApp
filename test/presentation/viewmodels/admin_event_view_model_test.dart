@@ -52,18 +52,24 @@ void main() {
       final cOld = Completer<List<Event>>();
       final cNew = Completer<List<Event>>();
 
-      when(() => mockRepository.getEvents('grp_old'))
-          .thenAnswer((_) => cOld.future);
-      when(() => mockRepository.getEvents('grp_new'))
-          .thenAnswer((_) => cNew.future);
+      when(
+        () => mockRepository.getEvents('grp_old'),
+      ).thenAnswer((_) => cOld.future);
+      when(
+        () => mockRepository.getEvents('grp_new'),
+      ).thenAnswer((_) => cNew.future);
 
       final fOld = viewModel.loadEvents('grp_old');
       final fNew = viewModel.loadEvents('grp_new');
 
-      cNew.complete([createDummyEvent('evt_new', 'grp_new', 'New Group Event')]);
+      cNew.complete([
+        createDummyEvent('evt_new', 'grp_new', 'New Group Event'),
+      ]);
       await fNew;
 
-      cOld.complete([createDummyEvent('evt_old', 'grp_old', 'Old Group Event')]);
+      cOld.complete([
+        createDummyEvent('evt_old', 'grp_old', 'Old Group Event'),
+      ]);
       await fOld;
 
       expect(viewModel.state.selectedGroupId, 'grp_new');
@@ -75,10 +81,12 @@ void main() {
       final cOld = Completer<List<Profile>>();
       final cNew = Completer<List<Profile>>();
 
-      when(() => mockRepository.getGroupMembers('grp_old'))
-          .thenAnswer((_) => cOld.future);
-      when(() => mockRepository.getGroupMembers('grp_new'))
-          .thenAnswer((_) => cNew.future);
+      when(
+        () => mockRepository.getGroupMembers('grp_old'),
+      ).thenAnswer((_) => cOld.future);
+      when(
+        () => mockRepository.getGroupMembers('grp_new'),
+      ).thenAnswer((_) => cNew.future);
 
       final fOld = viewModel.loadGroupMembers('grp_old');
       final fNew = viewModel.loadGroupMembers('grp_new');
@@ -97,13 +105,15 @@ void main() {
       final c1 = Completer<List<Event>>();
       final c2 = Completer<List<Event>>();
 
-      when(() => mockRepository.getEvents('grp_1'))
-          .thenAnswer((_) => c1.future);
+      when(
+        () => mockRepository.getEvents('grp_1'),
+      ).thenAnswer((_) => c1.future);
 
       final f1 = viewModel.loadEvents('grp_1');
 
-      when(() => mockRepository.getEvents('grp_1'))
-          .thenAnswer((_) => c2.future);
+      when(
+        () => mockRepository.getEvents('grp_1'),
+      ).thenAnswer((_) => c2.future);
 
       final f2 = viewModel.loadEvents('grp_1');
 
@@ -120,10 +130,12 @@ void main() {
       final cOld = Completer<List<EventMemberStatus>>();
       final cNew = Completer<List<EventMemberStatus>>();
 
-      when(() => mockRepository.getEventMemberStatuses('evt_old'))
-          .thenAnswer((_) => cOld.future);
-      when(() => mockRepository.getEventMemberStatuses('evt_new'))
-          .thenAnswer((_) => cNew.future);
+      when(
+        () => mockRepository.getEventMemberStatuses('evt_old'),
+      ).thenAnswer((_) => cOld.future);
+      when(
+        () => mockRepository.getEventMemberStatuses('evt_new'),
+      ).thenAnswer((_) => cNew.future);
 
       final fOld = viewModel.loadEventMemberStatuses('evt_old');
       final fNew = viewModel.loadEventMemberStatuses('evt_new');
@@ -132,7 +144,7 @@ void main() {
         EventMemberStatus(
           profile: createDummyProfile('u_new', 'New User'),
           report: null,
-        )
+        ),
       ]);
       await fNew;
 
@@ -140,7 +152,7 @@ void main() {
         EventMemberStatus(
           profile: createDummyProfile('u_old', 'Old User'),
           report: null,
-        )
+        ),
       ]);
       await fOld;
 
@@ -152,13 +164,23 @@ void main() {
       final cOld = Completer<EventReport?>();
       final cNew = Completer<EventReport?>();
 
-      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_old'))
-          .thenAnswer((_) => cOld.future);
-      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_new'))
-          .thenAnswer((_) => cNew.future);
+      when(
+        () =>
+            mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_old'),
+      ).thenAnswer((_) => cOld.future);
+      when(
+        () =>
+            mockRepository.getMemberReport(eventId: 'evt_1', userId: 'usr_new'),
+      ).thenAnswer((_) => cNew.future);
 
-      final fOld = viewModel.loadMemberReport(eventId: 'evt_1', userId: 'usr_old');
-      final fNew = viewModel.loadMemberReport(eventId: 'evt_1', userId: 'usr_new');
+      final fOld = viewModel.loadMemberReport(
+        eventId: 'evt_1',
+        userId: 'usr_old',
+      );
+      final fNew = viewModel.loadMemberReport(
+        eventId: 'evt_1',
+        userId: 'usr_new',
+      );
 
       final newReport = EventReport(
         id: 'rep_new',
@@ -184,81 +206,108 @@ void main() {
       expect(viewModel.state.selectedMemberReport?.id, 'rep_new');
     });
 
-    test('同一 groupId に対する連続 loadGroupMembers で、遅れた第1リクエストが結果を上書きしないこと', () async {
-      final c1 = Completer<List<Profile>>();
-      final c2 = Completer<List<Profile>>();
+    test(
+      '同一 groupId に対する連続 loadGroupMembers で、遅れた第1リクエストが結果を上書きしないこと',
+      () async {
+        final c1 = Completer<List<Profile>>();
+        final c2 = Completer<List<Profile>>();
 
-      when(() => mockRepository.getGroupMembers('grp_1'))
-          .thenAnswer((_) => c1.future);
+        when(
+          () => mockRepository.getGroupMembers('grp_1'),
+        ).thenAnswer((_) => c1.future);
 
-      final f1 = viewModel.loadGroupMembers('grp_1');
+        final f1 = viewModel.loadGroupMembers('grp_1');
 
-      when(() => mockRepository.getGroupMembers('grp_1'))
-          .thenAnswer((_) => c2.future);
+        when(
+          () => mockRepository.getGroupMembers('grp_1'),
+        ).thenAnswer((_) => c2.future);
 
-      final f2 = viewModel.loadGroupMembers('grp_1');
+        final f2 = viewModel.loadGroupMembers('grp_1');
 
-      // 第2リクエスト（最新）が先に完了
-      c2.complete([createDummyProfile('usr_latest', 'Latest Member')]);
-      await f2;
+        // 第2リクエスト（最新）が先に完了
+        c2.complete([createDummyProfile('usr_latest', 'Latest Member')]);
+        await f2;
 
-      // 遅れて第1リクエストが完了
-      c1.complete([createDummyProfile('usr_stale', 'Stale Member')]);
-      await f1;
+        // 遅れて第1リクエストが完了
+        c1.complete([createDummyProfile('usr_stale', 'Stale Member')]);
+        await f1;
 
-      // 最新のメンバー一覧が維持されていることを検証
-      expect(viewModel.state.groupMembers.first.id, 'usr_latest');
-      expect(viewModel.state.groupMembers.first.nickname, 'Latest Member');
-    });
+        // 最新のメンバー一覧が維持されていることを検証
+        expect(viewModel.state.groupMembers.first.id, 'usr_latest');
+        expect(viewModel.state.groupMembers.first.nickname, 'Latest Member');
+      },
+    );
   });
 
   group('異常系・エラー分離 & ローディング解除テスト', () {
-    test('loadEvents 失敗時に eventsError が設定され isLoadingEvents が false に戻ること', () async {
-      when(() => mockRepository.getEvents('grp_1'))
-          .thenThrow(Exception('Events network error'));
+    test(
+      'loadEvents 失敗時に eventsError が設定され isLoadingEvents が false に戻ること',
+      () async {
+        when(
+          () => mockRepository.getEvents('grp_1'),
+        ).thenThrow(Exception('Events network error'));
 
-      await viewModel.loadEvents('grp_1');
+        await viewModel.loadEvents('grp_1');
 
-      expect(viewModel.state.eventsError, contains('Events network error'));
-      expect(viewModel.state.isLoadingEvents, isFalse);
-      expect(viewModel.state.membersError, isNull);
-    });
+        expect(viewModel.state.eventsError, contains('Events network error'));
+        expect(viewModel.state.isLoadingEvents, isFalse);
+        expect(viewModel.state.membersError, isNull);
+      },
+    );
 
-    test('loadGroupMembers 失敗時に membersError が設定され isLoadingMembers が false に戻ること', () async {
-      when(() => mockRepository.getGroupMembers('grp_1'))
-          .thenThrow(Exception('Members fetch error'));
+    test(
+      'loadGroupMembers 失敗時に membersError が設定され isLoadingMembers が false に戻ること',
+      () async {
+        when(
+          () => mockRepository.getGroupMembers('grp_1'),
+        ).thenThrow(Exception('Members fetch error'));
 
-      await viewModel.loadGroupMembers('grp_1');
+        await viewModel.loadGroupMembers('grp_1');
 
-      expect(viewModel.state.membersError, contains('Members fetch error'));
-      expect(viewModel.state.isLoadingMembers, isFalse);
-      expect(viewModel.state.eventsError, isNull);
-    });
+        expect(viewModel.state.membersError, contains('Members fetch error'));
+        expect(viewModel.state.isLoadingMembers, isFalse);
+        expect(viewModel.state.eventsError, isNull);
+      },
+    );
 
-    test('loadEventMemberStatuses 失敗時に statusesError が設定され isLoadingStatuses が false に戻ること', () async {
-      when(() => mockRepository.getEventMemberStatuses('evt_1'))
-          .thenThrow(Exception('Statuses fetch error'));
+    test(
+      'loadEventMemberStatuses 失敗時に statusesError が設定され isLoadingStatuses が false に戻ること',
+      () async {
+        when(
+          () => mockRepository.getEventMemberStatuses('evt_1'),
+        ).thenThrow(Exception('Statuses fetch error'));
 
-      await viewModel.loadEventMemberStatuses('evt_1');
+        await viewModel.loadEventMemberStatuses('evt_1');
 
-      expect(viewModel.state.statusesError, contains('Statuses fetch error'));
-      expect(viewModel.state.isLoadingStatuses, isFalse);
-      expect(viewModel.state.eventsError, isNull);
-      expect(viewModel.state.membersError, isNull);
-    });
+        expect(viewModel.state.statusesError, contains('Statuses fetch error'));
+        expect(viewModel.state.isLoadingStatuses, isFalse);
+        expect(viewModel.state.eventsError, isNull);
+        expect(viewModel.state.membersError, isNull);
+      },
+    );
 
-    test('loadMemberReport 失敗時に memberReportError が設定され isLoadingMemberReport が false に戻ること', () async {
-      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'u1'))
-          .thenThrow(Exception('Report fetch error'));
+    test(
+      'loadMemberReport 失敗時に memberReportError が設定され isLoadingMemberReport が false に戻ること',
+      () async {
+        when(
+          () => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'u1'),
+        ).thenThrow(Exception('Report fetch error'));
 
-      await viewModel.loadMemberReport(eventId: 'evt_1', userId: 'u1');
+        await viewModel.loadMemberReport(eventId: 'evt_1', userId: 'u1');
 
-      expect(viewModel.state.memberReportError, contains('Report fetch error'));
-      expect(viewModel.state.isLoadingMemberReport, isFalse);
-    });
+        expect(
+          viewModel.state.memberReportError,
+          contains('Report fetch error'),
+        );
+        expect(viewModel.state.isLoadingMemberReport, isFalse);
+      },
+    );
 
-    test('createEventWithParticipants 失敗時に createEventError が設定され isCreatingEvent が false にリセットされること', () async {
-      when(() => mockRepository.createEventWithParticipants(
+    test(
+      'createEventWithParticipants 失敗時に createEventError が設定され isCreatingEvent が false にリセットされること',
+      () async {
+        when(
+          () => mockRepository.createEventWithParticipants(
             groupId: 'grp_1',
             title: 'Event',
             destinationName: 'Tokyo',
@@ -268,24 +317,29 @@ void main() {
             password: 'pass',
             arrivalTime: any(named: 'arrivalTime'),
             participantUserIds: ['u1'],
-          )).thenThrow(Exception('Create event RPC error'));
+          ),
+        ).thenThrow(Exception('Create event RPC error'));
 
-      final result = await viewModel.createEventWithParticipants(
-        groupId: 'grp_1',
-        title: 'Event',
-        destinationName: 'Tokyo',
-        latitude: null,
-        longitude: null,
-        qrcodeId: 'qr',
-        password: 'pass',
-        arrivalTime: DateTime.now(),
-        participantUserIds: ['u1'],
-      );
+        final result = await viewModel.createEventWithParticipants(
+          groupId: 'grp_1',
+          title: 'Event',
+          destinationName: 'Tokyo',
+          latitude: null,
+          longitude: null,
+          qrcodeId: 'qr',
+          password: 'pass',
+          arrivalTime: DateTime.now(),
+          participantUserIds: ['u1'],
+        );
 
-      expect(result, isNull);
-      expect(viewModel.state.isCreatingEvent, isFalse);
-      expect(viewModel.state.createEventError, contains('Create event RPC error'));
-    });
+        expect(result, isNull);
+        expect(viewModel.state.isCreatingEvent, isFalse);
+        expect(
+          viewModel.state.createEventError,
+          contains('Create event RPC error'),
+        );
+      },
+    );
   });
 
   group('全4系統のローディング状態の独立性テスト', () {
@@ -295,15 +349,26 @@ void main() {
       final cStatuses = Completer<List<EventMemberStatus>>();
       final cReport = Completer<EventReport?>();
 
-      when(() => mockRepository.getEvents('grp_1')).thenAnswer((_) => cEvents.future);
-      when(() => mockRepository.getGroupMembers('grp_1')).thenAnswer((_) => cMembers.future);
-      when(() => mockRepository.getEventMemberStatuses('evt_1')).thenAnswer((_) => cStatuses.future);
-      when(() => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'u1')).thenAnswer((_) => cReport.future);
+      when(
+        () => mockRepository.getEvents('grp_1'),
+      ).thenAnswer((_) => cEvents.future);
+      when(
+        () => mockRepository.getGroupMembers('grp_1'),
+      ).thenAnswer((_) => cMembers.future);
+      when(
+        () => mockRepository.getEventMemberStatuses('evt_1'),
+      ).thenAnswer((_) => cStatuses.future);
+      when(
+        () => mockRepository.getMemberReport(eventId: 'evt_1', userId: 'u1'),
+      ).thenAnswer((_) => cReport.future);
 
       final fEvents = viewModel.loadEvents('grp_1');
       final fMembers = viewModel.loadGroupMembers('grp_1');
       final fStatuses = viewModel.loadEventMemberStatuses('evt_1');
-      final fReport = viewModel.loadMemberReport(eventId: 'evt_1', userId: 'u1');
+      final fReport = viewModel.loadMemberReport(
+        eventId: 'evt_1',
+        userId: 'u1',
+      );
 
       expect(viewModel.state.isLoadingEvents, isTrue);
       expect(viewModel.state.isLoadingMembers, isTrue);
@@ -338,17 +403,19 @@ void main() {
     test('isCreatingEvent 中の多重呼び出しは即座にガードされ null を返すこと', () async {
       final c = Completer<String>();
 
-      when(() => mockRepository.createEventWithParticipants(
-            groupId: 'grp_1',
-            title: 'Event',
-            destinationName: 'Tokyo',
-            latitude: null,
-            longitude: null,
-            qrcodeId: 'qr',
-            password: 'pass',
-            arrivalTime: any(named: 'arrivalTime'),
-            participantUserIds: ['u1'],
-          )).thenAnswer((_) => c.future);
+      when(
+        () => mockRepository.createEventWithParticipants(
+          groupId: 'grp_1',
+          title: 'Event',
+          destinationName: 'Tokyo',
+          latitude: null,
+          longitude: null,
+          qrcodeId: 'qr',
+          password: 'pass',
+          arrivalTime: any(named: 'arrivalTime'),
+          participantUserIds: ['u1'],
+        ),
+      ).thenAnswer((_) => c.future);
 
       final f1 = viewModel.createEventWithParticipants(
         groupId: 'grp_1',
@@ -386,17 +453,19 @@ void main() {
       final cCreate = Completer<String>();
 
       when(() => mockRepository.getEvents('grp_1')).thenAnswer((_) async => []);
-      when(() => mockRepository.createEventWithParticipants(
-            groupId: 'grp_1',
-            title: 'Event',
-            destinationName: 'Tokyo',
-            latitude: null,
-            longitude: null,
-            qrcodeId: 'qr',
-            password: 'pass',
-            arrivalTime: any(named: 'arrivalTime'),
-            participantUserIds: ['u1'],
-          )).thenAnswer((_) => cCreate.future);
+      when(
+        () => mockRepository.createEventWithParticipants(
+          groupId: 'grp_1',
+          title: 'Event',
+          destinationName: 'Tokyo',
+          latitude: null,
+          longitude: null,
+          qrcodeId: 'qr',
+          password: 'pass',
+          arrivalTime: any(named: 'arrivalTime'),
+          participantUserIds: ['u1'],
+        ),
+      ).thenAnswer((_) => cCreate.future);
 
       await viewModel.loadEvents('grp_1');
       clearInteractions(mockRepository);
@@ -427,17 +496,19 @@ void main() {
 
       when(() => mockRepository.getEvents('grp_1')).thenAnswer((_) async => []);
       when(() => mockRepository.getEvents('grp_2')).thenAnswer((_) async => []);
-      when(() => mockRepository.createEventWithParticipants(
-            groupId: 'grp_1',
-            title: 'Event',
-            destinationName: 'Tokyo',
-            latitude: null,
-            longitude: null,
-            qrcodeId: 'qr',
-            password: 'pass',
-            arrivalTime: any(named: 'arrivalTime'),
-            participantUserIds: ['u1'],
-          )).thenAnswer((_) => cCreate.future);
+      when(
+        () => mockRepository.createEventWithParticipants(
+          groupId: 'grp_1',
+          title: 'Event',
+          destinationName: 'Tokyo',
+          latitude: null,
+          longitude: null,
+          qrcodeId: 'qr',
+          password: 'pass',
+          arrivalTime: any(named: 'arrivalTime'),
+          participantUserIds: ['u1'],
+        ),
+      ).thenAnswer((_) => cCreate.future);
 
       // grp_1 で初期一覧を取得
       await viewModel.loadEvents('grp_1');
@@ -471,41 +542,51 @@ void main() {
   });
 
   test('同一 userId で別イベントのレポート取得に切り替えた場合、遅れて完了した旧イベントのレポートが破棄されること', () async {
-      final cOld = Completer<EventReport?>();
-      final cNew = Completer<EventReport?>();
+    final cOld = Completer<EventReport?>();
+    final cNew = Completer<EventReport?>();
 
-      when(() => mockRepository.getMemberReport(eventId: 'evt_old', userId: 'u_same'))
-          .thenAnswer((_) => cOld.future);
-      when(() => mockRepository.getMemberReport(eventId: 'evt_new', userId: 'u_same'))
-          .thenAnswer((_) => cNew.future);
+    when(
+      () =>
+          mockRepository.getMemberReport(eventId: 'evt_old', userId: 'u_same'),
+    ).thenAnswer((_) => cOld.future);
+    when(
+      () =>
+          mockRepository.getMemberReport(eventId: 'evt_new', userId: 'u_same'),
+    ).thenAnswer((_) => cNew.future);
 
-      final fOld = viewModel.loadMemberReport(eventId: 'evt_old', userId: 'u_same');
-      final fNew = viewModel.loadMemberReport(eventId: 'evt_new', userId: 'u_same');
+    final fOld = viewModel.loadMemberReport(
+      eventId: 'evt_old',
+      userId: 'u_same',
+    );
+    final fNew = viewModel.loadMemberReport(
+      eventId: 'evt_new',
+      userId: 'u_same',
+    );
 
-      final newReport = EventReport(
-        id: 'rep_new',
-        eventId: 'evt_new',
-        userId: 'u_same',
-        status: 4,
-        updatedAt: DateTime.now(),
-      );
-      cNew.complete(newReport);
-      await fNew;
+    final newReport = EventReport(
+      id: 'rep_new',
+      eventId: 'evt_new',
+      userId: 'u_same',
+      status: 4,
+      updatedAt: DateTime.now(),
+    );
+    cNew.complete(newReport);
+    await fNew;
 
-      final oldReport = EventReport(
-        id: 'rep_old',
-        eventId: 'evt_old',
-        userId: 'u_same',
-        status: 2,
-        updatedAt: DateTime.now(),
-      );
-      cOld.complete(oldReport);
-      await fOld;
+    final oldReport = EventReport(
+      id: 'rep_old',
+      eventId: 'evt_old',
+      userId: 'u_same',
+      status: 2,
+      updatedAt: DateTime.now(),
+    );
+    cOld.complete(oldReport);
+    await fOld;
 
-      // selectedReportEventId も含めて新しいイベント側のレポートが保持されていることを検証
-      expect(viewModel.state.selectedReportEventId, 'evt_new');
-      expect(viewModel.state.selectedReportUserId, 'u_same');
-      expect(viewModel.state.selectedMemberReport?.id, 'rep_new');
-      expect(viewModel.state.selectedMemberReport?.eventId, 'evt_new');
-    });
+    // selectedReportEventId も含めて新しいイベント側のレポートが保持されていることを検証
+    expect(viewModel.state.selectedReportEventId, 'evt_new');
+    expect(viewModel.state.selectedReportUserId, 'u_same');
+    expect(viewModel.state.selectedMemberReport?.id, 'rep_new');
+    expect(viewModel.state.selectedMemberReport?.eventId, 'evt_new');
+  });
 }

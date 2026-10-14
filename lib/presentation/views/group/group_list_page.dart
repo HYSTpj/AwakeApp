@@ -41,7 +41,9 @@ class _GroupListPageState extends State<GroupListPage> {
       if (groups.any((g) => g.id == widget.initialGroupId)) {
         final role = await _fetchUserRole(widget.initialGroupId!);
         if (mounted && role != null) {
-          final g = groups.firstWhere((element) => element.id == widget.initialGroupId);
+          final g = groups.firstWhere(
+            (element) => element.id == widget.initialGroupId,
+          );
           setState(() {
             selectedGroupId = widget.initialGroupId;
             selectedGroupName = g.groupName;
@@ -77,9 +79,9 @@ class _GroupListPageState extends State<GroupListPage> {
     if (_viewModel.state.errorMessage != null) {
       final message = _viewModel.state.errorMessage!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
         _viewModel.clearError();
       });
     }
@@ -96,7 +98,10 @@ class _GroupListPageState extends State<GroupListPage> {
           : Column(
               children: [
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -109,7 +114,11 @@ class _GroupListPageState extends State<GroupListPage> {
                       isExpanded: true,
                       dropdownColor: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.black,
+                        size: 28,
+                      ),
                       hint: const Text(
                         'GROUP NAME',
                         style: TextStyle(
@@ -137,12 +146,22 @@ class _GroupListPageState extends State<GroupListPage> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    Clipboard.setData(ClipboardData(text: group.invitationCode));
+                                    Clipboard.setData(
+                                      ClipboardData(text: group.invitationCode),
+                                    );
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('copied the invitation code')),
+                                      const SnackBar(
+                                        content: Text(
+                                          'copied the invitation code',
+                                        ),
+                                      ),
                                     );
                                   },
-                                  child: const Icon(Icons.content_copy, color: Colors.black, size: 20),
+                                  child: const Icon(
+                                    Icons.content_copy,
+                                    color: Colors.black,
+                                    size: 20,
+                                  ),
                                 ),
                               ],
                             ),
@@ -173,7 +192,8 @@ class _GroupListPageState extends State<GroupListPage> {
                           final result = await Navigator.push<bool>(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const CreateOrAddOrDeletePage(),
+                              builder: (context) =>
+                                  const CreateOrAddOrDeletePage(),
                             ),
                           );
 
@@ -198,7 +218,9 @@ class _GroupListPageState extends State<GroupListPage> {
                             return;
                           }
 
-                          final targetGroup = groups.firstWhere((g) => g.id == value);
+                          final targetGroup = groups.firstWhere(
+                            (g) => g.id == value,
+                          );
 
                           // 一般メンバー（role == 1）
                           if (role == 1) {
@@ -230,9 +252,7 @@ class _GroupListPageState extends State<GroupListPage> {
                 ),
                 Expanded(
                   child: selectedGroupId == null
-                      ? const Center(
-                          child: Text('Select group'),
-                        )
+                      ? const Center(child: Text('Select group'))
                       : EventListPage(
                           groupId: selectedGroupId!,
                           myRole: myRole ?? 1,

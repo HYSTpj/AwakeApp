@@ -7,10 +7,7 @@ class EventMemberStatus {
   final Profile profile;
   final EventReport? report;
 
-  const EventMemberStatus({
-    required this.profile,
-    this.report,
-  });
+  const EventMemberStatus({required this.profile, this.report});
 
   /// レポート未提出時は 0（sleeping）を返す
   int get currentStatus => report?.status ?? 0;
@@ -19,14 +16,12 @@ class EventMemberStatus {
     final profileData = json['profiles'] as Map<String, dynamic>? ?? json;
     final profile = Profile.fromJson(profileData);
 
-    final reportData = json['event_reports'] as Map<String, dynamic>? ??
+    final reportData =
+        json['event_reports'] as Map<String, dynamic>? ??
         (json.containsKey('status') ? json : null);
     final report = reportData != null ? EventReport.fromJson(reportData) : null;
 
-    return EventMemberStatus(
-      profile: profile,
-      report: report,
-    );
+    return EventMemberStatus(profile: profile, report: report);
   }
 
   @override

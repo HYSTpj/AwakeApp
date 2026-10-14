@@ -37,7 +37,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminEventViewModel>().loadEventMemberStatuses(widget.eventId);
+      context.read<AdminEventViewModel>().loadEventMemberStatuses(
+        widget.eventId,
+      );
     });
   }
 
@@ -49,7 +51,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
         selectedFilter = null;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<AdminEventViewModel>().loadEventMemberStatuses(widget.eventId);
+        context.read<AdminEventViewModel>().loadEventMemberStatuses(
+          widget.eventId,
+        );
       });
     }
   }
@@ -109,7 +113,9 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<AdminEventViewModel>().loadEventMemberStatuses(widget.eventId);
+                context.read<AdminEventViewModel>().loadEventMemberStatuses(
+                  widget.eventId,
+                );
               },
               icon: const Icon(Icons.refresh, size: 16),
               label: const Text('再試行'),
@@ -130,9 +136,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
         : eventMembers.where((m) => m.currentStatus == selectedFilter).toList();
 
     if (filterMembers.isEmpty) {
-      return const Center(
-        child: Text('No members match this status.'),
-      );
+      return const Center(child: Text('No members match this status.'));
     }
 
     return ListView.builder(
@@ -200,18 +204,22 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                     if (currentState.memberReportError != null) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(
-                          content: Text('レポート取得に失敗しました: ${currentState.memberReportError}'),
+                          content: Text(
+                            'レポート取得に失敗しました: ${currentState.memberReportError}',
+                          ),
                         ),
                       );
                       return;
                     }
 
-                    final isTargetState = currentState.selectedReportEventId == widget.eventId &&
+                    final isTargetState =
+                        currentState.selectedReportEventId == widget.eventId &&
                         currentState.selectedReportUserId == memberId;
 
                     final latestReport = currentState.selectedMemberReport;
 
-                    final isValidReportData = latestReport != null &&
+                    final isValidReportData =
+                        latestReport != null &&
                         latestReport.eventId == widget.eventId &&
                         latestReport.userId == memberId;
 
@@ -247,10 +255,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                   }
                 },
           child: Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 15,
-              vertical: 5,
-            ),
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black, width: 2),
@@ -260,27 +265,21 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
-                  backgroundImage: (profile.avatarUrl != null &&
+                  backgroundImage:
+                      (profile.avatarUrl != null &&
                           profile.avatarUrl!.isNotEmpty)
                       ? NetworkImage(profile.avatarUrl!)
                       : null,
-                  child: (profile.avatarUrl == null ||
-                          profile.avatarUrl!.isEmpty)
-                      ? const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        )
+                  child:
+                      (profile.avatarUrl == null || profile.avatarUrl!.isEmpty)
+                      ? const Icon(Icons.person, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(width: 15),
                 Expanded(
                   child: Text(
-                    profile.nickname.isNotEmpty
-                        ? profile.nickname
-                        : 'No name',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    profile.nickname.isNotEmpty ? profile.nickname : 'No name',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Column(
@@ -288,10 +287,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                     Container(
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Colors.black, width: 1),
                         color: statusColor,
                       ),
                       child: Text(
@@ -357,11 +353,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                 );
                 debugPrint('QRコード表示ページへ移動');
               },
-              icon: const Icon(
-                Icons.qr_code_2,
-                color: Colors.black,
-                size: 25,
-              ),
+              icon: const Icon(Icons.qr_code_2, color: Colors.black, size: 25),
               label: const Text(
                 'SHOW QR CODE',
                 style: TextStyle(
@@ -393,30 +385,15 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                 null,
               ),
               _statusButton('0: SLEEPING', Icons.circle, Colors.grey, 0),
-              _statusButton(
-                '1: AWAKE',
-                Icons.circle,
-                Colors.greenAccent,
-                1,
-              ),
-              _statusButton(
-                '2: OVERSLEPT',
-                Icons.circle,
-                Colors.pinkAccent,
-                2,
-              ),
+              _statusButton('1: AWAKE', Icons.circle, Colors.greenAccent, 1),
+              _statusButton('2: OVERSLEPT', Icons.circle, Colors.pinkAccent, 2),
               _statusButton(
                 '3: MOVING',
                 Icons.circle,
                 Colors.lightBlueAccent,
                 3,
               ),
-              _statusButton(
-                '4: ARRIVED',
-                Icons.circle,
-                Colors.orangeAccent,
-                4,
-              ),
+              _statusButton('4: ARRIVED', Icons.circle, Colors.orangeAccent, 4),
               _statusButton(
                 '5: LATE ARRIVED',
                 Icons.circle,
@@ -456,9 +433,7 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
           ),
         ),
 
-        Expanded(
-          child: _buildMemberList(state),
-        ),
+        Expanded(child: _buildMemberList(state)),
       ],
     );
   }

@@ -61,13 +61,15 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
 
       if (res is List<dynamic>) {
         return res
-          .map((e) => Event.fromJson(e as Map<String, dynamic>))
-          .toList();
+            .map((e) => Event.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
 
       // 予期しないレスポンス形式の場合は例外を投げて異常を通知
       debugPrint('get_admin_events の戻り値が不正です: $res');
-      throw const FormatException('Unexpected response format from get_admin_events');
+      throw const FormatException(
+        'Unexpected response format from get_admin_events',
+      );
     } else {
       // 一般メンバーは安全な events_view を取得
       final data = await _client
@@ -86,7 +88,9 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
   Future<List<Profile>> getGroupMembers(String groupId) async {
     final data = await _client
         .from('groups_memberships')
-        .select('profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')
+        .select(
+          'profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )',
+        )
         .eq('group_id', groupId);
 
     final members = <Profile>[];
@@ -112,17 +116,20 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
     required List<String> participantUserIds,
   }) async {
     // イベント作成と参加者の初期レポート生成 (status: sleeping) を一括で行う RPC を実行
-    final res = await _client.rpc('create_event_with_participants', params: {
-      'p_group_id': groupId,
-      'p_title': title,
-      'p_destination_name': destinationName,
-      'p_latitude': latitude,
-      'p_longitude': longitude,
-      'p_qrcode_id': qrcodeId,
-      'p_password': password,
-      'p_arrival_time': arrivalTime.toIso8601String(),
-      'p_participant_ids': participantUserIds,
-    });
+    final res = await _client.rpc(
+      'create_event_with_participants',
+      params: {
+        'p_group_id': groupId,
+        'p_title': title,
+        'p_destination_name': destinationName,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_qrcode_id': qrcodeId,
+        'p_password': password,
+        'p_arrival_time': arrivalTime.toIso8601String(),
+        'p_participant_ids': participantUserIds,
+      },
+    );
 
     if (res is Map<String, dynamic> && res['success'] == true) {
       return res['event_id'] as String;
@@ -134,7 +141,9 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
   Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId) async {
     final data = await _client
         .from('event_reports')
-        .select('*, profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')
+        .select(
+          '*, profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )',
+        )
         .eq('event_id', eventId);
 
     final list = <EventMemberStatus>[];

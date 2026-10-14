@@ -7,6 +7,7 @@ import 'package:flutter_application_1/data/repositories/admin_event_repository.d
 import 'supabase_test_mocks.dart';
 
 class MockUser extends Mock implements User {}
+
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 
 // select() や rpc() の戻り値としてチェーンを受け流し、引数条件の検証も可能にする Fake
@@ -29,8 +30,7 @@ class FakePostgrestBuilder<T> extends Fake
     bool ascending = false,
     bool nullsFirst = false,
     String? referencedTable,
-  }) =>
-      this;
+  }) => this;
 
   @override
   PostgrestTransformBuilder<Map<String, dynamic>?> maybeSingle() {
@@ -75,19 +75,21 @@ void main() {
   group('getEvents 単体テスト', () {
     test('管理者 (role == 0) の場合は get_admin_events RPC を呼び出すこと', () async {
       final mockFrom = MockSupabaseQueryBuilder();
-      when(() => mockClient.from('groups_memberships')).thenAnswer((_) => mockFrom);
+      when(
+        () => mockClient.from('groups_memberships'),
+      ).thenAnswer((_) => mockFrom);
       when(() => mockFrom.select('role')).thenAnswer(
         (_) => FakePostgrestBuilder<List<Map<String, dynamic>>>(
           Future.value([
-            {'role': 0}
+            {'role': 0},
           ]),
         ),
       );
 
-      when(() => mockClient.rpc(
-            'get_admin_events',
-            params: {'p_group_id': 'grp_1'},
-          )).thenAnswer(
+      when(
+        () =>
+            mockClient.rpc('get_admin_events', params: {'p_group_id': 'grp_1'}),
+      ).thenAnswer(
         (_) => FakePostgrestBuilder<dynamic>(
           Future.value([
             {
@@ -101,7 +103,7 @@ void main() {
               'status': 'active',
               'created_at': '2026-10-01T00:00:00.000Z',
               'updated_at': '2026-10-01T00:00:00.000Z',
-            }
+            },
           ]),
         ),
       );
@@ -112,16 +114,21 @@ void main() {
       expect(events.first.title, 'Admin Event');
       expect(events.first.password, 'secret_pass');
 
-      verify(() => mockClient.rpc('get_admin_events', params: {'p_group_id': 'grp_1'})).called(1);
+      verify(
+        () =>
+            mockClient.rpc('get_admin_events', params: {'p_group_id': 'grp_1'}),
+      ).called(1);
     });
 
     test('一般メンバー (role != 0) の場合は events_view から取得すること', () async {
       final mockMembershipFrom = MockSupabaseQueryBuilder();
-      when(() => mockClient.from('groups_memberships')).thenAnswer((_) => mockMembershipFrom);
+      when(
+        () => mockClient.from('groups_memberships'),
+      ).thenAnswer((_) => mockMembershipFrom);
       when(() => mockMembershipFrom.select('role')).thenAnswer(
         (_) => FakePostgrestBuilder<List<Map<String, dynamic>>>(
           Future.value([
-            {'role': 1}
+            {'role': 1},
           ]),
         ),
       );
@@ -140,11 +147,13 @@ void main() {
             'status': 'active',
             'created_at': '2026-10-01T00:00:00.000Z',
             'updated_at': '2026-10-01T00:00:00.000Z',
-          }
+          },
         ]),
       );
 
-      when(() => mockClient.from('events_view')).thenAnswer((_) => mockEventsViewFrom);
+      when(
+        () => mockClient.from('events_view'),
+      ).thenAnswer((_) => mockEventsViewFrom);
       when(() => mockEventsViewFrom.select()).thenAnswer((_) => builder);
 
       final events = await repository.getEvents('grp_1');
@@ -159,71 +168,84 @@ void main() {
   });
 
   group('getEventMemberStatuses 単体テスト', () {
-    test('event_reports と profiles が結合されたリストが EventMemberStatus にマッピングされること', () async {
-      final mockFrom = MockSupabaseQueryBuilder();
-      final builder = FakePostgrestBuilder<List<Map<String, dynamic>>>(
-        Future.value([
-          {
-            'id': 'rep_1',
-            'event_id': 'evt_1',
-            'user_id': 'usr_1',
-            'status': 4, // arrived
-            'updated_at': '2026-10-12T08:50:00.000Z',
-            'profiles': {
-              'id': 'usr_1',
-              'nickname': 'メンバー1',
-              'avatar_url': null,
-              'sleep_past_count': 0,
-              'late_count': 0,
-              'created_at': '2026-01-01T00:00:00.000Z',
-              'updated_at': '2026-01-01T00:00:00.000Z',
-            }
-          }
-        ]),
-      );
+    test(
+      'event_reports と profiles が結合されたリストが EventMemberStatus にマッピングされること',
+      () async {
+        final mockFrom = MockSupabaseQueryBuilder();
+        final builder = FakePostgrestBuilder<List<Map<String, dynamic>>>(
+          Future.value([
+            {
+              'id': 'rep_1',
+              'event_id': 'evt_1',
+              'user_id': 'usr_1',
+              'status': 4, // arrived
+              'updated_at': '2026-10-12T08:50:00.000Z',
+              'profiles': {
+                'id': 'usr_1',
+                'nickname': 'メンバー1',
+                'avatar_url': null,
+                'sleep_past_count': 0,
+                'late_count': 0,
+                'created_at': '2026-01-01T00:00:00.000Z',
+                'updated_at': '2026-01-01T00:00:00.000Z',
+              },
+            },
+          ]),
+        );
 
-      when(() => mockClient.from('event_reports')).thenAnswer((_) => mockFrom);
-      when(() => mockFrom.select(any())).thenAnswer((_) => builder);
+        when(
+          () => mockClient.from('event_reports'),
+        ).thenAnswer((_) => mockFrom);
+        when(() => mockFrom.select(any())).thenAnswer((_) => builder);
 
-      final results = await repository.getEventMemberStatuses('evt_1');
+        final results = await repository.getEventMemberStatuses('evt_1');
 
-      expect(builder.appliedFilters['event_id'], 'evt_1');
-      expect(results.length, 1);
-      expect(results.first.profile.nickname, 'メンバー1');
-      expect(results.first.currentStatus, 4);
-      expect(results.first.report?.isArrived, isTrue);
-    });
+        expect(builder.appliedFilters['event_id'], 'evt_1');
+        expect(results.length, 1);
+        expect(results.first.profile.nickname, 'メンバー1');
+        expect(results.first.currentStatus, 4);
+        expect(results.first.report?.isArrived, isTrue);
+      },
+    );
   });
 
   group('getMemberReport 単体テスト', () {
-    test('該当するレポートが存在する場合は EventReport を返却し、eventId と userId で絞り込まれていること', () async {
-      final mockFrom = MockSupabaseQueryBuilder();
-      final builder = FakePostgrestBuilder<List<Map<String, dynamic>>>(
-        Future.value([
-          {
-            'id': 'rep_1',
-            'event_id': 'evt_1',
-            'user_id': 'usr_1',
-            'status': 2, // overslept
-            'late_reason': '寝坊しました',
-            'updated_at': '2026-10-12T08:00:00.000Z',
-          }
-        ]),
-      );
+    test(
+      '該当するレポートが存在する場合は EventReport を返却し、eventId と userId で絞り込まれていること',
+      () async {
+        final mockFrom = MockSupabaseQueryBuilder();
+        final builder = FakePostgrestBuilder<List<Map<String, dynamic>>>(
+          Future.value([
+            {
+              'id': 'rep_1',
+              'event_id': 'evt_1',
+              'user_id': 'usr_1',
+              'status': 2, // overslept
+              'late_reason': '寝坊しました',
+              'updated_at': '2026-10-12T08:00:00.000Z',
+            },
+          ]),
+        );
 
-      when(() => mockClient.from('event_reports')).thenAnswer((_) => mockFrom);
-      when(() => mockFrom.select()).thenAnswer((_) => builder);
+        when(
+          () => mockClient.from('event_reports'),
+        ).thenAnswer((_) => mockFrom);
+        when(() => mockFrom.select()).thenAnswer((_) => builder);
 
-      final report = await repository.getMemberReport(eventId: 'evt_1', userId: 'usr_1');
+        final report = await repository.getMemberReport(
+          eventId: 'evt_1',
+          userId: 'usr_1',
+        );
 
-      expect(builder.appliedFilters['event_id'], 'evt_1');
-      expect(builder.appliedFilters['user_id'], 'usr_1');
+        expect(builder.appliedFilters['event_id'], 'evt_1');
+        expect(builder.appliedFilters['user_id'], 'usr_1');
 
-      expect(report, isNotNull);
-      expect(report!.status, 2);
-      expect(report.isOverslept, isTrue);
-      expect(report.lateReason, '寝坊しました');
-    });
+        expect(report, isNotNull);
+        expect(report!.status, 2);
+        expect(report.isOverslept, isTrue);
+        expect(report.lateReason, '寝坊しました');
+      },
+    );
 
     test('レポートが存在しない場合は null を返却すること', () async {
       final mockFrom = MockSupabaseQueryBuilder();
@@ -234,7 +256,10 @@ void main() {
       when(() => mockClient.from('event_reports')).thenAnswer((_) => mockFrom);
       when(() => mockFrom.select()).thenAnswer((_) => builder);
 
-      final report = await repository.getMemberReport(eventId: 'evt_1', userId: 'usr_2');
+      final report = await repository.getMemberReport(
+        eventId: 'evt_1',
+        userId: 'usr_2',
+      );
 
       expect(builder.appliedFilters['event_id'], 'evt_1');
       expect(builder.appliedFilters['user_id'], 'usr_2');
@@ -257,10 +282,12 @@ void main() {
         'p_participant_ids': ['usr_1', 'usr_2'],
       };
 
-      when(() => mockClient.rpc(
-            'create_event_with_participants',
-            params: any(named: 'params'),
-          )).thenAnswer(
+      when(
+        () => mockClient.rpc(
+          'create_event_with_participants',
+          params: any(named: 'params'),
+        ),
+      ).thenAnswer(
         (_) => FakePostgrestBuilder<dynamic>(
           Future.value({'success': true, 'event_id': 'new_event_123'}),
         ),
@@ -280,17 +307,22 @@ void main() {
 
       expect(eventId, 'new_event_123');
 
-      verify(() => mockClient.rpc('create_event_with_participants', params: expectedParams)).called(1);
+      verify(
+        () => mockClient.rpc(
+          'create_event_with_participants',
+          params: expectedParams,
+        ),
+      ).called(1);
     });
 
     test('success が false または失敗時は PostgrestException をスローすること', () async {
-      when(() => mockClient.rpc(
-            'create_event_with_participants',
-            params: any(named: 'params'),
-          )).thenAnswer(
-        (_) => FakePostgrestBuilder<dynamic>(
-          Future.value({'success': false}),
+      when(
+        () => mockClient.rpc(
+          'create_event_with_participants',
+          params: any(named: 'params'),
         ),
+      ).thenAnswer(
+        (_) => FakePostgrestBuilder<dynamic>(Future.value({'success': false})),
       );
 
       expect(

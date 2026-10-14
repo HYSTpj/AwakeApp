@@ -19,17 +19,20 @@ void main() {
       expect(EventReport.parseStatus(99), 0);
     });
 
-    test('互換性: status 文字列が正しく対応する整数値にマッピングされ、overslept(2) と late(5) が区別されること', () {
-      expect(EventReport.parseStatus('sleeping'), 0);
-      expect(EventReport.parseStatus('awake'), 1);
-      expect(EventReport.parseStatus('overslept'), 2);
-      expect(EventReport.parseStatus('moving'), 3);
-      expect(EventReport.parseStatus('arrived'), 4);
-      expect(EventReport.parseStatus('late'), 5);
+    test(
+      '互換性: status 文字列が正しく対応する整数値にマッピングされ、overslept(2) と late(5) が区別されること',
+      () {
+        expect(EventReport.parseStatus('sleeping'), 0);
+        expect(EventReport.parseStatus('awake'), 1);
+        expect(EventReport.parseStatus('overslept'), 2);
+        expect(EventReport.parseStatus('moving'), 3);
+        expect(EventReport.parseStatus('arrived'), 4);
+        expect(EventReport.parseStatus('late'), 5);
 
-      expect(EventReport.parseStatus(' OVERSLEPT '), 2);
-      expect(EventReport.parseStatus('Late'), 5);
-    });
+        expect(EventReport.parseStatus(' OVERSLEPT '), 2);
+        expect(EventReport.parseStatus('Late'), 5);
+      },
+    );
 
     test('互換性: 未知の文字列や null の場合、デフォルト (0: sleeping) にフォールバックすること', () {
       expect(EventReport.parseStatus('unknown_status'), 0);
@@ -61,10 +64,22 @@ void main() {
       expect(report.id, 'rep_123');
       expect(report.eventId, 'evt_456');
       expect(report.userId, 'usr_789');
-      expect(report.plannedWakeupTime, DateTime.parse('2026-10-12T06:30:00.000Z'));
-      expect(report.plannedDepartureTime, DateTime.parse('2026-10-12T07:15:00.000Z'));
-      expect(report.actualWakeupTime, DateTime.parse('2026-10-12T06:35:00.000Z'));
-      expect(report.actualDepartureTime, DateTime.parse('2026-10-12T07:20:00.000Z'));
+      expect(
+        report.plannedWakeupTime,
+        DateTime.parse('2026-10-12T06:30:00.000Z'),
+      );
+      expect(
+        report.plannedDepartureTime,
+        DateTime.parse('2026-10-12T07:15:00.000Z'),
+      );
+      expect(
+        report.actualWakeupTime,
+        DateTime.parse('2026-10-12T06:35:00.000Z'),
+      );
+      expect(
+        report.actualDepartureTime,
+        DateTime.parse('2026-10-12T07:20:00.000Z'),
+      );
       expect(report.status, 4);
       expect(report.isArrived, isTrue);
       expect(report.latitude, 35.1815);
@@ -161,7 +176,11 @@ void main() {
       final expectedValues = [0, 1, 2, 3, 4, 5];
       for (final val in expectedValues) {
         final report = EventReport.fromJson(createBaseJson(val));
-        expect(report.status, equals(val), reason: 'status $val should be preserved');
+        expect(
+          report.status,
+          equals(val),
+          reason: 'status $val should be preserved',
+        );
       }
     });
 
@@ -169,33 +188,56 @@ void main() {
       final outOfRangeValues = [-99, -1, 6, 100];
       for (final val in outOfRangeValues) {
         final report = EventReport.fromJson(createBaseJson(val));
-        expect(report.status, equals(0), reason: 'status $val should fallback to 0');
+        expect(
+          report.status,
+          equals(0),
+          reason: 'status $val should fallback to 0',
+        );
       }
     });
 
-    test('互換性文字列（sleeping, awake, overslept, moving, arrived, late）が 0〜5 に変換されること', () {
-      final stringToExpected = {
-        'sleeping': 0,
-        'awake': 1,
-        'overslept': 2,
-        'moving': 3,
-        'arrived': 4,
-        'late': 5,
-        'AWAKE': 1,
-        'Arrived': 4,
-      };
+    test(
+      '互換性文字列（sleeping, awake, overslept, moving, arrived, late）が 0〜5 に変換されること',
+      () {
+        final stringToExpected = {
+          'sleeping': 0,
+          'awake': 1,
+          'overslept': 2,
+          'moving': 3,
+          'arrived': 4,
+          'late': 5,
+          'AWAKE': 1,
+          'Arrived': 4,
+        };
 
-      stringToExpected.forEach((input, expected) {
-        final report = EventReport.fromJson(createBaseJson(input));
-        expect(report.status, equals(expected), reason: 'status "$input" should convert to $expected');
-      });
-    });
+        stringToExpected.forEach((input, expected) {
+          final report = EventReport.fromJson(createBaseJson(input));
+          expect(
+            report.status,
+            equals(expected),
+            reason: 'status "$input" should convert to $expected',
+          );
+        });
+      },
+    );
 
     test('未知の文字列や null / 不正な型が渡された場合に 0 へフォールバックすること', () {
-      final invalidValues = ['unknown', 'invalid_status', '', null, 3.14, true, []];
+      final invalidValues = [
+        'unknown',
+        'invalid_status',
+        '',
+        null,
+        3.14,
+        true,
+        [],
+      ];
       for (final val in invalidValues) {
         final report = EventReport.fromJson(createBaseJson(val));
-        expect(report.status, equals(0), reason: 'status $val should fallback to 0');
+        expect(
+          report.status,
+          equals(0),
+          reason: 'status $val should fallback to 0',
+        );
       }
     });
   });
