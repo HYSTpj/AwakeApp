@@ -7,7 +7,7 @@ import 'services/alarm_service.dart';
 import 'services/gradual_vibration_controller.dart';
 import 'services/vibration_service.dart';
 import 'presentation/views/login/login_page.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 // Supabaseを利用するためのパッケージ
 import 'package:provider/provider.dart';
@@ -267,15 +267,8 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       // 【追加】Flutterの標準コンポーネント（カレンダーやダイアログのボタン等）を日本語に対応させる設定
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('ja', 'JP'), // 日本語をサポート
-        Locale('en', 'US'), // 英語もサポート
-      ],
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('ja', 'JP'), // デフォルトの言語を日本語に設定
       // 最初に表示する画面
       home: LoginPage(),
