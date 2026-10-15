@@ -35,8 +35,9 @@ void main() {
         ),
       ];
 
-      when(() => mockRepository.getEventMemberStatuses('event-1'))
-          .thenAnswer((_) async => dummyStatuses);
+      when(
+        () => mockRepository.getEventMemberStatuses('event-1'),
+      ).thenAnswer((_) async => dummyStatuses);
 
       await tester.pumpWidget(
         buildTestableWidget(

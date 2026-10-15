@@ -56,9 +56,7 @@ void main() {
       expect(find.text('合宿集合'), findsOneWidget);
     });
 
-    testWidgets('イベントが0件の場合、インジケータが消え空状態メッセージが表示される', (
-      tester,
-    ) async {
+    testWidgets('イベントが0件の場合、インジケータが消え空状態メッセージが表示される', (tester) async {
       when(
         () => mockRepository.getEvents('group-1'),
       ).thenAnswer((_) async => []);
