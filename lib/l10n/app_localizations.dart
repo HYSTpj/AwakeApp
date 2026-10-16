@@ -217,6 +217,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Join us among the elite who master time.\nLet\'s AWAKE!'**
   String get signupCatchCopy;
+
+  /// No description provided for @invitationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation Code'**
+  String get invitationCode;
+
+  /// No description provided for @enterInvitationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your invitation code'**
+  String get enterInvitationCode;
+
+  /// No description provided for @pleaseLogIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in'**
+  String get pleaseLogIn;
+
+  /// No description provided for @joinedGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined the group'**
+  String get joinedGroup;
+
+  /// No description provided for @errorOccurred.
+  ///
+  /// In en, this message translates to:
+  /// **'An error has occurred'**
+  String get errorOccurred;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'ADD'**
+  String get add;
+
+  /// No description provided for @createGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create group'**
+  String get createGroup;
+
+  /// No description provided for @addGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Add group'**
+  String get addGroup;
+
+  /// No description provided for @deleteGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group'**
+  String get deleteGroup;
+
+  /// No description provided for @enterGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter group name'**
+  String get enterGroupName;
+
+  /// No description provided for @createdNewGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Created a new group'**
+  String get createdNewGroup;
+
+  /// No description provided for @enterNewGroupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter new group name'**
+  String get enterNewGroupName;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation'**
+  String get confirmation;
+
+  /// No description provided for @leaveGroupConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you really going to leave this group?'**
+  String get leaveGroupConfirmation;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get delete;
+
+  /// No description provided for @leftGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'You have left the group'**
+  String get leftGroup;
+
+  /// No description provided for @enterInvitationCodeToLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter invitation code to leave'**
+  String get enterInvitationCodeToLeave;
+
+  /// No description provided for @deleteGroupAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get deleteGroupAction;
+
+  /// No description provided for @youHaveLeftTheGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'You have left the group'**
+  String get youHaveLeftTheGroup;
+
+  /// No description provided for @areYouSureYouWantToLeaveThisGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this group?'**
+  String get areYouSureYouWantToLeaveThisGroup;
+
+  /// No description provided for @groupName.
+  ///
+  /// In en, this message translates to:
+  /// **'GROUP NAME'**
+  String get groupName;
+
+  /// No description provided for @copiedInvitationCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied the invitation code'**
+  String get copiedInvitationCode;
+
+  /// No description provided for @createOrAddOrDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE OR ADD OR DELETE'**
+  String get createOrAddOrDelete;
+
+  /// No description provided for @failedToGetRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to retrieve role information'**
+  String get failedToGetRole;
+
+  /// No description provided for @selectGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Select group'**
+  String get selectGroup;
 }
 
 class _AppLocalizationsDelegate
