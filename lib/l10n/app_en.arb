@@ -21,5 +21,38 @@
   "login": "LOGIN",
 
   "signupTitle": "CREATE ACCOUNT",
-  "signupCatchCopy": "Join us among the elite who master time.\nLet's AWAKE!"
+  "signupCatchCopy": "Join us among the elite who master time.\nLet's AWAKE!",
+
+  "invitationCode": "Invitation Code",
+  "enterInvitationCode": "Please enter your invitation code",
+  "pleaseLogIn": "Please log in",
+  "joinedGroup": "Joined the group",
+  "errorOccurred": "An error has occurred",
+  "add": "ADD",
+
+  "createGroup": "Create group",
+  "addGroup": "Add group",
+  "deleteGroup": "Delete group",
+
+  "enterGroupName": "Please enter group name",
+  "createdNewGroup": "Created a new group",
+  "enterNewGroupName": "Enter new group name",
+  "create": "Create",
+
+  "confirmation": "Confirmation",
+  "leaveGroupConfirmation": "Are you really going to leave this group?",
+  "cancel": "Cancel",
+  "delete": "Leave",
+  "leftGroup": "You have left the group",
+  "enterInvitationCodeToLeave": "Enter invitation code to leave",
+  "deleteGroupAction": "Leave",
+
+  "youHaveLeftTheGroup": "You have left the group",
+  "areYouSureYouWantToLeaveThisGroup": "Are you sure you want to leave this group?",
+
+  "groupName": "GROUP NAME",
+  "copiedInvitationCode": "Copied the invitation code",
+  "createOrAddOrDelete": "CREATE OR ADD OR DELETE",
+  "failedToGetRole": "Failed to retrieve role information",
+  "selectGroup": "Select group"
 }

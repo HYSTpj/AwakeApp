@@ -21,5 +21,38 @@
   "login": "ログイン",
 
   "signupTitle": "アカウント作成",
-  "signupCatchCopy": "時間を制する仲間たちへようこそ。\nAWAKEを始めましょう！"
+  "signupCatchCopy": "時間を制する仲間たちへようこそ。\nAWAKEを始めましょう！",
+
+  "invitationCode": "招待コード",
+  "enterInvitationCode": "招待コードを入力してください",
+  "pleaseLogIn": "ログインしてください",
+  "joinedGroup": "グループに参加しました",
+  "errorOccurred": "エラーが発生しました",
+  "add": "参加",
+
+  "createGroup": "グループ作成",
+  "addGroup": "グループ参加",
+  "deleteGroup": "グループ脱退",
+
+  "enterGroupName": "グループ名を入力してください",
+  "createdNewGroup": "グループを作成しました",
+  "enterNewGroupName": "新しいグループ名を入力",
+  "create": "作成",
+
+  "confirmation": "確認",
+  "leaveGroupConfirmation": "本当にこのグループから脱退しますか？",
+  "cancel": "キャンセル",
+  "delete": "脱退",
+  "leftGroup": "グループから脱退しました",
+  "enterInvitationCodeToLeave": "脱退する招待コードを入力",
+  "deleteGroupAction": "脱退",
+
+  "youHaveLeftTheGroup": "グループから脱退しました",
+  "areYouSureYouWantToLeaveThisGroup": "本当にこのグループから脱退しますか？",
+
+  "groupName": "グループ名",
+  "copiedInvitationCode": "招待コードをコピーしました",
+  "createOrAddOrDelete": "グループ作成・参加・脱退",
+  "failedToGetRole": "権限情報を取得できませんでした",
+  "selectGroup": "グループを選択"
 }
