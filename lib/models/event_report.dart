@@ -1,4 +1,12 @@
 class EventReport {
+  // ステータス定数の定義（マジックナンバーの排除）
+  static const int statusSleeping = 0;
+  static const int statusAwake = 1;
+  static const int statusOverslept = 2;
+  static const int statusMoving = 3;
+  static const int statusArrived = 4;
+  static const int statusLate = 5;
+
   final String id;
   final String eventId;
   final String userId;
@@ -6,18 +14,20 @@ class EventReport {
   final DateTime? plannedDepartureTime;
   final DateTime? actualWakeupTime;
   final DateTime? actualDepartureTime;
-  final int status; // 0: sleeping, 1: awake, 2: overslept, 3: moving, 4: arrived, 5: late
+  final int
+  status; // 0: sleeping, 1: awake, 2: overslept, 3: moving, 4: arrived, 5: late
   final String? lateReason;
   final String? photoUrl;
   final double? latitude;
   final double? longitude;
   final DateTime updatedAt;
 
-  bool get isAwake => status >= 1;
-  bool get isOverslept => status == 2;
-  bool get isMoving => status == 3;
-  bool get isArrived => status == 4;
-  bool get isLate => status == 5;
+  // 定数を参照するように変更
+  bool get isAwake => status >= statusAwake;
+  bool get isOverslept => status == statusOverslept;
+  bool get isMoving => status == statusMoving;
+  bool get isArrived => status == statusArrived;
+  bool get isLate => status == statusLate;
 
   const EventReport({
     required this.id,
@@ -38,10 +48,10 @@ class EventReport {
   /// 0〜5の整数・ステータス名・数値文字列を対応する値に変換し、未知の値は0（sleeping）にする
   static int parseStatus(dynamic rawStatus) {
     if (rawStatus is int) {
-      if (rawStatus >= 0 && rawStatus <= 5) {
+      if (rawStatus >= statusSleeping && rawStatus <= statusLate) {
         return rawStatus;
       }
-      return 0; // 範囲外の整数はデフォルト (0: sleeping)
+      return statusSleeping; // 範囲外の整数はデフォルト
     }
 
     if (rawStatus is String) {
@@ -49,28 +59,28 @@ class EventReport {
       switch (normalized) {
         case 'sleeping':
         case '0':
-          return 0;
+          return statusSleeping;
         case 'awake':
         case '1':
-          return 1;
+          return statusAwake;
         case 'overslept':
         case '2':
-          return 2;
+          return statusOverslept;
         case 'moving':
         case '3':
-          return 3;
+          return statusMoving;
         case 'arrived':
         case '4':
-          return 4;
+          return statusArrived;
         case 'late':
         case '5':
-          return 5;
+          return statusLate;
         default:
-          return 0; // 未知の文字列はデフォルト
+          return statusSleeping; // 未知の文字列はデフォルト
       }
     }
 
-    return 0; // null または未対応型
+    return statusSleeping; // null または未対応型
   }
 
   factory EventReport.fromJson(Map<String, dynamic> json) {
