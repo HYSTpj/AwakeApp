@@ -68,6 +68,7 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
   crypto: ^3.0.7
+  image_cropper: ^11.0.0
   image_picker: ^1.2.1
   alarm: ^5.2.1
   vibration: ^3.2.1
