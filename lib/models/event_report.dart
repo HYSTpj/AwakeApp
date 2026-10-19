@@ -1,5 +1,4 @@
 class EventReport {
-  // ステータス定数の定義（マジックナンバーの排除）
   static const int statusSleeping = 0;
   static const int statusAwake = 1;
   static const int statusOverslept = 2;
@@ -14,15 +13,13 @@ class EventReport {
   final DateTime? plannedDepartureTime;
   final DateTime? actualWakeupTime;
   final DateTime? actualDepartureTime;
-  final int
-  status; // 0: sleeping, 1: awake, 2: overslept, 3: moving, 4: arrived, 5: late
+  final int status;
   final String? lateReason;
   final String? photoUrl;
   final double? latitude;
   final double? longitude;
   final DateTime updatedAt;
 
-  // 定数を参照するように変更
   bool get isAwake => status >= statusAwake;
   bool get isOverslept => status == statusOverslept;
   bool get isMoving => status == statusMoving;
@@ -51,7 +48,7 @@ class EventReport {
       if (rawStatus >= statusSleeping && rawStatus <= statusLate) {
         return rawStatus;
       }
-      return statusSleeping; // 範囲外の整数はデフォルト
+      return statusSleeping;
     }
 
     if (rawStatus is String) {
@@ -76,11 +73,11 @@ class EventReport {
         case '5':
           return statusLate;
         default:
-          return statusSleeping; // 未知の文字列はデフォルト
+          return statusSleeping;
       }
     }
 
-    return statusSleeping; // null または未対応型
+    return statusSleeping;
   }
 
   factory EventReport.fromJson(Map<String, dynamic> json) {
