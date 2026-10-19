@@ -134,7 +134,12 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
     if (res is Map<String, dynamic> && res['success'] == true) {
       return res['event_id'] as String;
     }
-    throw const PostgrestException(message: 'Failed to create event');
+
+    // エラー詳細（res['error'] や res['message']、レスポンス全体）を保持して例外を投げる
+    final errorMessage = (res is Map<String, dynamic>)
+        ? (res['error'] ?? res['message'] ?? 'Failed to create event: $res')
+        : 'Failed to create event (invalid response format: $res)';
+    throw PostgrestException(message: errorMessage.toString());
   }
 
   @override
