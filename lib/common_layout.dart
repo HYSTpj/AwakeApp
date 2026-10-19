@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-import 'presentation/views/group/group_list_view.dart';
+import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
-import 'presentation/views/event/checkin/member_check_in.dart';
-import 'presentation/views/ranking/ranking_screen.dart';
-import 'presentation/views/event/event_selection_home.dart';
+import 'presentation/views/event/checkin/member_check_in_page.dart';
+import 'presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/profile/profile_page.dart';
 
 class CommonLayout extends StatefulWidget {
   final Widget body; // 各画面の代入する中身
@@ -33,19 +33,6 @@ class CommonLayout extends StatefulWidget {
 }
 
 class _CommonLayoutState extends State<CommonLayout> {
-  User? _currentUser;
-  late Future<Map<String, dynamic>?> _avatarFuture;
-    Future<Map<String, dynamic>?> _fetchAvatar() {
-    if (_currentUser == null) {
-      return Future.value(null);
-    }
-
-    return Supabase.instance.client
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', _currentUser!.id)
-        .maybeSingle();
-  }
   static const _bottomNavigationItems = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Padding(
@@ -66,27 +53,13 @@ class _CommonLayoutState extends State<CommonLayout> {
         padding: EdgeInsets.only(top: 25),
         child: Icon(Icons.qr_code),
       ),
-      label: 'ranking',
+      label: 'check-in',
     ),
   ];
 
   static const Color _themeColor = Colors.deepOrangeAccent;
   static const Color _backgroundColor = Color(0xFFF8F6F6);
   static const Color _borderColor = Color(0xFF1A1C1C);
-
-  @override
-  void initState() {
-    super.initState();
-
-    _currentUser = Supabase.instance.client.auth.currentUser;
-    _avatarFuture = _fetchAvatar();
-  }
-
-  void _reloadAvatar() {
-    setState(() {
-      _avatarFuture = _fetchAvatar();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +93,7 @@ class _CommonLayoutState extends State<CommonLayout> {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: _buildRightIcons(),
+      actions: _buildRightIcons(context),
       backgroundColor: _themeColor,
       foregroundColor: Colors.black,
       elevation: 0,
@@ -145,70 +118,62 @@ class _CommonLayoutState extends State<CommonLayout> {
     );
   }
 
-  List<Widget> _buildRightIcons() {
-  if (_currentUser == null) {
+  ///AppBarの右側
+  List<Widget> _buildRightIcons(BuildContext context) {
+    final client = Supabase.instance.client;
+    final currentUser = client.auth.currentUser;
+
+    if (currentUser == null) {
+      return [
+        const Padding(
+          padding: EdgeInsets.only(right: 16),
+          child: CircleAvatar(
+            backgroundColor: Colors.grey,
+            child: Icon(Icons.person, color: Colors.white),
+          ),
+        )
+      ];
+    }
     return [
-      const Padding(
-        padding: EdgeInsets.only(right: 16),
-        child: CircleAvatar(
-          backgroundColor: Colors.grey,
-          child: Icon(Icons.person, color: Colors.white),
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: GestureDetector(
+          onTap: () => _onProfilePressed(context),
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: client
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', currentUser.id)
+                .maybeSingle(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.hasError ||
+                  !snapshot.hasData) {
+                return const CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, color: Colors.white),
+                );
+              }
+
+              final profileData = snapshot.data ?? {};
+              final String? avatarUrl = profileData['avatar_url'];
+
+              return CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: (avatarUrl == null || avatarUrl.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              );
+            },
+          ),
         ),
       ),
     ];
   }
 
-  return [
-    Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: GestureDetector(
-        onTap: _onProfilePressed,
-        child: FutureBuilder<Map<String, dynamic>?>(
-          future: _avatarFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircleAvatar(
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.white),
-              );
-            }
-
-            if (snapshot.hasError) {
-              return GestureDetector(
-                onTap: _reloadAvatar,
-                child: const CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.refresh, color: Colors.white),
-                ),
-              );
-            }
-
-            if (!snapshot.hasData) {
-              return const CircleAvatar(
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.white),
-              );
-            }
-
-            final profileData = snapshot.data ?? {};
-            final String? avatarUrl = profileData['avatar_url'];
-            final bool hasValidAvatar =
-                avatarUrl != null && avatarUrl.isNotEmpty;
-
-            return CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage:
-                  hasValidAvatar ? NetworkImage(avatarUrl) : null,
-              child: !hasValidAvatar
-                  ? const Icon(Icons.person, color: Colors.white)
-                  : null,
-            );
-          },
-        ),
-      ),
-    ),
-  ];
-}
 
   Widget _buildBottomNavigationBar(BuildContext context) {
     return Container(
@@ -327,7 +292,15 @@ class _CommonLayoutState extends State<CommonLayout> {
     );
   }
 
-  void _onProfilePressed() {
-    debugPrint('プロフィールボタンが押されました');
+  // プロフィールボタンが押された時の処理
+  void _onProfilePressed(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    );
+
+    debugPrint('プロフィールページへ遷移');
   }
 }
