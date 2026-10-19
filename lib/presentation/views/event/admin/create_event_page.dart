@@ -22,6 +22,9 @@ const _kValueStyle = TextStyle(
   color: Colors.black,
 );
 
+// 地図の初期表示フォールバック位置（東京）
+const _kDefaultMapCenter = LatLng(35.681236, 139.767125);
+
 class _LabelText extends StatelessWidget {
   final String text;
   const _LabelText(this.text);
@@ -110,8 +113,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
   DateTime _scheduledTime = DateTime.now();
 
   GoogleMapController? _mapController;
-  LatLng _selectedLocation = const LatLng(35.136405122360785, 136.97564747897678);
+  LatLng? _selectedLocation;
   Set<Marker> _markers = {};
+
+  int _searchGeneration = 0;
+
+  bool _isNavigating = false;
 
   String get _timeLabel {
     final h = _scheduledTime.hour % 12 == 0 ? 12 : _scheduledTime.hour % 12;
@@ -148,8 +155,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _scheduledTime,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2030),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime(2030, 12, 31),
     );
     if (picked != null) {
       setState(() {
@@ -165,24 +172,119 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> _searchLocation(String address) async {
-    if (address.isEmpty) return;
+    final query = address.trim();
+    if (query.isEmpty) return;
+
+    // 検索開始時に世代番号を進め、リクエスト時の世代を保持
+    final currentGeneration = ++_searchGeneration;
+
     try {
-      final locations = await locationFromAddress(address);
+      final locations = await locationFromAddress(query);
+
+      // 非同期待機中に地名が変更された、または別の検索が走った場合は破棄
+      if (!mounted) return;
+      if (currentGeneration != _searchGeneration ||
+          _locationController.text.trim() != query) {
+        return;
+      }
+
       if (locations.isNotEmpty) {
-        final target = LatLng(locations.first.latitude, locations.first.longitude);
-        if (!mounted) return;
+        final target = LatLng(
+          locations.first.latitude,
+          locations.first.longitude,
+        );
         setState(() {
           _selectedLocation = target;
           _markers = {
-            Marker(markerId: const MarkerId('selected_location'), position: target),
+            Marker(
+              markerId: const MarkerId('selected_location'),
+              position: target,
+            ),
           };
         });
         _mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(CameraPosition(target: target, zoom: 15)),
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: target, zoom: 15),
+          ),
         );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('場所が見つかりませんでした')));
       }
     } catch (e) {
       debugPrint('検索エラー: $e');
+      if (!mounted) return;
+      if (currentGeneration != _searchGeneration ||
+          _locationController.text.trim() != query) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('場所の検索に失敗しました。住所や地名を確認してください')),
+      );
+    }
+  }
+
+  Future<void> _onNextPressed() async {
+    if (_isNavigating) return;
+
+    final title = _nameController.text.trim();
+    final location = _locationController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (title.isEmpty || location.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('イベント名と場所を入力してください')));
+      return;
+    }
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('チェックイン用パスコードを入力してください')));
+      return;
+    }
+
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('目的地の場所をキーボードの「検索」で確定してください')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isNavigating = true;
+    });
+
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectParticipantsPage(
+            groupId: widget.groupId,
+            title: title,
+            destinationName: location,
+            latitude: _selectedLocation!.latitude,
+            longitude: _selectedLocation!.longitude,
+            arrivalTime: _scheduledTime,
+            password: password,
+            myRole: widget.myRole,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+      if (result == true) {
+        Navigator.pop(context, true);
+      }
+    } finally {
+      // 画面から戻ってきた場合に再度タップできるようにフラグを解除
+      if (mounted) {
+        setState(() {
+          _isNavigating = false;
+        });
+      }
     }
   }
 
@@ -223,7 +325,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -294,8 +400,21 @@ class _CreateEventPageState extends State<CreateEventPage> {
                         hintText: 'Search location...',
                         border: InputBorder.none,
                         isDense: true,
-                        suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
+                        suffixIcon: Icon(
+                          Icons.search,
+                          color: Color(0xFF475569),
+                        ),
                       ),
+                      onChanged: (value) {
+                        // テキスト変更時に世代番号を進めて先行リクエストを無効化
+                        _searchGeneration++;
+                        if (_selectedLocation != null) {
+                          setState(() {
+                            _selectedLocation = null;
+                            _markers = {};
+                          });
+                        }
+                      },
                       onSubmitted: _searchLocation,
                     ),
                   ),
@@ -309,67 +428,36 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       shape: RoundedRectangleBorder(side: _kBorderSide),
                     ),
                     child: GoogleMap(
-                      initialCameraPosition: CameraPosition(target: _selectedLocation, zoom: 15),
+                      // null の場合はフォールバック座標を使用
+                      initialCameraPosition: CameraPosition(
+                        target: _selectedLocation ?? _kDefaultMapCenter,
+                        zoom: 15,
+                      ),
                       onMapCreated: (controller) => _mapController = controller,
                       markers: _markers,
                       rotateGesturesEnabled: false,
                       tiltGesturesEnabled: false,
                       myLocationButtonEnabled: false,
                       gestureRecognizers: {
-                        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                        Factory<OneSequenceGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                        ),
                       },
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
                     child: InkWell(
-                      onTap: () async {
-                        final title = _nameController.text.trim();
-                        final location = _locationController.text.trim();
-                        final password = _passwordController.text.trim();
-
-                        if (title.isEmpty || location.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter event name and location.')),
-                          );
-                          return;
-                        }
-
-                        if (password.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a check-in passcode.')),
-                          );
-                          return;
-                        }
-
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SelectParticipantsPage(
-                              groupId: widget.groupId,
-                              title: title,
-                              destinationName: location,
-                              latitude: _selectedLocation.latitude,
-                              longitude: _selectedLocation.longitude,
-                              arrivalTime: _scheduledTime,
-                              password: password,
-                              myRole: widget.myRole,
-                            ),
-                          ),
-                        );
-
-                        if (!context.mounted) return;
-                        if (result == true) {
-                          Navigator.pop(context, true);
-                        }
-                      },
+                      onTap: _isNavigating ? null : _onNextPressed,
                       child: Container(
                         width: double.infinity,
                         height: 48,
                         alignment: Alignment.center,
                         decoration: ShapeDecoration(
-                          color: AppColors.orange,
-                          shape: const RoundedRectangleBorder(side: _kBorderSide),
+                          color: _isNavigating ? Colors.grey : AppColors.orange,
+                          shape: const RoundedRectangleBorder(
+                            side: _kBorderSide,
+                          ),
                           shadows: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
