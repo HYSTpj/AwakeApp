@@ -60,8 +60,25 @@ class _GroupListPageState extends State<GroupListPage> {
     super.dispose();
   }
 
+  bool _isShowingError = false;
+
   void _onViewModelUpdated() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+
+    final errorMessage = _viewModel.state.errorMessage;
+    if (errorMessage != null && !_isShowingError) {
+      _isShowingError = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+        _viewModel.clearError();
+        _isShowingError = false;
+      });
+    }
+
+    setState(() {});
   }
 
   Future<int?> _fetchUserRole(String groupId) async {
@@ -76,15 +93,6 @@ class _GroupListPageState extends State<GroupListPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_viewModel.state.errorMessage != null) {
-      final message = _viewModel.state.errorMessage!;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-        _viewModel.clearError();
-      });
-    }
 
     final groups = _viewModel.state.groups;
     final isLoading = _viewModel.state.isLoading;
