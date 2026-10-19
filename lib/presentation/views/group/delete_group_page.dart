@@ -6,7 +6,6 @@ import '../../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
-import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 /// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
@@ -51,11 +50,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     final groupId = _controller.text.trim();
     if (groupId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.enterInvitationCode
-          )
-        ),
+        const SnackBar(content: Text('Please enter your invitation code.')),
       );
       return;
     }
@@ -64,16 +59,16 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.confirmation),
-        content: Text(AppLocalizations.of(context)!.areYouSureYouWantToLeaveThisGroup),
+        title: const Text('confirmation'),
+        content: const Text('Are you really going to leave this group?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: const Text('cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(AppLocalizations.of(context)!.delete),
+            child: const Text('delete'),
           ),
         ],
       ),
@@ -86,9 +81,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.pleaseLogIn),
-        ),
+        const SnackBar(content: Text('Please log in.')),
       );
       return;
     }
@@ -99,16 +92,12 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.youHaveLeftTheGroup),
-        ),
+        const SnackBar(content: Text('You have left the group.')),
       );
       // true を返して選択画面に戻る
       Navigator.pop(context, true);
     } else {
-      final errorMsg = 
-        _viewModel.state.errorMessage ?? 
-        AppLocalizations.of(context)!.errorOccurred;
+      final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMsg)),
       );
@@ -158,8 +147,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       ),
       child: TextField(
         controller: _controller,
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.enterInvitationCodeToLeave,
+        decoration: const InputDecoration(
+          hintText: 'Enter invitation code to leave',
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(left: 15, top: 15),
         ),
@@ -189,8 +178,8 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
             ),
             child: isLoading
                 ? const CircularProgressIndicator()
-                : Text(
-                    AppLocalizations.of(context)!.deleteGroupAction,
+                : const Text(
+                    'Delete',
                     style: TextStyle(fontSize: 24),
                   ),
           ),

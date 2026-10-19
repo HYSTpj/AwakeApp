@@ -5,7 +5,6 @@ import '../../../widgets/return_button.dart';
 import 'create_group_page.dart';
 import 'add_group_page.dart';
 import 'delete_group_page.dart';
-import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 /// グループ作成、参加、脱退を選択するページ
 class CreateOrAddOrDeletePage extends StatelessWidget {
@@ -82,8 +81,8 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           debugPrint('グループ作成画面へ移動');
         },
         style: _buttonStyle(),
-        child: Text(
-          AppLocalizations.of(context)!.createGroup,
+        child: const Text(
+          'Create group',
           style: TextStyle(fontSize: 24),
         )
       ),
@@ -111,8 +110,8 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           debugPrint('グループ参加画面へ移動');
         },
         style: _buttonStyle(),
-        child: Text(
-          AppLocalizations.of(context)!.addGroup,
+        child: const Text(
+          'Add group',
           style: TextStyle(fontSize: 24),
         )
       ),
@@ -139,8 +138,8 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
           }
         },
         style: _buttonStyle(),
-        child: Text(
-          AppLocalizations.of(context)!.deleteGroup,
+        child: const Text(
+          'Delete group',
           style: TextStyle(fontSize: 24),
         ),
       ),
