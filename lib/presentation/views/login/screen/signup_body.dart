@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_header.dart'; // ヘッダーを定義したファイルをインポート
 import 'loading_button_label.dart';
 import '../common_effects.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 class SignupBody extends StatelessWidget {
   final TextEditingController emailController;
@@ -36,7 +37,7 @@ class SignupBody extends StatelessWidget {
                                 children: [
                                     // ロゴ
                                     Text(
-                                        'CREATE ACCOUNT',
+                                        AppLocalizations.of(context)!.signupTitle,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -50,7 +51,7 @@ class SignupBody extends StatelessWidget {
 
                                     // キャッチコピー
                                     Text(
-                                        'Join us among the elite who master time.\nLet\'sAWAKE!',
+                                        AppLocalizations.of(context)!.signupCatchCopy,
                                         textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: const Color(0xFF334155),
