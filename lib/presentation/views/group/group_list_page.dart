@@ -9,7 +9,6 @@ import '../../../common_layout.dart';
 import 'create_add_delete_page.dart';
 import '../event/admin/event_list_page.dart';
 import '../event/event_selection_home_page.dart';
-import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 class GroupListPage extends StatefulWidget {
   final String? initialGroupId;
@@ -119,8 +118,8 @@ class _GroupListPageState extends State<GroupListPage> {
                       dropdownColor: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 28),
-                      hint: Text(
-                        AppLocalizations.of(context)!.groupName,
+                      hint: const Text(
+                        'GROUP NAME',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -148,11 +147,7 @@ class _GroupListPageState extends State<GroupListPage> {
                                   onTap: () {
                                     Clipboard.setData(ClipboardData(text: group.invitationCode));
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          AppLocalizations.of(context)!.copiedInvitationCode
-                                        ),
-                                      ),
+                                      const SnackBar(content: Text('copied the invitation code')),
                                     );
                                   },
                                   child: const Icon(Icons.content_copy, color: Colors.black, size: 20),
@@ -161,13 +156,13 @@ class _GroupListPageState extends State<GroupListPage> {
                             ),
                           );
                         }),
-                        DropdownMenuItem<String>(
+                        const DropdownMenuItem<String>(
                           value: 'create_add_delete',
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                AppLocalizations.of(context)!.createOrAddOrDelete,
+                                'CREATE OR ADD OR DELETE',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -206,11 +201,7 @@ class _GroupListPageState extends State<GroupListPage> {
                           // ロールが取得できない場合は管理者(0)に偽装せずエラー表示
                           if (role == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(context)!.failedToGetRole
-                                )
-                              ),
+                              const SnackBar(content: Text('権限情報を取得できませんでした')),
                             );
                             return;
                           }
@@ -247,10 +238,8 @@ class _GroupListPageState extends State<GroupListPage> {
                 ),
                 Expanded(
                   child: selectedGroupId == null
-                      ? Center(
-                          child: Text(
-                            AppLocalizations.of(context)!.selectGroup
-                          ),
+                      ? const Center(
+                          child: Text('Select group'),
                         )
                       : EventListPage(
                           groupId: selectedGroupId!,
