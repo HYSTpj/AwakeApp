@@ -38,7 +38,6 @@ void main() {
             body: MemberPostPage(
               profile: dummyProfile,
               report: dummyReport,
-              status: 2,
               groupId: 'group-1',
               eventId: 'event-1',
               eventTitle: '大会当日',
