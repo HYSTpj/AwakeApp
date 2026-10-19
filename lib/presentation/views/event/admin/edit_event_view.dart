@@ -105,9 +105,8 @@ class EditEventPage extends StatefulWidget {
 }
 
 class _EditEventPageState extends State<EditEventPage> {
-  // 💡 古い EventRepositoryImpl は削除し、ViewModel を使用
   final EditEventViewModel _viewModel = EditEventViewModel();
-  
+
   late TextEditingController _nameController;
   late TextEditingController _locationController;
   late DateTime _scheduledTime;
@@ -132,8 +131,9 @@ class _EditEventPageState extends State<EditEventPage> {
     super.initState();
     _nameController = TextEditingController(text: widget.event.title);
     _locationController = TextEditingController(text: widget.event.destinationName);
-    _scheduledTime = widget.event.arrivalTime;
-    
+    // 💡 レビュー対応1: ピッカー編集や表示が UTC にならないようローカル時刻に変換
+    _scheduledTime = widget.event.arrivalTime.toLocal();
+
     _viewModel.loadInitialData(widget.groupId, widget.event.id);
   }
 
@@ -141,6 +141,8 @@ class _EditEventPageState extends State<EditEventPage> {
   void dispose() {
     _nameController.dispose();
     _locationController.dispose();
+    // 💡 レビュー対応2: 画面破棄時に ViewModel も破棄
+    _viewModel.dispose();
     super.dispose();
   }
 
@@ -164,7 +166,7 @@ class _EditEventPageState extends State<EditEventPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event settings updated successfully!')),
       );
-      Navigator.pop(context, true); 
+      Navigator.pop(context, true);
     } catch (e) {
       debugPrint('更新失敗: $e');
       if (!mounted) return;
@@ -180,287 +182,285 @@ class _EditEventPageState extends State<EditEventPage> {
       listenable: _viewModel,
       builder: (context, _) {
         return CommonLayout(
-          body: _viewModel.isLoading 
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    
-                    // 戻るボタン
-                    Padding(
-                      padding: const EdgeInsets.only(left: 14, top: 9),
-                      child: InkWell(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          alignment: Alignment.center,
-                          decoration: ShapeDecoration(
-                            color: Colors.white,
-                            shape: const RoundedRectangleBorder(side: _kBorderSide),
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.25),
-                                blurRadius: 0,
-                                offset: const Offset(4, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
-                        ),
-                      ),
-                    ),
-
-                    // タイトル
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8, bottom: 16),
-                      child: Center(
-                        child: Text(
-                          'Edit Event',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontFamily: 'Space Grotesk',
-                            fontWeight: FontWeight.w700,
-                            height: 1.33,
-                            letterSpacing: -0.96,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          
-                          // イベント名
-                          const _LabelText('EVENT NAME'),
-                          const SizedBox(height: 4),
-                          _InputBox(
-                            padding: const EdgeInsets.all(8),
-                            child: TextField(
-                              controller: _nameController,
-                              textAlignVertical: TextAlignVertical.center,
-                              style: _kValueStyle,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ),
-
-                          // 時間
-                          const _LabelText('TIME'),
-                          _PickerButton(
-                            label: _timeLabel, 
-                            onTap: () async {
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(_scheduledTime),
-                              );
-                              if (time == null) return;
-                              setState(() {
-                                _scheduledTime = DateTime(
-                                  _scheduledTime.year,
-                                  _scheduledTime.month,
-                                  _scheduledTime.day,
-                                  time.hour,
-                                  time.minute,
-                                );
-                              });
-                            },
-                          ),
-
-                          // 日付
-                          const _LabelText('DATE'),
-                          _PickerButton(
-                            label: _dateLabel, 
-                            onTap: () async {
-                              final now = DateTime.now();
-                              final earliestDate = _scheduledTime.isBefore(now)
-                                  ? _scheduledTime.subtract(const Duration(days: 1))
-                                  : now.subtract(const Duration(days: 30));
-
-                              final date = await showDatePicker(
-                                context: context,
-                                initialDate: _scheduledTime,
-                                firstDate: earliestDate,
-                                lastDate: DateTime(2030),
-                              );
-                              if (date == null) return;
-                              setState(() {
-                                _scheduledTime = DateTime(
-                                  date.year,
-                                  date.month,
-                                  date.day,
-                                  _scheduledTime.hour,
-                                  _scheduledTime.minute,
-                                );
-                              });
-                            },
-                          ),
-
-                          // 場所
-                          const _LabelText('Location'),
-                          const SizedBox(height: 4),
-                          _InputBox(
-                            child: TextField(
-                              controller: _locationController,
-                              textAlignVertical: TextAlignVertical.center,
-                              style: _kValueStyle,
-                              decoration: const InputDecoration(
-                                hintText: 'Search location...',
-                                border: InputBorder.none,
-                                isDense: true,
-                                suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
-                              ),
-                            ),
-                          ),
-
-                          const Divider(height: 40, thickness: 2, color: Color(0xFF475569)),
-
-                          // 参加者選択セクション
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const _LabelText('EDIT PARTICIPANTS'),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: const ShapeDecoration(
-                                  color: Colors.black,
-                                  shape: RoundedRectangleBorder(),
-                                ),
-                                child: Text(
-                                  '${_viewModel.selectedMembers.length} SELECTED',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontFamily: 'Space Grotesk',
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          
-                          // メンバーリスト枠
-                          Container(
-                            width: double.infinity,
-                            decoration: const ShapeDecoration(
+          body: _viewModel.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 戻るボタン
+                      Padding(
+                        padding: const EdgeInsets.only(left: 14, top: 9),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            alignment: Alignment.center,
+                            decoration: ShapeDecoration(
                               color: Colors.white,
-                              shape: RoundedRectangleBorder(side: _kBorderSide),
+                              shape: const RoundedRectangleBorder(side: _kBorderSide),
+                              shadows: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 0,
+                                  offset: const Offset(4, 4),
+                                ),
+                              ],
                             ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: _viewModel.allMembers.map((member) {
-                                final uid = member.id;
-                                final isSelected = _viewModel.selectedMembers.contains(uid);
-                                final nickname = member.nickname;
-                                final avatarUrl = member.avatarUrl;
+                            child: const Icon(Icons.arrow_back, color: Colors.black, size: 24),
+                          ),
+                        ),
+                      ),
 
-                                return Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: const BoxDecoration(
-                                    border: Border(bottom: BorderSide(width: 1, color: Color(0xFFE2E8F0))),
+                      // タイトル
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8, bottom: 16),
+                        child: Center(
+                          child: Text(
+                            'Edit Event',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontFamily: 'Space Grotesk',
+                              fontWeight: FontWeight.w700,
+                              height: 1.33,
+                              letterSpacing: -0.96,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // イベント名
+                            const _LabelText('EVENT NAME'),
+                            const SizedBox(height: 4),
+                            _InputBox(
+                              padding: const EdgeInsets.all(8),
+                              child: TextField(
+                                controller: _nameController,
+                                textAlignVertical: TextAlignVertical.center,
+                                style: _kValueStyle,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ),
+
+                            // 時間
+                            const _LabelText('TIME'),
+                            _PickerButton(
+                              label: _timeLabel,
+                              onTap: () async {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(_scheduledTime),
+                                );
+                                if (time == null) return;
+                                setState(() {
+                                  _scheduledTime = DateTime(
+                                    _scheduledTime.year,
+                                    _scheduledTime.month,
+                                    _scheduledTime.day,
+                                    time.hour,
+                                    time.minute,
+                                  );
+                                });
+                              },
+                            ),
+
+                            // 日付
+                            const _LabelText('DATE'),
+                            _PickerButton(
+                              label: _dateLabel,
+                              onTap: () async {
+                                final now = DateTime.now();
+                                final earliestDate = _scheduledTime.isBefore(now)
+                                    ? _scheduledTime.subtract(const Duration(days: 1))
+                                    : now.subtract(const Duration(days: 30));
+
+                                final date = await showDatePicker(
+                                  context: context,
+                                  initialDate: _scheduledTime,
+                                  firstDate: earliestDate,
+                                  lastDate: DateTime(2030),
+                                );
+                                if (date == null) return;
+                                setState(() {
+                                  _scheduledTime = DateTime(
+                                    date.year,
+                                    date.month,
+                                    date.day,
+                                    _scheduledTime.hour,
+                                    _scheduledTime.minute,
+                                  );
+                                });
+                              },
+                            ),
+
+                            // 場所
+                            const _LabelText('Location'),
+                            const SizedBox(height: 4),
+                            _InputBox(
+                              child: TextField(
+                                controller: _locationController,
+                                textAlignVertical: TextAlignVertical.center,
+                                style: _kValueStyle,
+                                decoration: const InputDecoration(
+                                  hintText: 'Search location...',
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  suffixIcon: Icon(Icons.search, color: Color(0xFF475569)),
+                                ),
+                              ),
+                            ),
+
+                            const Divider(height: 40, thickness: 2, color: Color(0xFF475569)),
+
+                            // 参加者選択セクション
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const _LabelText('EDIT PARTICIPANTS'),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: const ShapeDecoration(
+                                    color: Colors.black,
+                                    shape: RoundedRectangleBorder(),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 24,
-                                        backgroundColor: Colors.grey,
-                                        backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
-                                            ? NetworkImage(avatarUrl)
-                                            : null,
-                                        child: (avatarUrl == null || avatarUrl.isEmpty)
-                                            ? const Icon(Icons.person, color: Colors.white, size: 24)
-                                            : null,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                  child: Text(
+                                    '${_viewModel.selectedMembers.length} SELECTED',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontFamily: 'Space Grotesk',
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+
+                            // メンバーリスト枠
+                            Container(
+                              width: double.infinity,
+                              decoration: const ShapeDecoration(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(side: _kBorderSide),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: _viewModel.allMembers.map((member) {
+                                  final uid = member.id;
+                                  final isSelected = _viewModel.selectedMembers.contains(uid);
+                                  final nickname = member.nickname;
+                                  final avatarUrl = member.avatarUrl;
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: const BoxDecoration(
+                                      border: Border(bottom: BorderSide(width: 1, color: Color(0xFFE2E8F0))),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.grey,
+                                          backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                                              ? NetworkImage(avatarUrl)
+                                              : null,
+                                          child: (avatarUrl == null || avatarUrl.isEmpty)
+                                              ? const Icon(Icons.person, color: Colors.white, size: 24)
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                nickname,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              Text(
+                                                '@$uid',
+                                                style: TextStyle(
+                                                  color: Colors.black.withValues(alpha: 0.5),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Column(
                                           children: [
-                                            Text(
-                                              nickname,
-                                              style: const TextStyle(
-                                                fontSize: 18,
+                                            const Text(
+                                              'ATTENDING',
+                                              style: TextStyle(
+                                                fontSize: 8,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.black,
                                               ),
                                             ),
-                                            Text(
-                                              '@$uid',
-                                              style: TextStyle(
-                                                color: Colors.black.withValues(alpha: 0.5),
-                                                fontSize: 12,
-                                              ),
+                                            Switch(
+                                              value: isSelected,
+                                              activeThumbColor: const Color(0xFFFF5C00),
+                                              onChanged: (bool val) {
+                                                _viewModel.toggleParticipant(uid, val);
+                                              },
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      Column(
-                                        children: [
-                                          const Text(
-                                            'ATTENDING',
-                                            style: TextStyle(
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Switch(
-                                            value: isSelected,
-                                            activeThumbColor: const Color(0xFFFF5C00),
-                                            onChanged: (bool val) {
-                                              _viewModel.toggleParticipant(uid, val);
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             ),
-                          ),
 
-                          // SAVE SETTINGS ボタン
-                          const SizedBox(height: 30),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 32),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepOrangeAccent,
-                                  shape: const RoundedRectangleBorder(
-                                    side: _kBorderSide,
+                            // SAVE SETTINGS ボタン
+                            const SizedBox(height: 30),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 32),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepOrangeAccent,
+                                    shape: const RoundedRectangleBorder(
+                                      side: _kBorderSide,
+                                    ),
                                   ),
-                                ),
-                                onPressed: _saveSettings, 
-                                child: const Text(
-                                  'SAVE SETTINGS', 
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                  onPressed: _saveSettings,
+                                  child: const Text(
+                                    'SAVE SETTINGS',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
         );
       },
     );

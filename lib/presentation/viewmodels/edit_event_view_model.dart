@@ -4,6 +4,21 @@ import '../../data/repositories/admin_event_repository.dart';
 import '../../models/profile.dart';
 
 class EditEventViewModel extends ChangeNotifier {
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_isDisposed) {
+      super.notifyListeners();
+    }
+  }
+  
   final AdminEventRepository _repository;
 
   bool isLoading = true;
