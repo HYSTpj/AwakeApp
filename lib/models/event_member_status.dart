@@ -10,7 +10,9 @@ class EventMemberStatus {
   const EventMemberStatus({required this.profile, this.report});
 
   /// レポート未提出時は 0（sleeping）を返す
-  int get currentStatus => report?.status ?? 0;
+  static const int sleepingStatus = 0;
+
+  int get currentStatus => report?.status ?? sleepingStatus;
 
   factory EventMemberStatus.fromJson(Map<String, dynamic> json) {
     final profileData = json['profiles'] as Map<String, dynamic>? ?? json;

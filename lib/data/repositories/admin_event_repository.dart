@@ -146,11 +146,9 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
         )
         .eq('event_id', eventId);
 
-    final list = <EventMemberStatus>[];
-    for (final item in data as List<dynamic>) {
-      list.add(EventMemberStatus.fromJson(item as Map<String, dynamic>));
-    }
-    return list;
+    return (data as List<dynamic>)
+        .map((e) => EventMemberStatus.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
