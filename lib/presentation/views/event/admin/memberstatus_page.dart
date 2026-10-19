@@ -229,7 +229,6 @@ class _MemberStatusPageState extends State<MemberStatusPage> {
                           builder: (_) => MemberPostPage(
                             profile: profile,
                             report: latestReport,
-                            status: status,
                             groupId: widget.groupId,
                             eventId: widget.eventId,
                             eventTitle: widget.eventTitle,

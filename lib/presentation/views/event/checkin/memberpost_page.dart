@@ -9,7 +9,6 @@ import '../../../../widgets/return_button.dart';
 class MemberPostPage extends StatelessWidget {
   final Profile profile;
   final EventReport report;
-  final int status;
   final String groupId;
   final String eventId;
   final String eventTitle;
@@ -19,7 +18,6 @@ class MemberPostPage extends StatelessWidget {
     super.key,
     required this.profile,
     required this.report,
-    required this.status,
     required this.groupId,
     required this.eventId,
     required this.eventTitle,
