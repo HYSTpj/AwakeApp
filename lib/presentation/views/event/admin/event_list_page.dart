@@ -291,25 +291,28 @@ class _EventListPageState extends State<EventListPage> {
                                       size: 30,
                                     ),
                                     onPressed: () async {
-                                          // 管理者以外はタップ無効化（念のためのガード）
-                                          if (myRole != 0) return;
-                                          final result = await Navigator.push<bool>(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => EditEventPage(
-                                                event: event,
-                                                groupId: widget.groupId,
-                                                myRole: myRole,
-                                              ),
-                                            ),
-                                          );
-                                          // 保存成功（trueが返ってきた）時に一覧をリフレッシュ
-                                          if (result == true && mounted) {
-                                            setState(() {
-                                              _loadData();
-                                            });
+                                      // 管理者以外はタップ無効化（widget.myRole を参照）
+                                      if (widget.myRole != 0) return;
+
+                                      final result = await Navigator.push<bool>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => EditEventPage(
+                                            event: event,
+                                            groupId: widget.groupId,
+                                            myRole: widget.myRole,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (!context.mounted) return;
+
+                                      if (result == true) {
+                                        context
+                                            .read<AdminEventViewModel>()
+                                            .loadEvents(widget.groupId);
                                         debugPrint('${event.title} の更新を検知して一覧をリフレッシュ');
-                                          }
+                                      }
                                     },
                                   ),
                                 ),
