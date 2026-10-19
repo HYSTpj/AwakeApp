@@ -92,6 +92,11 @@ class EventReport {
       lng = (json['longitude'] as num?)?.toDouble();
     }
 
+    final rawUpdatedAt = json['updated_at'] as String?;
+    final parsedUpdatedAt = rawUpdatedAt != null
+        ? DateTime.tryParse(rawUpdatedAt)
+        : null;
+
     return EventReport(
       id: json['id'] as String? ?? '',
       eventId: json['event_id'] as String? ?? '',
@@ -113,9 +118,10 @@ class EventReport {
       photoUrl: json['photo_url'] as String?,
       latitude: lat,
       longitude: lng,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now()
-          : DateTime.now(),
+      // 不正データや未設定データが「最新」と誤認されないよう、Epoch にフォールバック
+      updatedAt:
+          parsedUpdatedAt ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
   }
 
