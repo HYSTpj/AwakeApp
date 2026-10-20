@@ -1,0 +1,25 @@
+{
+  "loginRequiredFields": "メールアドレスとパスワードを入力してください",
+  "loginFailed": "ログインに失敗しました",
+  "userNameRequired": "ユーザー名を入力してください",
+  "notLoggedIn": "ログインしていません",
+  "profileSaveFailed": "プロファイルの保存に失敗しました",
+
+  "createProfile": "プロフィール作成",
+  "createProfileDescription": "プロフィール画像とユーザー名を設定します",
+  "userName": "ユーザー名",
+  "enterUserName": "ユーザー名を入力",
+  "profilePicture": "プロフィール画像",
+  "uploadImage": "画像をアップロード",
+  "createAccount": "アカウント作成",
+  "returnToLogin": "ログイン画面へ戻る",
+
+  "signIn": "ログイン",
+  "loginCatchCopy": "時間を守る人には勲章を\n遅刻する人には反省を",
+  "emailAddress": "メールアドレス",
+  "password": "パスワード",
+  "login": "ログイン",
+
+  "signupTitle": "アカウント作成",
+  "signupCatchCopy": "ようこそAWAKEへ。\nさっそく始めましょう"
+}
