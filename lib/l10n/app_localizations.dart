@@ -97,6 +97,126 @@ abstract class AppLocalizations {
     Locale('en'),
     Locale('ja'),
   ];
+
+  /// No description provided for @loginRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email address and password'**
+  String get loginRequiredFields;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed'**
+  String get loginFailed;
+
+  /// No description provided for @userNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a username'**
+  String get userNameRequired;
+
+  /// No description provided for @notLoggedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not logged in'**
+  String get notLoggedIn;
+
+  /// No description provided for @profileSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save profile'**
+  String get profileSaveFailed;
+
+  /// No description provided for @createProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE PROFILE'**
+  String get createProfile;
+
+  /// No description provided for @createProfileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the world who you are. Customize your look.'**
+  String get createProfileDescription;
+
+  /// No description provided for @userName.
+  ///
+  /// In en, this message translates to:
+  /// **'USER NAME'**
+  String get userName;
+
+  /// No description provided for @enterUserName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your username'**
+  String get enterUserName;
+
+  /// No description provided for @profilePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'PROFILE PICTURE'**
+  String get profilePicture;
+
+  /// No description provided for @uploadImage.
+  ///
+  /// In en, this message translates to:
+  /// **'UPLOAD IMAGE'**
+  String get uploadImage;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE ACCOUNT'**
+  String get createAccount;
+
+  /// No description provided for @returnToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'RETURN TO LOGIN'**
+  String get returnToLogin;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'SIGN IN'**
+  String get signIn;
+
+  /// No description provided for @loginCatchCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'We give medals to the timely and\nshame to the tardy'**
+  String get loginCatchCopy;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'EMAIL ADDRESS'**
+  String get emailAddress;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'PASSWORD'**
+  String get password;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'LOGIN'**
+  String get login;
+
+  /// No description provided for @signupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE ACCOUNT'**
+  String get signupTitle;
+
+  /// No description provided for @signupCatchCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to AWAKE.\nLet\'s get started.'**
+  String get signupCatchCopy;
 }
 
 class _AppLocalizationsDelegate
