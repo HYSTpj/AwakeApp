@@ -53,7 +53,7 @@ class _CommonLayoutState extends State<CommonLayout> {
         padding: EdgeInsets.only(top: 25),
         child: Icon(Icons.qr_code),
       ),
-      label: 'ranking',
+      label: 'check-in',
     ),
   ];
 

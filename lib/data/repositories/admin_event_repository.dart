@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/event.dart';
+import '../../models/event_member_status.dart';
+import '../../models/event_report.dart';
 import '../../models/profile.dart';
 
 abstract class AdminEventRepository {
@@ -16,6 +19,15 @@ abstract class AdminEventRepository {
     required DateTime arrivalTime,
     required List<String> participantUserIds,
   });
+
+  /// 対象イベントの参加メンバー一覧と各レポート状況（DTO）を取得
+  Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId);
+
+  /// 特定メンバーの個別レポート詳細を取得（存在しない場合は null）
+  Future<EventReport?> getMemberReport({
+    required String eventId,
+    required String userId,
+  });
 }
 
 class SupabaseAdminEventRepository implements AdminEventRepository {
@@ -26,7 +38,9 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
   @override
   Future<List<Event>> getEvents(String groupId) async {
     final uid = _client.auth.currentUser?.id;
-    if (uid == null) return [];
+    if (uid == null) {
+      throw const AuthException('User is not authenticated');
+    }
 
     // 管理者かどうか確認
     final membership = await _client
@@ -44,10 +58,18 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
         'get_admin_events',
         params: {'p_group_id': groupId},
       );
+
       if (res is List<dynamic>) {
-        return res.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
+        return res
+            .map((e) => Event.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
-      return [];
+
+      // 予期しないレスポンス形式の場合は例外を投げて異常を通知
+      debugPrint('get_admin_events の戻り値が不正です: $res');
+      throw const FormatException(
+        'Unexpected response format from get_admin_events',
+      );
     } else {
       // 一般メンバーは安全な events_view を取得
       final data = await _client
@@ -64,10 +86,11 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
 
   @override
   Future<List<Profile>> getGroupMembers(String groupId) async {
-    // groups_memberships 経由で対象グループのメンバー Profiles を JOIN 取得
     final data = await _client
         .from('groups_memberships')
-        .select('profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )')
+        .select(
+          'profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )',
+        )
         .eq('group_id', groupId);
 
     final members = <Profile>[];
@@ -93,21 +116,59 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
     required List<String> participantUserIds,
   }) async {
     // イベント作成と参加者の初期レポート生成 (status: sleeping) を一括で行う RPC を実行
-    final res = await _client.rpc('create_event_with_participants', params: {
-      'p_group_id': groupId,
-      'p_title': title,
-      'p_destination_name': destinationName,
-      'p_latitude': latitude,
-      'p_longitude': longitude,
-      'p_qrcode_id': qrcodeId,
-      'p_password': password,
-      'p_arrival_time': arrivalTime.toIso8601String(),
-      'p_participant_ids': participantUserIds,
-    });
+    final res = await _client.rpc(
+      'create_event_with_participants',
+      params: {
+        'p_group_id': groupId,
+        'p_title': title,
+        'p_destination_name': destinationName,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_qrcode_id': qrcodeId,
+        'p_password': password,
+        'p_arrival_time': arrivalTime.toIso8601String(),
+        'p_participant_ids': participantUserIds,
+      },
+    );
 
     if (res is Map<String, dynamic> && res['success'] == true) {
       return res['event_id'] as String;
     }
-    throw const PostgrestException(message: 'Failed to create event');
+
+    // エラー詳細（res['error'] や res['message']、レスポンス全体）を保持して例外を投げる
+    final errorMessage = (res is Map<String, dynamic>)
+        ? (res['error'] ?? res['message'] ?? 'Failed to create event: $res')
+        : 'Failed to create event (invalid response format: $res)';
+    throw PostgrestException(message: errorMessage.toString());
+  }
+
+  @override
+  Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId) async {
+    final data = await _client
+        .from('event_reports')
+        .select(
+          '*, profiles ( id, nickname, avatar_url, sleep_past_count, late_count, created_at, updated_at )',
+        )
+        .eq('event_id', eventId);
+
+    return (data as List<dynamic>)
+        .map((e) => EventMemberStatus.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<EventReport?> getMemberReport({
+    required String eventId,
+    required String userId,
+  }) async {
+    final data = await _client
+        .from('event_reports')
+        .select()
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (data == null) return null;
+    return EventReport.fromJson(data);
   }
 }
