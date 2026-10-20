@@ -6,6 +6,7 @@ import '../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 /// グループ参加ページ
 class AddGroupPage extends StatefulWidget {
@@ -51,7 +52,11 @@ class _AddGroupPageState extends State<AddGroupPage> {
     final code = _controller.text.trim();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your invitation code.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.enterInvitationCode,
+          ),
+        ),
       );
       return;
     }
@@ -61,7 +66,11 @@ class _AddGroupPageState extends State<AddGroupPage> {
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('Please log in.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.pleaseLogIn,
+          ),
+        ),
       );
       return;
     }
@@ -72,12 +81,16 @@ class _AddGroupPageState extends State<AddGroupPage> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
-        const SnackBar(content: Text('Joined the group.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.joinedGroup,
+          ),
+        ),
       );
       // 参加完了後は一覧画面まで戻る
       Navigator.pop(context, true);
     } else {
-      final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
+      final errorMsg = _viewModel.state.errorMessage ?? AppLocalizations.of(context)!.errorOccurred;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
         SnackBar(content: Text(errorMsg)),
       );
@@ -127,8 +140,8 @@ class _AddGroupPageState extends State<AddGroupPage> {
       ),
       child: TextField(
         controller: _controller,
-        decoration: const InputDecoration(
-          hintText: 'Enter invitation code',
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.invitationCode,
           border: InputBorder.none,
           contentPadding: EdgeInsets.only(left: 15, top: 15),
         ),
@@ -158,8 +171,8 @@ class _AddGroupPageState extends State<AddGroupPage> {
             ),
             child: isLoading
                 ? const CircularProgressIndicator()
-                : const Text(
-                    'Add',
+                : Text(
+                    AppLocalizations.of(context)!.add,
                     style: TextStyle(fontSize: 24),
                   ),
           ),
