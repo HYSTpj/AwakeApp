@@ -70,4 +70,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signupCatchCopy => 'Welcome to AWAKE.\nLet\'s get started.';
+
+  @override
+  String get invitationCode => 'Invitation Code';
+
+  @override
+  String get enterInvitationCode => 'Please enter your invitation code';
+
+  @override
+  String get pleaseLogIn => 'Please log in';
+
+  @override
+  String get joinedGroup => 'Joined the group';
+
+  @override
+  String get errorOccurred => 'An error has occurred';
+
+  @override
+  String get add => 'ADD';
+
+  @override
+  String get createGroup => 'Create group';
+
+  @override
+  String get addGroup => 'Add group';
+
+  @override
+  String get deleteGroup => 'Delete group';
+
+  @override
+  String get enterGroupName => 'Please enter group name';
+
+  @override
+  String get createdNewGroup => 'Created a new group';
+
+  @override
+  String get enterNewGroupName => 'Enter new group name';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get confirmation => 'Confirmation';
+
+  @override
+  String get leaveGroupConfirmation =>
+      'Are you sure you want to leave this group?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Leave';
+
+  @override
+  String get leftGroup => 'You have left the group';
+
+  @override
+  String get enterInvitationCodeToLeave => 'Enter invitation code to leave';
+
+  @override
+  String get deleteGroupAction => 'Leave';
+
+  @override
+  String get groupName => 'GROUP NAME';
+
+  @override
+  String get copiedInvitationCode => 'Copied the invitation code';
+
+  @override
+  String get createOrAddOrDelete => 'CREATE OR ADD OR DELETE';
+
+  @override
+  String get failedToGetRole => 'Failed to retrieve role information';
+
+  @override
+  String get selectGroup => 'Select group';
 }
