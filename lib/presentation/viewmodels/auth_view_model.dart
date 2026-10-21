@@ -4,49 +4,76 @@ import '../../models/profile.dart';
 
 // 認証関連の UI 状態を保持する不変（Immutable）ステートクラス
 class AuthState {
-// ログイン中のユーザープロフィール（未ログイン時は null）
   final Profile? user;
-  final bool isLoading;
-  final String? errorMessage;
+  // ローディング状態を分離
+  final bool isProfileLoading;
+  final bool isAuthActionLoading;
+
+  final String? profileErrorMessage;
+  final String? authErrorMessage;
 
   const AuthState({
     this.user,
-    this.isLoading = false,
-    this.errorMessage,
+    this.isProfileLoading = false,
+    this.isAuthActionLoading = false,
+    this.profileErrorMessage,
+    this.authErrorMessage,
   });
 
-  // 既存の状態を維持しつつ一部のフィールドのみを更新した新しい [AuthState] を生成する
+  // 既存コード（LoginPage, CreateAccountPage）との後方互換用ゲッター
+  bool get isLoading => isAuthActionLoading || isProfileLoading;
+  String? get errorMessage => authErrorMessage ?? profileErrorMessage;
+
   AuthState copyWith({
     Profile? user,
-    bool? isLoading,
-    String? errorMessage,
-    bool clearError = false,
+    bool? isProfileLoading,
+    bool? isAuthActionLoading,
+    String? profileErrorMessage,
+    String? authErrorMessage,
+    bool clearProfileError = false,
+    bool clearAuthError = false,
+    bool clearUser = false,
   }) {
     return AuthState(
-      user: user ?? this.user,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      user: clearUser ? null : (user ?? this.user),
+      isProfileLoading: isProfileLoading ?? this.isProfileLoading,
+      isAuthActionLoading: isAuthActionLoading ?? this.isAuthActionLoading,
+      profileErrorMessage: clearProfileError
+          ? null
+          : (profileErrorMessage ?? this.profileErrorMessage),
+      authErrorMessage: clearAuthError
+          ? null
+          : (authErrorMessage ?? this.authErrorMessage),
     );
   }
 }
 
-/// 認証フロー（新規登録・ログイン・ログアウト）のビジネスロジックおよび状態を管理する ViewModel
 class AuthViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
   AuthState _state = const AuthState();
 
+  // 画面非依存で非同期タスクの有効性を保証する世代番号
+  int _activeSessionToken = 0;
+
   AuthViewModel(this._authRepository);
 
-  /// 外部（View層）から購読するための現在の状態ゲッター
   AuthState get state => _state;
 
-  // 新規アカウントを登録し、成功時はプロフィール状態を更新する
   Future<bool> signUp({
     required String email,
     required String password,
     String? nickname,
   }) async {
-    _state = _state.copyWith(isLoading: true, clearError: true);
+    if (_state.isAuthActionLoading) return false;
+
+    _activeSessionToken++;
+
+    _state = _state.copyWith(
+      isAuthActionLoading: true,
+      clearAuthError: true,
+      isProfileLoading: false,
+      clearProfileError: true,
+    );
     notifyListeners();
 
     try {
@@ -55,22 +82,38 @@ class AuthViewModel extends ChangeNotifier {
         password: password,
         nickname: nickname,
       );
-      _state = _state.copyWith(user: profile, isLoading: false);
+      _state = _state.copyWith(
+        user: profile,
+        isAuthActionLoading: false,
+        isProfileLoading: false,
+      );
       notifyListeners();
       return true;
     } catch (e) {
-      _state = _state.copyWith(isLoading: false, errorMessage: e.toString());
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        isProfileLoading: false,
+        authErrorMessage: e.toString(),
+      );
       notifyListeners();
       return false;
     }
   }
 
-  // メールアドレスとパスワードでサインインし、プロフィール状態を更新する
   Future<bool> signIn({
     required String email,
     required String password,
   }) async {
-    _state = _state.copyWith(isLoading: true, clearError: true);
+    if (_state.isAuthActionLoading) return false;
+
+    _activeSessionToken++;
+
+    _state = _state.copyWith(
+      isAuthActionLoading: true,
+      clearAuthError: true,
+      isProfileLoading: false,
+      clearProfileError: true,
+    );
     notifyListeners();
 
     try {
@@ -78,20 +121,104 @@ class AuthViewModel extends ChangeNotifier {
         email: email,
         password: password,
       );
-      _state = _state.copyWith(user: profile, isLoading: false);
+      _state = _state.copyWith(
+        user: profile,
+        isAuthActionLoading: false,
+        isProfileLoading: false,
+      );
       notifyListeners();
       return true;
     } catch (e) {
-      _state = _state.copyWith(isLoading: false, errorMessage: e.toString());
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        isProfileLoading: false,
+        authErrorMessage: e.toString(),
+      );
       notifyListeners();
       return false;
     }
   }
 
-  // サインアウトを実行し、保持している認証状態（プロフィール情報）を初期化する
-  Future<void> signOut() async {
-    await _authRepository.signOut();
-    _state = const AuthState();
+  Future<bool> signOut() async {
+    if (_state.isAuthActionLoading) return false;
+
+    _activeSessionToken++;
+
+    _state = _state.copyWith(
+      isAuthActionLoading: true,
+      clearAuthError: true,
+      isProfileLoading: false,
+      clearProfileError: true,
+    );
+    notifyListeners();
+
+    try {
+      await _authRepository.signOut();
+      _state = const AuthState();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        isProfileLoading: false,
+        authErrorMessage: 'ログアウトに失敗しました: $e',
+      );
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> loadCurrentProfile() async {
+    if (_state.isAuthActionLoading) return;
+
+    final uidAtStart = _authRepository.currentUserId;
+    if (uidAtStart == null) {
+      if (_state.user != null || _state.isProfileLoading) {
+        _state = _state.copyWith(clearUser: true, isProfileLoading: false);
+        notifyListeners();
+      }
+      return;
+    }
+
+    final currentToken = ++_activeSessionToken;
+
+    _state = _state.copyWith(isProfileLoading: true, clearProfileError: true);
+    notifyListeners();
+
+    try {
+      final profile = await _authRepository.getCurrentProfile();
+
+      if (currentToken != _activeSessionToken) return;
+
+      // 外部でセッションが変わっていたら、安全にクリアして終了
+      if (_authRepository.currentUserId != uidAtStart) {
+        _state = _state.copyWith(clearUser: true, isProfileLoading: false);
+        notifyListeners();
+        return;
+      }
+
+      if (profile != null) {
+        _state = _state.copyWith(user: profile, isProfileLoading: false);
+      } else {
+        _state = _state.copyWith(clearUser: true, isProfileLoading: false);
+      }
+    } catch (e) {
+      if (currentToken != _activeSessionToken) return;
+
+      // 外部でセッションが変わっていた場合も、スピナーを解除して古いユーザー情報をクリア
+      if (_authRepository.currentUserId != uidAtStart) {
+        _state = _state.copyWith(clearUser: true, isProfileLoading: false);
+        notifyListeners();
+        return;
+      }
+
+      // 同一セッションでプロフィール取得に失敗した場合
+      _state = _state.copyWith(
+        clearUser: true,
+        isProfileLoading: false,
+        profileErrorMessage: 'プロフィール取得失敗: $e',
+      );
+    }
     notifyListeners();
   }
 }
