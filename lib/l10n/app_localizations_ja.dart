@@ -67,4 +67,79 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get signupCatchCopy => 'ようこそAWAKEへ。\nさっそく始めましょう';
+
+  @override
+  String get invitationCode => '招待コード';
+
+  @override
+  String get enterInvitationCode => '招待コードを入力してください';
+
+  @override
+  String get pleaseLogIn => 'ログインしてください';
+
+  @override
+  String get joinedGroup => 'グループに参加しました';
+
+  @override
+  String get errorOccurred => 'エラーが発生しました';
+
+  @override
+  String get add => '参加';
+
+  @override
+  String get createGroup => 'グループ作成';
+
+  @override
+  String get addGroup => 'グループ参加';
+
+  @override
+  String get deleteGroup => 'グループ脱退';
+
+  @override
+  String get enterGroupName => 'グループ名を入力してください';
+
+  @override
+  String get createdNewGroup => 'グループを作成しました';
+
+  @override
+  String get enterNewGroupName => '新しいグループ名を入力';
+
+  @override
+  String get create => '作成';
+
+  @override
+  String get confirmation => '確認';
+
+  @override
+  String get leaveGroupConfirmation => '本当にこのグループから脱退しますか？';
+
+  @override
+  String get cancel => 'キャンセル';
+
+  @override
+  String get delete => '脱退';
+
+  @override
+  String get leftGroup => 'グループから脱退しました';
+
+  @override
+  String get enterInvitationCodeToLeave => '脱退する招待コードを入力';
+
+  @override
+  String get deleteGroupAction => '脱退';
+
+  @override
+  String get groupName => 'グループ名';
+
+  @override
+  String get copiedInvitationCode => '招待コードをコピーしました';
+
+  @override
+  String get createOrAddOrDelete => 'グループ作成・参加・脱退';
+
+  @override
+  String get failedToGetRole => '権限情報を取得できませんでした';
+
+  @override
+  String get selectGroup => 'グループを選択';
 }
