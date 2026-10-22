@@ -11,10 +11,7 @@ abstract class AuthRepository {
   });
 
   // メールアドレスとパスワードでサインインする
-  Future<Profile> signIn({
-    required String email,
-    required String password,
-  });
+  Future<Profile> signIn({required String email, required String password});
 
   // 現在のセッションからサインアウトする
   Future<void> signOut();
@@ -27,6 +24,8 @@ abstract class AuthRepository {
 
   // パスワード再設定メールを送信する
   Future<void> resetPassword({required String email});
+
+  Future<Profile> updateNickname(String newNickname);
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -98,7 +97,7 @@ class SupabaseAuthRepository implements AuthRepository {
     final uid = currentUserId;
     if (uid == null) return null;
 
-    // RLS により認証ユーザー自身の行のみ取得可能
+    // 認証済みユーザーが参照できる行を取得する
     final data = await _client
         .from('profiles')
         .select()
@@ -126,7 +125,7 @@ class SupabaseAuthRepository implements AuthRepository {
         return Profile.fromJson(data);
       }
 
-      // 次のリトライまで待機（300ms）
+      // プロフィールが未作成の場合は300ms待機
       await Future.delayed(const Duration(milliseconds: 300));
     }
 
@@ -136,5 +135,34 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<void> resetPassword({required String email}) async {
     await _client.auth.resetPasswordForEmail(email);
+  }
+
+  @override
+  Future<Profile> updateNickname(String newNickname) async {
+    final userId = currentUserId;
+    if (userId == null) {
+      throw Exception('ユーザーが認証されていません');
+    }
+
+    // 入力値をトリムし、空欄と文字数を検証する
+    final trimmed = newNickname.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError('ユーザー名を入力してください');
+    }
+    if (trimmed.length > 30) {
+      throw ArgumentError('ユーザー名は30文字以内で入力してください');
+    }
+
+    final response = await _client
+        .from('profiles')
+        .update({
+          'nickname': trimmed,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    return Profile.fromJson(response);
   }
 }
