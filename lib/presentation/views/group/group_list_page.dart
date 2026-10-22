@@ -34,7 +34,9 @@ class _GroupListPageState extends State<GroupListPage> {
     // notifyListeners() を同期的に呼ぶと祖先の Provider が dirty になり
     // 「setState() or markNeedsBuild() called during build」を引き起こす。
     // 現在のフレーム描画後まで初回ロードを遅らせることで回避する。
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initGroups());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _initGroups();
+    });
   }
 
   Future<void> _initGroups() async {
