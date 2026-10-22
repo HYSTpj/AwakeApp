@@ -1,14 +1,17 @@
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/profile.dart';
 
+// サインアップ後、メール確認が完了するまでセッションが発行されない状態を示す例外
+class EmailConfirmationPendingException implements Exception {
+  const EmailConfirmationPendingException();
+}
+
 // 認証および認証ユーザープロフィールのデータ操作を抽象化するインターフェース
 abstract class AuthRepository {
-  // メールアドレスとパスワード、ニックネームを用いて新規アカウントを登録する
-  Future<Profile> signUp({
-    required String email,
-    required String password,
-    String? nickname,
-  });
+  // メールアドレスとパスワードを用いて新規アカウントを登録する
+  Future<Profile> signUp({required String email, required String password});
 
   // メールアドレスとパスワードでサインインする
   Future<Profile> signIn({required String email, required String password});
@@ -25,6 +28,10 @@ abstract class AuthRepository {
   // パスワード再設定メールを送信する
   Future<void> resetPassword({required String email});
 
+  // ニックネーム・プロフィール画像を更新する（画像が無ければニックネームのみ更新）
+  Future<Profile> updateProfile({required String nickname, File? avatarImage});
+
+  // ユーザー名（ニックネーム）単体を更新する
   Future<Profile> updateNickname(String newNickname);
 }
 
@@ -41,25 +48,16 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Profile> signUp({
     required String email,
     required String password,
-    String? nickname,
   }) async {
-    // ユーザー作成時、raw_user_meta_data に nickname を保持させる
-    // （DB側の handle_new_user トリガーで profiles に自動挿入される）
-    final res = await _client.auth.signUp(
-      email: email,
-      password: password,
-      data: {'nickname': nickname},
-    );
+    final res = await _client.auth.signUp(email: email, password: password);
 
-    // signUp 内で res.session == null のチェックを追加
     final user = res.user;
     if (user == null) {
       throw const AuthException('User creation failed');
     }
 
     if (res.session == null) {
-      // メール確認が必要な場合はここで明確な例外を投げるか結果を分岐
-      throw const AuthException('確認メールを送信しました。メール内のリンクからログインしてください。');
+      throw const EmailConfirmationPendingException();
     }
 
     return _fetchProfileWithRetry(user.id);
@@ -97,7 +95,6 @@ class SupabaseAuthRepository implements AuthRepository {
     final uid = currentUserId;
     if (uid == null) return null;
 
-    // 認証済みユーザーが参照できる行を取得する
     final data = await _client
         .from('profiles')
         .select()
@@ -108,8 +105,7 @@ class SupabaseAuthRepository implements AuthRepository {
     return Profile.fromJson(data);
   }
 
-  // サインアップ直後は DB トリガー（handle_new_user）の実行完了までに
-  // わずかな非同期遅延が発生する場合があるため、一定回数ポーリングしてプロフィールを取得する
+  // サインアップ直後の DB トリガー完了待ちポーリング
   Future<Profile> _fetchProfileWithRetry(
     String userId, {
     int retries = 3,
@@ -125,7 +121,6 @@ class SupabaseAuthRepository implements AuthRepository {
         return Profile.fromJson(data);
       }
 
-      // プロフィールが未作成の場合は300ms待機
       await Future.delayed(const Duration(milliseconds: 300));
     }
 
@@ -138,13 +133,69 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Profile> updateProfile({
+    required String nickname,
+    File? avatarImage,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('ログインしていません');
+    }
+
+    // updateProfile 側も 30 文字ガードとトリムを適用して統一
+    final trimmed = nickname.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError('ユーザー名を入力してください');
+    }
+    if (trimmed.length > 30) {
+      throw ArgumentError('ユーザー名は30文字以内で入力してください');
+    }
+
+    String? avatarUrl;
+    if (avatarImage != null) {
+      final filePath =
+          '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      await _client.storage
+          .from('avatars')
+          .upload(
+            filePath,
+            avatarImage,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
+          );
+
+      avatarUrl = _client.storage.from('avatars').getPublicUrl(filePath);
+    }
+
+    final updateData = <String, dynamic>{
+      'id': user.id,
+      'nickname': trimmed,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (avatarUrl != null) {
+      updateData['avatar_url'] = avatarUrl;
+    }
+
+    await _client.from('profiles').upsert(updateData);
+
+    final profile = await getCurrentProfile();
+    if (profile == null) {
+      throw const AuthException('Profile not found');
+    }
+    return profile;
+  }
+
+  @override
   Future<Profile> updateNickname(String newNickname) async {
     final userId = currentUserId;
     if (userId == null) {
       throw Exception('ユーザーが認証されていません');
     }
 
-    // 入力値をトリムし、空欄と文字数を検証する
+    // 入力値をトリムし、空欄と文字数を検証
     final trimmed = newNickname.trim();
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');

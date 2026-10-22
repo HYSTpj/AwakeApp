@@ -43,14 +43,12 @@ void main() {
         () => mockAuthRepository.signUp(
           email: 'test@example.com',
           password: 'password123',
-          nickname: 'TestUser',
         ),
       ).thenAnswer((_) async => testProfile);
 
       final result = await viewModel.signUp(
         email: 'test@example.com',
         password: 'password123',
-        nickname: 'TestUser',
       );
 
       expect(result, isTrue);
@@ -59,25 +57,103 @@ void main() {
       expect(viewModel.state.errorMessage, isNull);
     });
 
-    test('signUp 失敗時: errorMessage に例外内容が入り、false が返却されること', () async {
+    test('signUp 失敗時(既知メッセージ): ユーザー向けの日本語メッセージに変換されること', () async {
       when(
         () => mockAuthRepository.signUp(
           email: 'fail@example.com',
           password: 'password123',
-          nickname: 'TestUser',
         ),
       ).thenThrow(const AuthException('User already registered'));
 
       final result = await viewModel.signUp(
         email: 'fail@example.com',
         password: 'password123',
-        nickname: 'TestUser',
       );
 
       expect(result, isFalse);
       expect(viewModel.state.user, isNull);
       expect(viewModel.state.isLoading, isFalse);
-      expect(viewModel.state.errorMessage, contains('User already registered'));
+      expect(viewModel.state.errorMessage, equals('このメールアドレスは既に登録されています'));
+      expect(viewModel.state.isEmailConfirmationPending, isFalse);
+    });
+
+    test('signUp 失敗時(未知のエラー): 汎用の日本語メッセージになり、生の例外文字列は表示されないこと', () async {
+      when(
+        () => mockAuthRepository.signUp(
+          email: 'fail2@example.com',
+          password: 'password123',
+        ),
+      ).thenThrow(const AuthException('some internal detail'));
+
+      final result = await viewModel.signUp(
+        email: 'fail2@example.com',
+        password: 'password123',
+      );
+
+      expect(result, isFalse);
+      expect(
+        viewModel.state.errorMessage,
+        equals('エラーが発生しました。しばらくしてから再度お試しください'),
+      );
+      expect(viewModel.state.errorMessage, isNot(contains('AuthException')));
+      expect(
+        viewModel.state.errorMessage,
+        isNot(contains('some internal detail')),
+      );
+    });
+
+    test(
+      'signUp 時に EmailConfirmationPendingException が発生した場合: isEmailConfirmationPending が true になり errorMessage は設定されないこと',
+      () async {
+        when(
+          () => mockAuthRepository.signUp(
+            email: 'pending@example.com',
+            password: 'password123',
+          ),
+        ).thenThrow(const EmailConfirmationPendingException());
+
+        final result = await viewModel.signUp(
+          email: 'pending@example.com',
+          password: 'password123',
+        );
+
+        expect(result, isFalse);
+        expect(viewModel.state.user, isNull);
+        expect(viewModel.state.isLoading, isFalse);
+        expect(viewModel.state.errorMessage, isNull);
+        expect(viewModel.state.isEmailConfirmationPending, isTrue);
+      },
+    );
+
+    test('signUp 実行中に再度 signUp を呼んでも、2回目は早期リターンしてRepositoryが呼ばれないこと', () async {
+      final completer = Completer<Profile>();
+      when(
+        () => mockAuthRepository.signUp(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.signUp(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+      final secondCall = viewModel.signUp(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+
+      completer.complete(testProfile);
+      final results = await Future.wait([firstCall, secondCall]);
+
+      expect(results[0], isTrue);
+      expect(results[1], isFalse);
+      verify(
+        () => mockAuthRepository.signUp(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
     });
   });
 
@@ -100,7 +176,39 @@ void main() {
       expect(viewModel.state.errorMessage, isNull);
     });
 
-    test('signIn 失敗時: 適切なエラーメッセージが保持されること', () async {
+    test(
+      '直前の signUp でメール確認待ちになっていても、signIn 成功時に isEmailConfirmationPending が false にリセットされること',
+      () async {
+        when(
+          () => mockAuthRepository.signUp(
+            email: 'pending@example.com',
+            password: 'password123',
+          ),
+        ).thenThrow(const EmailConfirmationPendingException());
+        await viewModel.signUp(
+          email: 'pending@example.com',
+          password: 'password123',
+        );
+        expect(viewModel.state.isEmailConfirmationPending, isTrue);
+
+        when(
+          () => mockAuthRepository.signIn(
+            email: 'test@example.com',
+            password: 'password123',
+          ),
+        ).thenAnswer((_) async => testProfile);
+
+        final result = await viewModel.signIn(
+          email: 'test@example.com',
+          password: 'password123',
+        );
+
+        expect(result, isTrue);
+        expect(viewModel.state.isEmailConfirmationPending, isFalse);
+      },
+    );
+
+    test('signIn 失敗時: ユーザー向けの日本語メッセージに変換されること', () async {
       when(
         () => mockAuthRepository.signIn(
           email: 'test@example.com',
@@ -115,10 +223,97 @@ void main() {
 
       expect(result, isFalse);
       expect(viewModel.state.user, isNull);
+      expect(viewModel.state.errorMessage, equals('メールアドレスまたはパスワードが正しくありません'));
+    });
+
+    test('signIn 実行中に再度 signIn を呼んでも、2回目は早期リターンしてRepositoryが呼ばれないこと', () async {
+      final completer = Completer<Profile>();
+      when(
+        () => mockAuthRepository.signIn(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.signIn(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+      final secondCall = viewModel.signIn(
+        email: 'test@example.com',
+        password: 'password123',
+      );
+
+      completer.complete(testProfile);
+      final results = await Future.wait([firstCall, secondCall]);
+
+      expect(results[0], isTrue);
+      expect(results[1], isFalse);
+      verify(
+        () => mockAuthRepository.signIn(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
+    });
+  });
+
+  group('AuthViewModel - プロフィール設定テスト', () {
+    test('completeProfile 成功時: user が更新され true が返ること', () async {
+      when(
+        () => mockAuthRepository.updateProfile(
+          nickname: 'NewName',
+          avatarImage: null,
+        ),
+      ).thenAnswer((_) async => testProfile);
+
+      final result = await viewModel.completeProfile(nickname: 'NewName');
+
+      expect(result, isTrue);
+      expect(viewModel.state.user, equals(testProfile));
+      expect(viewModel.state.isLoading, isFalse);
+    });
+
+    test('completeProfile 失敗時: ユーザー向けメッセージが設定され false が返ること', () async {
+      when(
+        () => mockAuthRepository.updateProfile(
+          nickname: 'NewName',
+          avatarImage: null,
+        ),
+      ).thenThrow(Exception('storage error'));
+
+      final result = await viewModel.completeProfile(nickname: 'NewName');
+
+      expect(result, isFalse);
       expect(
         viewModel.state.errorMessage,
-        contains('Invalid login credentials'),
+        equals('エラーが発生しました。しばらくしてから再度お試しください'),
       );
+    });
+
+    test('completeProfile 実行中に再度呼んでも、2回目は早期リターンしてRepositoryが呼ばれないこと', () async {
+      final completer = Completer<Profile>();
+      when(
+        () => mockAuthRepository.updateProfile(
+          nickname: 'NewName',
+          avatarImage: null,
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.completeProfile(nickname: 'NewName');
+      final secondCall = viewModel.completeProfile(nickname: 'NewName');
+
+      completer.complete(testProfile);
+      final results = await Future.wait([firstCall, secondCall]);
+
+      expect(results[0], isTrue);
+      expect(results[1], isFalse);
+      verify(
+        () => mockAuthRepository.updateProfile(
+          nickname: 'NewName',
+          avatarImage: null,
+        ),
+      ).called(1);
     });
   });
 
@@ -161,7 +356,6 @@ void main() {
         expect(viewModel.state.user, isNull);
         expect(viewModel.state.isProfileLoading, isFalse);
         expect(viewModel.state.profileErrorMessage, contains('プロフィール取得失敗'));
-        // 認証アクションエラーには影響しないこと
         expect(viewModel.state.authErrorMessage, isNull);
       },
     );
@@ -169,30 +363,24 @@ void main() {
     test('プロフィール取得中にログアウトが完了した場合: 遅れて返ったプロフィールは破棄され未ログイン状態が維持されること', () async {
       final profileCompleter = Completer<Profile?>();
 
-      // 取得開始時点ではログイン中
       when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
       when(
         () => mockAuthRepository.getCurrentProfile(),
       ).thenAnswer((_) => profileCompleter.future);
       when(() => mockAuthRepository.signOut()).thenAnswer((_) async {});
 
-      // 1. プロフィール取得を開始（レスポンス待ちで一時停止）
       final profileFuture = viewModel.loadCurrentProfile();
       expect(viewModel.state.isProfileLoading, isTrue);
 
-      // 2. 取得完了前にログアウトを実行
-      // ログアウト完了後は currentUserId が null になる状態をシミュレート
       when(() => mockAuthRepository.currentUserId).thenReturn(null);
       await viewModel.signOut();
 
       expect(viewModel.state.user, isNull);
       expect(viewModel.state.isProfileLoading, isFalse);
 
-      // 3. 遅れてプロフィール取得が完了
       profileCompleter.complete(testProfile);
       await profileFuture;
 
-      // 4. 古いプロフィールが状態に反映されないことを確認
       expect(viewModel.state.user, isNull);
       expect(viewModel.state.isProfileLoading, isFalse);
     });
@@ -213,11 +401,9 @@ void main() {
           ),
         ).thenAnswer((_) async => otherProfile);
 
-        // 1. 旧プロフィールの取得を開始
         final oldProfileFuture = viewModel.loadCurrentProfile();
         expect(viewModel.state.isProfileLoading, isTrue);
 
-        // 2. 完了前に別アカウントでサインイン
         when(
           () => mockAuthRepository.currentUserId,
         ).thenReturn(otherProfile.id);
@@ -229,11 +415,9 @@ void main() {
         expect(viewModel.state.user, equals(otherProfile));
         expect(viewModel.state.isProfileLoading, isFalse);
 
-        // 3. 旧プロフィールの結果が遅れて返却
         oldProfileCompleter.complete(testProfile);
         await oldProfileFuture;
 
-        // 4. 新アカウントの情報が上書きされず保持されていること
         expect(viewModel.state.user, equals(otherProfile));
         expect(viewModel.state.user?.id, equals('user-uuid-5678'));
       },
@@ -249,21 +433,16 @@ void main() {
           () => mockAuthRepository.getCurrentProfile(),
         ).thenAnswer((_) => profileCompleter.future);
 
-        // 1. プロフィール取得を開始
         final profileFuture = viewModel.loadCurrentProfile();
         expect(viewModel.state.isProfileLoading, isTrue);
 
-        // 2. 外部（Supabase等）でセッションが切断された状態をシミュレート
         when(() => mockAuthRepository.currentUserId).thenReturn(null);
 
-        // 3. 通信エラーなどの例外が発生して終了
         profileCompleter.completeError(Exception('Network disconnected'));
         await profileFuture;
 
-        // 4. スピナーが解除され、ユーザー情報がクリアされていること
         expect(viewModel.state.isProfileLoading, isFalse);
         expect(viewModel.state.user, isNull);
-        // 無効なセッションではプロフィール取得エラーを設定しない
         expect(viewModel.state.profileErrorMessage, isNull);
       },
     );
@@ -280,21 +459,17 @@ void main() {
           ),
         ).thenAnswer((_) => signInCompleter.future);
 
-        // 1. サインインを開始して非同期待機中（isAuthActionLoading: true）にする
         final signInFuture = viewModel.signIn(
           email: 'test@example.com',
           password: 'password123',
         );
         expect(viewModel.state.isAuthActionLoading, isTrue);
 
-        // 2. 認証操作中に loadCurrentProfile を呼び出す
         await viewModel.loadCurrentProfile();
 
-        // getCurrentProfile が呼ばれていないこと（即座に return されたこと）を検証
         verifyNever(() => mockAuthRepository.getCurrentProfile());
         expect(viewModel.state.isProfileLoading, isFalse);
 
-        // 3. サインインを完了させてテストをクリーンアップ
         signInCompleter.complete(testProfile);
         await signInFuture;
         expect(viewModel.state.isAuthActionLoading, isFalse);
@@ -336,7 +511,10 @@ void main() {
 
       expect(result, isFalse);
       expect(viewModel.state.isAuthActionLoading, isFalse);
-      expect(viewModel.state.authErrorMessage, contains('ユーザー名の変更に失敗しました'));
+      expect(
+        viewModel.state.authErrorMessage,
+        equals('エラーが発生しました。しばらくしてから再度お試しください'),
+      );
     });
 
     test(
@@ -347,11 +525,9 @@ void main() {
           () => mockAuthRepository.updateNickname(any()),
         ).thenAnswer((_) => completer.future);
 
-        // 1回目の実行（処理中状態にする）
         final firstFuture = viewModel.updateNickname('First');
         expect(viewModel.state.isAuthActionLoading, isTrue);
 
-        // 2回目の実行（多重実行のガード）
         final secondResult = await viewModel.updateNickname('Second');
         expect(secondResult, isFalse);
 
@@ -367,19 +543,14 @@ void main() {
         () => mockAuthRepository.getCurrentProfile(),
       ).thenAnswer((_) => profileCompleter.future);
 
-      // 1. プロフィール読み込みを開始してローディング状態（isProfileLoading: true）にする
       final loadFuture = viewModel.loadCurrentProfile();
       expect(viewModel.state.isProfileLoading, isTrue);
 
-      // 2. 読み込み中に更新を実行
       final result = await viewModel.updateNickname('NewName');
 
       expect(result, isFalse);
-
-      // 4. Repository の updateNickname は一度も呼ばれないこと
       verifyNever(() => mockAuthRepository.updateNickname(any()));
 
-      // 5. テスト完了のために待機中の Future を解決
       profileCompleter.complete(testProfile);
       await loadFuture;
     });

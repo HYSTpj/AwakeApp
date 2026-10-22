@@ -1,9 +1,10 @@
 /*
-* これはcreateprofile画面のUIコードです．
+- プロフィール設定画面（アカウント作成直後）のUIコードです。
 */
 
 import 'package:flutter/material.dart';
 import 'login_header.dart';
+import 'loading_button_label.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../common_effects.dart';
@@ -108,7 +109,8 @@ Widget createAccountBody(
                           ? DecorationImage(
                               image: kIsWeb
                                   ? MemoryImage(pickedImage as Uint8List)
-                                  : FileImage(pickedImage as File),
+                                  : FileImage(pickedImage as File)
+                                        as ImageProvider,
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -127,7 +129,7 @@ Widget createAccountBody(
                     padding: EdgeInsets.zero,
                     decoration: hardShadowDecoration(color: Colors.white),
                     child: ElevatedButton(
-                      onPressed: onUploadImagePressed,
+                      onPressed: isLoading ? null : onUploadImagePressed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -166,19 +168,11 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                          : const Text(
-                              'CREATE ACCOUNT',
-                              style: TextStyle(fontWeight: FontWeight.w900),
-                            ),
+                      child: LoadingButtonLabel(
+                        isLoading: isLoading,
+                        label: 'CREATE ACCOUNT',
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
 
@@ -190,7 +184,9 @@ Widget createAccountBody(
                     height: 48,
                     decoration: hardShadowDecoration(color: Colors.white),
                     child: ElevatedButton(
-                      onPressed: onReturnToLoginPressed,
+                      onPressed: isLoading
+                          ? null
+                          : onReturnToLoginPressed, // 処理中は戻る操作を無効化
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
