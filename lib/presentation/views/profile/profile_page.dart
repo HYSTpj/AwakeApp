@@ -5,6 +5,7 @@ import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
 import '../login/login_page.dart';
+import 'edit_username_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -341,9 +342,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child:
-                    state
-                        .isProfileLoading
+                child: state.isProfileLoading
                     ? const SizedBox(
                         width: 18,
                         height: 18,
@@ -383,7 +382,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildListTile(
                   icon: Icons.person_outline,
                   title: 'ユーザー名変更',
-                  onTap: () => _navigateToSubPage(context, 'ユーザー名変更'),
+                  onTap: isAnyLoading
+                      ? () {}
+                      : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditUsernamePage(),
+                          ),
+                        ),
+                  enabled: !isAnyLoading,
                 ),
                 const Divider(
                   height: 1,
@@ -474,22 +481,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   onPressed: isAnyLoading
                       ? null
                       : () => _handleSignOut(context, viewModel),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    side: const BorderSide(
-                      color: AppColors.border,
-                      width: 2,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ).copyWith(
-                    overlayColor: WidgetStatePropertyAll(
-                      AppColors.orange.withValues(alpha: 0.2),
-                    ),
-                  ),
+                  style:
+                      ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        side: const BorderSide(
+                          color: AppColors.border,
+                          width: 2,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ).copyWith(
+                        overlayColor: WidgetStatePropertyAll(
+                          AppColors.orange.withValues(alpha: 0.2),
+                        ),
+                      ),
                   child: state.isAuthActionLoading
                       ? const SizedBox(
                           width: 20,
@@ -516,17 +524,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   onPressed: isAnyLoading
                       ? null
                       : () => _handleDeleteAccount(context, viewModel),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ).copyWith(
-                    overlayColor: WidgetStatePropertyAll(
-                      AppColors.orange.withValues(alpha: 0.2),
-                    ),
-                  ),
+                  style:
+                      OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ).copyWith(
+                        overlayColor: WidgetStatePropertyAll(
+                          AppColors.orange.withValues(alpha: 0.2),
+                        ),
+                      ),
                   child: const Text(
                     'アカウント削除',
                     style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
@@ -562,9 +571,10 @@ class _ProfilePageState extends State<ProfilePage> {
     IconData? icon,
     required String title,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       splashColor: AppColors.orange.withValues(alpha: 0.35),
       highlightColor: AppColors.orange.withValues(alpha: 0.2),
       child: Padding(
@@ -572,20 +582,28 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, color: Colors.black, size: 22),
+              Icon(
+                icon,
+                color: enabled ? Colors.black : Colors.black26,
+                size: 22,
+              ),
               const SizedBox(width: 16),
             ],
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                  color: enabled ? Colors.black : Colors.black26,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.black54, size: 20),
+            Icon(
+              Icons.chevron_right,
+              color: enabled ? Colors.black54 : Colors.black26,
+              size: 20,
+            ),
           ],
         ),
       ),

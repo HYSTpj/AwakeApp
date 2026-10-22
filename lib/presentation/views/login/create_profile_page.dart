@@ -40,12 +40,16 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
   // スナックバー表示の処理
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // 画像選択の処理
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (pickedFile != null) {
       setState(() {
         _pickedImage = File(pickedFile.path);
@@ -64,6 +68,11 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       return;
     }
 
+    if (name.length > 30) {
+      _showSnackBar('ユーザー名は30文字以内で入力してください');
+      return;
+    }
+
     // ユーザーがログインしているか確認
     if (user == null) {
       _showSnackBar('ログインしていません');
@@ -76,16 +85,19 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
       // 画像があればSupabase StorageにアップロードしてURLを取得
       String? avatarUrl;
       if (_pickedImage != null) {
-        final filePath = '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final filePath =
+            '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-        await client.storage.from('avatars').upload(
-          filePath,
-          _pickedImage!,
-          fileOptions: const FileOptions(
-            contentType: 'image/jpeg',
-            upsert: true,
-          ),
-        );
+        await client.storage
+            .from('avatars')
+            .upload(
+              filePath,
+              _pickedImage!,
+              fileOptions: const FileOptions(
+                contentType: 'image/jpeg',
+                upsert: true,
+              ),
+            );
 
         avatarUrl = client.storage.from('avatars').getPublicUrl(filePath);
       }
