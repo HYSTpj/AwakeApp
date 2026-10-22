@@ -264,13 +264,33 @@ class _MyAppState extends State<MyApp> {
       title: 'Awake App',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+        ),
       ),
-      // 【追加】Flutterの標準コンポーネント（カレンダーやダイアログのボタン等）を日本語に対応させる設定
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('ja', 'JP'), // デフォルトの言語を日本語に設定
-      // 最初に表示する画面
+
+      localizationsDelegates:
+          AppLocalizations.localizationsDelegates,
+      supportedLocales:
+          AppLocalizations.supportedLocales,
+
+      localeResolutionCallback: (
+        locale,
+        supportedLocales,
+      ) {
+        if (locale == null) {
+          return const Locale('ja');
+        }
+
+        for (final supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode ==
+              locale.languageCode) {
+            return supportedLocale;
+          }
+        }
+
+        return const Locale('ja');
+      },
       home: LoginPage(),
     );
   }
