@@ -37,6 +37,12 @@ abstract class AuthRepository {
 
   /// プロフィール画像のみを更新する
   Future<Profile> updateAvatar(File avatarImage);
+
+  /// パスワードを変更・更新する（現在のパスワードで再認証を行う）
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -344,5 +350,46 @@ class SupabaseAuthRepository implements AuthRepository {
         stackTrace: st,
       );
     }
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (currentPassword.isEmpty) {
+      throw ArgumentError('現在のパスワードを入力してください');
+    }
+    if (newPassword.isEmpty) {
+      throw ArgumentError('新しいパスワードを入力してください');
+    }
+    if (newPassword.length < 6) {
+      throw ArgumentError('パスワードは6文字以上で入力してください');
+    }
+    if (newPassword == currentPassword) {
+      throw ArgumentError('新しいパスワードは現在のパスワードと異なるものを設定してください');
+    }
+
+    final user = _client.auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null) {
+      throw const AuthException('認証セッションがありません');
+    }
+
+    // 1. 現在のパスワードで再認証を試みる
+    try {
+      await _client.auth.signInWithPassword(
+        email: email,
+        password: currentPassword,
+      );
+    } on AuthException catch (e) {
+      if (e.message == 'Invalid login credentials') {
+        throw const AuthException('現在のパスワードが正しくありません');
+      }
+      rethrow;
+    }
+
+    // 2. 新しいパスワードに更新する
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 }
