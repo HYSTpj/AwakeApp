@@ -1,90 +1,15 @@
-import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 
-class MockSupabaseClient extends Mock implements SupabaseClient {}
-
-class MockGoTrueClient extends Mock implements GoTrueClient {}
-
-class MockUser extends Mock implements User {}
-
-class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
-
-class MockPostgrestFilterBuilder extends Mock
-    implements PostgrestFilterBuilder<PostgrestList> {}
-
-class MockPostgrestTransformBuilder extends Mock
-    implements PostgrestTransformBuilder<PostgrestList> {}
-
-class MockSupabaseStorageClient extends Mock implements SupabaseStorageClient {}
-
-class MockStorageFileApi extends Mock implements StorageFileApi {}
-
-// File の Mocktail フォールバック用 Fake
-class FakeFile extends Fake implements File {}
-
-class FakeFileOptions extends Fake implements FileOptions {}
-
-// single() の戻り値として Future を正しく委譲する Fake クラス
-class FakePostgrestMapTransformBuilder extends Fake
-    implements PostgrestTransformBuilder<PostgrestMap> {
-  final Future<PostgrestMap> _future;
-
-  FakePostgrestMapTransformBuilder(PostgrestMap response)
-    : _future = Future.value(response);
-
-  @override
-  Future<R> then<R>(
-    FutureOr<R> Function(PostgrestMap value) onValue, {
-    Function? onError,
-  }) {
-    return _future.then(onValue, onError: onError);
-  }
-}
-
-// 💡 maybeSingle() の戻り値として PostgrestTransformBuilder<PostgrestMap?> を委譲する Fake クラス
-class FakePostgrestNullableMapTransformBuilder extends Fake
-    implements PostgrestTransformBuilder<PostgrestMap?> {
-  final Future<PostgrestMap?> _future;
-
-  FakePostgrestNullableMapTransformBuilder(PostgrestMap? response)
-    : _future = Future.value(response);
-
-  @override
-  Future<R> then<R>(
-    FutureOr<R> Function(PostgrestMap? value) onValue, {
-    Function? onError,
-  }) {
-    return _future.then(onValue, onError: onError);
-  }
-}
-
-// upsert() の戻り値として Future を正しく委譲する Fake クラス
-class FakePostgrestFilterBuilder extends Fake
-    implements PostgrestFilterBuilder<PostgrestList> {
-  final Future<PostgrestList> _future;
-
-  FakePostgrestFilterBuilder([PostgrestList? response])
-    : _future = Future.value(response ?? []);
-
-  @override
-  Future<R> then<R>(
-    FutureOr<R> Function(PostgrestList value) onValue, {
-    Function? onError,
-  }) {
-    return _future.then(onValue, onError: onError);
-  }
-}
+import 'auth_repository_test_mocks.dart';
 
 void main() {
   setUpAll(() {
-    // 💡 File および FileOptions の Fallback を登録
-    registerFallbackValue(FakeFile());
-    registerFallbackValue(const FileOptions());
+    registerAuthRepositoryTestFallbacks();
   });
 
   late MockSupabaseClient mockSupabaseClient;
@@ -97,53 +22,6 @@ void main() {
 
     when(() => mockSupabaseClient.auth).thenReturn(mockGoTrueClient);
     repository = SupabaseAuthRepository(mockSupabaseClient);
-  });
-
-  group('SupabaseAuthRepository.signUp', () {
-    test(
-      'session が null（メール確認待ち）の場合、EmailConfirmationPendingException を投げること',
-      () async {
-        final user = User(
-          id: 'user-uuid-1234',
-          appMetadata: const {},
-          userMetadata: const {},
-          aud: 'authenticated',
-          createdAt: DateTime.now().toIso8601String(),
-        );
-
-        when(
-          () => mockGoTrueClient.signUp(
-            email: any(named: 'email'),
-            password: any(named: 'password'),
-          ),
-        ).thenAnswer((_) async => AuthResponse(session: null, user: user));
-
-        expect(
-          () => repository.signUp(
-            email: 'pending@example.com',
-            password: 'password123',
-          ),
-          throwsA(isA<EmailConfirmationPendingException>()),
-        );
-      },
-    );
-
-    test('user が null の場合、AuthException を投げること', () async {
-      when(
-        () => mockGoTrueClient.signUp(
-          email: any(named: 'email'),
-          password: any(named: 'password'),
-        ),
-      ).thenAnswer((_) async => AuthResponse(session: null, user: null));
-
-      expect(
-        () => repository.signUp(
-          email: 'fail@example.com',
-          password: 'password123',
-        ),
-        throwsA(isA<AuthException>()),
-      );
-    });
   });
 
   group('SupabaseAuthRepository.updateProfile', () {
@@ -167,7 +45,7 @@ void main() {
       );
 
       expect(
-        () => repository.updateProfile(nickname: '   '),
+        () => repository.updateProfile(nickname: '    '),
         throwsA(isA<ArgumentError>()),
       );
 
@@ -225,12 +103,11 @@ void main() {
         when(
           () => mockFilterBuilder.eq('id', 'test-user-id'),
         ).thenAnswer((_) => mockFilterBuilder);
-        // 💡 maybeSingle() は FakePostgrestNullableMapTransformBuilder を返す
         when(
           () => mockFilterBuilder.maybeSingle(),
         ).thenAnswer((_) => fakeMaybeSingleBuilder);
 
-        final result = await repository.updateProfile(nickname: '   Bob   ');
+        final result = await repository.updateProfile(nickname: '    Bob    ');
 
         expect(result.nickname, equals('Bob'));
 
@@ -322,7 +199,7 @@ void main() {
     });
   });
 
-  group('SupabaseAuthRepository - updateNickname テスト', () {
+  group('SupabaseAuthRepository.updateNickname', () {
     test('未ログイン時: Exception が投げられること', () async {
       when(() => mockGoTrueClient.currentUser).thenReturn(null);
 
@@ -345,7 +222,7 @@ void main() {
       );
 
       expect(
-        () => repository.updateNickname('   '),
+        () => repository.updateNickname('    '),
         throwsA(isA<ArgumentError>()),
       );
 
@@ -403,12 +280,11 @@ void main() {
         when(
           () => mockFilterBuilder.select(),
         ).thenAnswer((_) => mockTransformBuilder);
-
         when(
           () => mockTransformBuilder.single(),
         ).thenAnswer((_) => fakeMapTransformBuilder);
 
-        final result = await repository.updateNickname('   Alice   ');
+        final result = await repository.updateNickname('    Alice    ');
 
         expect(result.nickname, equals('Alice'));
 
