@@ -10,6 +10,8 @@ class MockGoTrueClient extends Mock implements GoTrueClient {}
 
 class MockUser extends Mock implements User {}
 
+class MockUserResponse extends Mock implements UserResponse {}
+
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 
 class MockPostgrestFilterBuilder extends Mock
@@ -25,6 +27,8 @@ class MockStorageFileApi extends Mock implements StorageFileApi {}
 class FakeFile extends Fake implements File {}
 
 class FakeFileOptions extends Fake implements FileOptions {}
+
+class FakeUserAttributes extends Fake implements UserAttributes {}
 
 class FakePostgrestMapTransformBuilder extends Fake
     implements PostgrestTransformBuilder<PostgrestMap> {
@@ -93,4 +97,5 @@ class FakePostgrestErrorTransformBuilder extends Fake
 void registerAuthRepositoryTestFallbacks() {
   registerFallbackValue(FakeFile());
   registerFallbackValue(const FileOptions());
+  registerFallbackValue(FakeUserAttributes());
 }
