@@ -276,6 +276,15 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  /// プロフィール画像の更新
+  Future<bool> updateAvatar(File avatarImage) async {
+    // プロフィール取得中および別アクション実行中は競合を防ぐため拒否
+    if (_state.isAuthActionLoading || _state.isProfileLoading) {
+      return false;
+    }
+    return _guardedAction(() => _authRepository.updateAvatar(avatarImage));
+  }
 }
 
 /// エラーメッセージをユーザー向け日本語に変換
