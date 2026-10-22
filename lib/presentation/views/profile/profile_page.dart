@@ -6,6 +6,7 @@ import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
 import '../login/login_page.dart';
 import 'edit_username_page.dart';
+import 'components/avatar_edit_view.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -211,7 +212,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final viewModel = context.watch<AuthViewModel>();
     final state = viewModel.state;
     final profile = state.user;
-    final avatarUrl = profile?.avatarUrl;
 
     final String displayName;
     final Color nameColor;
@@ -285,30 +285,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 32),
 
-              // プロフィール画像
-              Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border, width: 3),
-                ),
-                child: ClipOval(
-                  child: (avatarUrl != null && avatarUrl.isNotEmpty)
-                      ? Image.network(
-                          avatarUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.person,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                        )
-                      : const Icon(Icons.person, size: 64, color: Colors.grey),
-                ),
-              ),
+              // プロフィール画像（タップ・カメラボタンから即座に画像変更＆自動保存）
+              const AvatarEditView(size: 110),
 
               const SizedBox(height: 32),
 
@@ -391,16 +369,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                   enabled: !isAnyLoading,
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  icon: Icons.image_outlined,
-                  title: 'プロフィール画像変更',
-                  onTap: () => _navigateToSubPage(context, 'プロフィール画像変更'),
                 ),
                 const Divider(
                   height: 1,
