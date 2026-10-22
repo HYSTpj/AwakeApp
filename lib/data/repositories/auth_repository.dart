@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/profile.dart';
@@ -33,6 +34,9 @@ abstract class AuthRepository {
 
   // ユーザー名（ニックネーム）単体を更新する
   Future<Profile> updateNickname(String newNickname);
+
+  /// プロフィール画像のみを更新する
+  Future<Profile> updateAvatar(File avatarImage);
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -215,5 +219,130 @@ class SupabaseAuthRepository implements AuthRepository {
         .single();
 
     return Profile.fromJson(response);
+  }
+
+  @override
+  Future<Profile> updateAvatar(File avatarImage) async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('ログインしていません');
+    }
+
+    final currentProfileRes = await _client
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+    final oldAvatarUrl = currentProfileRes?['avatar_url'] as String?;
+
+    final extension = avatarImage.path.split('.').last.toLowerCase();
+    final String contentType;
+    final String fileExt;
+
+    switch (extension) {
+      case 'png':
+        contentType = 'image/png';
+        fileExt = 'png';
+        break;
+      case 'webp':
+        contentType = 'image/webp';
+        fileExt = 'webp';
+        break;
+      case 'gif':
+        contentType = 'image/gif';
+        fileExt = 'gif';
+        break;
+      case 'heic':
+      case 'heif':
+        contentType = 'image/heic';
+        fileExt = 'heic';
+        break;
+      case 'jpg':
+      case 'jpeg':
+      default:
+        contentType = 'image/jpeg';
+        fileExt = 'jpg';
+        break;
+    }
+
+    final newFilePath =
+        '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+
+    await _client.storage
+        .from('avatars')
+        .upload(
+          newFilePath,
+          avatarImage,
+          fileOptions: FileOptions(contentType: contentType, upsert: true),
+        );
+
+    final newAvatarUrl = _client.storage
+        .from('avatars')
+        .getPublicUrl(newFilePath);
+
+    final Map<String, dynamic> response;
+    try {
+      response = await _client
+          .from('profiles')
+          .update({
+            'avatar_url': newAvatarUrl,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', user.id)
+          .select()
+          .single();
+    } catch (dbError, dbStackTrace) {
+      developer.log(
+        'DB更新失敗のためロールバックを実行します: $newFilePath',
+        name: 'AuthRepository',
+        error: dbError,
+        stackTrace: dbStackTrace,
+      );
+
+      try {
+        await _client.storage.from('avatars').remove([newFilePath]);
+        developer.log('ロールバック削除成功: $newFilePath', name: 'AuthRepository');
+      } catch (storageError, storageStackTrace) {
+        developer.log(
+          'ロールバック削除中にエラーが発生しました',
+          name: 'AuthRepository',
+          error: storageError,
+          stackTrace: storageStackTrace,
+        );
+      }
+
+      rethrow;
+    }
+
+    if (oldAvatarUrl != null && oldAvatarUrl.isNotEmpty) {
+      await _deleteOldAvatarQuietly(user.id, oldAvatarUrl);
+    }
+
+    return Profile.fromJson(response);
+  }
+
+  /// 古いアバター画像を安全に削除
+  Future<void> _deleteOldAvatarQuietly(String userId, String oldUrl) async {
+    try {
+      final uri = Uri.tryParse(oldUrl);
+      if (uri == null) return;
+
+      final segments = uri.pathSegments;
+      final bucketIndex = segments.indexOf('avatars');
+      if (bucketIndex != -1 && bucketIndex + 1 < segments.length) {
+        final oldPath = segments.sublist(bucketIndex + 1).join('/');
+        if (oldPath.startsWith('$userId/')) {
+          await _client.storage.from('avatars').remove([oldPath]);
+          developer.log('古いアバター画像を削除しました: $oldPath', name: 'AuthRepository');
+        }
+      }
+    } catch (e, st) {
+      developer.log(
+        '古いアバター画像の削除に失敗しました',
+        name: 'AuthRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 }
