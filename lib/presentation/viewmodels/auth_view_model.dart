@@ -100,10 +100,7 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     if (_state.isAuthActionLoading) return false;
 
     _activeSessionToken++;
@@ -220,5 +217,45 @@ class AuthViewModel extends ChangeNotifier {
       );
     }
     notifyListeners();
+  }
+
+  /// ユーザー名の更新
+  Future<bool> updateNickname(String newNickname) async {
+    // プロフィール取得中は更新を拒否する
+    if (_state.isAuthActionLoading || _state.isProfileLoading) {
+      return false;
+    }
+
+    final trimmed = newNickname.trim();
+    if (trimmed.isEmpty) {
+      _state = _state.copyWith(authErrorMessage: 'ユーザー名を入力してください');
+      notifyListeners();
+      return false;
+    }
+    if (trimmed.length > 30) {
+      _state = _state.copyWith(authErrorMessage: 'ユーザー名は30文字以内で入力してください');
+      notifyListeners();
+      return false;
+    }
+
+    _state = _state.copyWith(isAuthActionLoading: true, clearAuthError: true);
+    notifyListeners();
+
+    try {
+      final updatedProfile = await _authRepository.updateNickname(trimmed);
+      _state = _state.copyWith(
+        user: updatedProfile,
+        isAuthActionLoading: false,
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        authErrorMessage: 'ユーザー名の変更に失敗しました: $e',
+      );
+      notifyListeners();
+      return false;
+    }
   }
 }
