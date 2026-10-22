@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../models/profile.dart';
 
-/// 直前のサインイン/サインアップ/プロフィール更新試行の結果を表す sealed class
+/// 直前のサインイン/サインアップ/プロフィール更新/パスワード変更試行の結果を表す sealed class
 sealed class AuthOutcome {
   const AuthOutcome();
 }
@@ -77,7 +77,7 @@ class AuthState {
   }
 }
 
-/// 認証フロー（新規登録・ログイン・ログアウト・プロフィール更新）の ViewModel
+/// 認証フロー（新規登録・ログイン・ログアウト・プロフィール更新・パスワード変更）の ViewModel
 class AuthViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
   AuthState _state = const AuthState();
@@ -285,6 +285,77 @@ class AuthViewModel extends ChangeNotifier {
     }
     return _guardedAction(() => _authRepository.updateAvatar(avatarImage));
   }
+
+  /// パスワードの更新（再認証付き）
+  Future<bool> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (_state.isAuthActionLoading || _state.isProfileLoading) {
+      return false;
+    }
+
+    if (currentPassword.isEmpty) {
+      _state = _state.copyWith(outcome: const AuthFailed('現在のパスワードを入力してください'));
+      notifyListeners();
+      return false;
+    }
+
+    if (newPassword.isEmpty) {
+      _state = _state.copyWith(outcome: const AuthFailed('新しいパスワードを入力してください'));
+      notifyListeners();
+      return false;
+    }
+
+    if (newPassword.length < 6) {
+      _state = _state.copyWith(
+        outcome: const AuthFailed('新しいパスワードは6文字以上で入力してください'),
+      );
+      notifyListeners();
+      return false;
+    }
+
+    if (newPassword == currentPassword) {
+      _state = _state.copyWith(
+        outcome: const AuthFailed('新しいパスワードは現在のパスワードと異なるものを設定してください'),
+      );
+      notifyListeners();
+      return false;
+    }
+
+    if (newPassword != confirmPassword) {
+      _state = _state.copyWith(outcome: const AuthFailed('確認用パスワードが一致しません'));
+      notifyListeners();
+      return false;
+    }
+
+    _activeSessionToken++;
+    _state = _state.copyWith(
+      isAuthActionLoading: true,
+      clearOutcome: true,
+      clearProfileError: true,
+    );
+    notifyListeners();
+
+    try {
+      await _authRepository.updatePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      _state = _state.copyWith(isAuthActionLoading: false, clearOutcome: true);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('パスワード変更でエラーが発生しました: $e');
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        outcome: AuthFailed(_toUserMessage(e)),
+      );
+      notifyListeners();
+      return false;
+    }
+  }
 }
 
 /// エラーメッセージをユーザー向け日本語に変換
@@ -296,7 +367,16 @@ String _toUserMessage(Object error) {
       case 'User already registered':
         return 'このメールアドレスは既に登録されています';
       case 'ログインしていません':
+      case '認証セッションがありません':
+        return 'ログインの有効期限が切れています。再度ログインしてください';
+      case 'New password should be different from the old password.':
+        return '新しいパスワードは現在のパスワードと異なるものを設定してください';
+      case 'Password should be at least 6 characters.':
+        return 'パスワードは6文字以上で入力してください';
+      case '現在のパスワードが正しくありません':
         return error.message;
+      default:
+        break;
     }
   }
   if (error is ArgumentError) {
