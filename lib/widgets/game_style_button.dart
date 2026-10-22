@@ -37,6 +37,7 @@ class GameStyleButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
+          disabledBackgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           minimumSize: size,
           padding: EdgeInsets.zero,
