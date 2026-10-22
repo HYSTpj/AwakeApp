@@ -7,6 +7,7 @@ import '../../viewmodels/auth_view_model.dart';
 import '../login/login_page.dart';
 import 'edit_username_page.dart';
 import 'components/avatar_edit_view.dart';
+import 'edit_password_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -378,7 +379,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildListTile(
                   icon: Icons.lock_outline,
                   title: 'パスワード変更',
-                  onTap: () => _navigateToSubPage(context, 'パスワード変更'),
+                  onTap: isAnyLoading
+                      ? () {}
+                      : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditPasswordPage(),
+                          ),
+                        ),
+                  enabled: !isAnyLoading,
                 ),
               ]),
 
