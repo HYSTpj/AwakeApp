@@ -101,7 +101,10 @@ void main() {
 
         expect(viewModel.state.user, isNull);
         expect(viewModel.state.isProfileLoading, isFalse);
-        expect(viewModel.state.profileErrorMessage, contains('プロフィール取得失敗'));
+        expect(
+          viewModel.state.profileErrorMessage,
+          'プロフィールの取得に失敗しました。時間をおいて再試行してください',
+        );
         expect(viewModel.state.authErrorMessage, isNull);
       },
     );
@@ -219,6 +222,87 @@ void main() {
         signInCompleter.complete(testProfile);
         await signInFuture;
         expect(viewModel.state.isAuthActionLoading, isFalse);
+      },
+    );
+
+    test(
+      'キャッシュが存在する場合: forceRefresh が false なら通信をスキップし Repository を呼ばないこと',
+      () async {
+        // 1回目の取得（キャッシュの作成）
+        when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+        when(
+          () => mockAuthRepository.getCurrentProfile(),
+        ).thenAnswer((_) async => testProfile);
+
+        await viewModel.loadCurrentProfile();
+        expect(viewModel.state.user, equals(testProfile));
+        verify(() => mockAuthRepository.getCurrentProfile()).called(1);
+
+        // 2回目の呼び出し（通常呼び出し: スキップされるべき）
+        await viewModel.loadCurrentProfile(forceRefresh: false);
+
+        // 呼び出し回数が1回のままで増えていないことを検証
+        verifyNever(() => mockAuthRepository.getCurrentProfile());
+        expect(viewModel.state.isProfileLoading, isFalse);
+      },
+    );
+
+    test(
+      'キャッシュが存在する場合でも: forceRefresh が true なら Repository を再取得すること',
+      () async {
+        // 1回目の取得
+        when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+        when(
+          () => mockAuthRepository.getCurrentProfile(),
+        ).thenAnswer((_) async => testProfile);
+
+        await viewModel.loadCurrentProfile();
+        verify(() => mockAuthRepository.getCurrentProfile()).called(1);
+
+        // 更新後プロフィールのモック
+        final updatedProfile = Profile(
+          id: testProfile.id,
+          nickname: 'UpdatedNickname',
+          avatarUrl: testProfile.avatarUrl,
+          sleepPastCount: testProfile.sleepPastCount,
+          lateCount: testProfile.lateCount,
+          createdAt: testProfile.createdAt,
+          updatedAt: DateTime.now(),
+        );
+        when(
+          () => mockAuthRepository.getCurrentProfile(),
+        ).thenAnswer((_) async => updatedProfile);
+
+        // 強制再取得を実行
+        await viewModel.loadCurrentProfile(forceRefresh: true);
+
+        // Repository が再度呼ばれ、状態が更新されたことを検証
+        verify(() => mockAuthRepository.getCurrentProfile()).called(1);
+        expect(viewModel.state.user?.nickname, equals('UpdatedNickname'));
+      },
+    );
+
+    test(
+      '既に isProfileLoading が true の場合: 2回目の呼び出しは早期リターンして重複通信しないこと',
+      () async {
+        final completer = Completer<Profile?>();
+        when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+        when(
+          () => mockAuthRepository.getCurrentProfile(),
+        ).thenAnswer((_) => completer.future);
+
+        final firstCall = viewModel.loadCurrentProfile();
+        expect(viewModel.state.isProfileLoading, isTrue);
+
+        // 読み込み完了前に2回目の呼び出し（forceRefresh が true でも抑止される）
+        final secondCall = viewModel.loadCurrentProfile(forceRefresh: true);
+
+        completer.complete(testProfile);
+        await Future.wait([firstCall, secondCall]);
+
+        // 1回しか Repository が呼ばれていないことを検証
+        verify(() => mockAuthRepository.getCurrentProfile()).called(1);
+        expect(viewModel.state.isProfileLoading, isFalse);
       },
     );
   });

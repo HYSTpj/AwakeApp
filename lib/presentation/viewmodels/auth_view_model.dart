@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -122,11 +123,18 @@ class AuthViewModel extends ChangeNotifier {
       _state = const AuthState();
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log(
+        'ログアウト処理中にエラーが発生しました',
+        name: 'AuthViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
       _state = _state.copyWith(
         isAuthActionLoading: false,
         isProfileLoading: false,
-        outcome: AuthFailed('ログアウトに失敗しました: $e'),
+        outcome: const AuthFailed('ログアウトに失敗しました。通信環境をご確認のうえ再度お試しください'),
       );
       notifyListeners();
       return false;
@@ -134,8 +142,13 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   /// 現在のプロフィールを取得
-  Future<void> loadCurrentProfile() async {
-    if (_state.isAuthActionLoading) return;
+  /// [forceRefresh] が true の場合はキャッシュがあっても強制的に再取得する
+  Future<void> loadCurrentProfile({bool forceRefresh = false}) async {
+    // 認証操作中、または既にプロフィール取得中の場合は重複実行を防ぐ
+    if (_state.isAuthActionLoading || _state.isProfileLoading) return;
+
+    // 強制再取得でなく、既にプロフィールを保持している場合は通信をスキップ
+    if (!forceRefresh && _state.user != null) return;
 
     final uidAtStart = _authRepository.currentUserId;
     if (uidAtStart == null) {
@@ -168,7 +181,14 @@ class AuthViewModel extends ChangeNotifier {
       } else {
         _state = _state.copyWith(clearUser: true, isProfileLoading: false);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log(
+        'プロフィール情報の取得中にエラーが発生しました',
+        name: 'AuthViewModel',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
       if (currentToken != _activeSessionToken) return;
 
       if (_authRepository.currentUserId != uidAtStart) {
@@ -180,7 +200,7 @@ class AuthViewModel extends ChangeNotifier {
       _state = _state.copyWith(
         clearUser: true,
         isProfileLoading: false,
-        profileErrorMessage: 'プロフィール取得失敗: $e',
+        profileErrorMessage: 'プロフィールの取得に失敗しました。時間をおいて再試行してください',
       );
     }
     notifyListeners();

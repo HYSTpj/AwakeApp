@@ -69,6 +69,10 @@ class FakePostgrestFilterBuilder extends Fake
   FakePostgrestFilterBuilder([PostgrestList? response])
     : _future = Future.value(response ?? []);
 
+  // エラー用のファクトリコンストラクタを追加
+  FakePostgrestFilterBuilder.error(Object error)
+    : _future = Future<PostgrestList>.error(error);
+
   @override
   Future<R> then<R>(
     FutureOr<R> Function(PostgrestList value) onValue, {

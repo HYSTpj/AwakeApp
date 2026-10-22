@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'presentation/views/group/group_list_page.dart';
+import 'package:provider/provider.dart';
+
+import 'presentation/viewmodels/auth_view_model.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
 import 'presentation/views/event/checkin/member_check_in_page.dart';
-import 'presentation/views/ranking/ranking_page.dart';
 import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/profile/profile_page.dart';
+import 'presentation/views/ranking/ranking_page.dart';
 
 class CommonLayout extends StatefulWidget {
-  final Widget body; // 各画面の代入する中身
-  final Widget? floatingActionButton; // それぞれのページで使うボタン
+  final Widget body;
+  final Widget? floatingActionButton;
   final String? groupId;
   final String? groupName;
   final String? eventId;
@@ -61,6 +63,18 @@ class _CommonLayoutState extends State<CommonLayout> {
   static const Color _borderColor = Color(0xFF1A1C1C);
 
   @override
+  void initState() {
+    super.initState();
+    // プロフィールがまだ読み込まれていない場合は初回のみ読み込み
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authVm = context.read<AuthViewModel>();
+      if (authVm.state.user == null && !authVm.state.isProfileLoading) {
+        authVm.loadCurrentProfile();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
@@ -98,15 +112,11 @@ class _CommonLayoutState extends State<CommonLayout> {
       children: [
         IconButton(
           icon: const Icon(Icons.flag, color: Colors.black),
-          onPressed: () {
-            _onLeaderPressed(context);
-          },
+          onPressed: () => _onLeaderPressed(context),
         ),
         IconButton(
           icon: const Icon(Icons.schedule, color: Colors.black),
-          onPressed: () {
-            _onMemberPressed(context);
-          },
+          onPressed: () => _onMemberPressed(context),
         ),
       ],
     );
@@ -114,58 +124,66 @@ class _CommonLayoutState extends State<CommonLayout> {
 
   ///AppBarの右側
   List<Widget> _buildRightIcons(BuildContext context) {
-    final client = Supabase.instance.client;
-    final currentUser = client.auth.currentUser;
+    // AuthViewModel を購読してアバター情報を取得
+    final authViewModel = context.watch<AuthViewModel>();
+    final user = authViewModel.state.user;
+    final avatarUrl = user?.avatarUrl;
 
-    if (currentUser == null) {
-      return [
-        const Padding(
-          padding: EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, color: Colors.white),
-          ),
-        ),
-      ];
-    }
     return [
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: GestureDetector(
           onTap: () => _onProfilePressed(context),
-          child: FutureBuilder<Map<String, dynamic>?>(
-            future: client
-                .from('profiles')
-                .select('avatar_url')
-                .eq('id', currentUser.id)
-                .maybeSingle(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting ||
-                  snapshot.hasError ||
-                  !snapshot.hasData) {
-                return const CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                );
-              }
-
-              final profileData = snapshot.data ?? {};
-              final String? avatarUrl = profileData['avatar_url'];
-
-              return CircleAvatar(
-                backgroundColor: Colors.grey,
-                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
-                    ? NetworkImage(avatarUrl)
-                    : null,
-                child: (avatarUrl == null || avatarUrl.isEmpty)
-                    ? const Icon(Icons.person, color: Colors.white)
-                    : null,
-              );
-            },
-          ),
+          child: _buildAvatar(avatarUrl),
         ),
       ),
     ];
+  }
+
+  /// アバター表示用（画像エラー時も確実にフォールバックアイコンを表示）
+  Widget _buildAvatar(String? avatarUrl) {
+    const double radius = 18.0;
+
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return const CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.grey,
+        child: Icon(Icons.person, color: Colors.white, size: 22),
+      );
+    }
+
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: const BoxDecoration(
+        color: Colors.grey,
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: Image.network(
+          avatarUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(
+              child: Icon(Icons.person, color: Colors.white, size: 22),
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Widget _buildBottomNavigationBar(BuildContext context) {

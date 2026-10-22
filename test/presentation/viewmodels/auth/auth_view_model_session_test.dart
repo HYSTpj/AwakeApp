@@ -129,5 +129,20 @@ void main() {
       expect(viewModel.state.isLoading, isFalse);
       verify(() => mockAuthRepository.signOut()).called(1);
     });
+
+    test('signOut 失敗時: 汎用の日本語メッセージがセットされ false が返ること', () async {
+      when(
+        () => mockAuthRepository.signOut(),
+      ).thenThrow(Exception('Network Error'));
+
+      final result = await viewModel.signOut();
+
+      expect(result, isFalse);
+      expect(
+        viewModel.state.authErrorMessage,
+        'ログアウトに失敗しました。通信環境をご確認のうえ再度お試しください',
+      );
+      expect(viewModel.state.authErrorMessage, isNot(contains('Exception')));
+    });
   });
 }

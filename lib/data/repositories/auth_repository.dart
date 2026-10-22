@@ -142,6 +142,26 @@ class SupabaseAuthRepository implements AuthRepository {
     await _client.auth.resetPasswordForEmail(email);
   }
 
+  /// 画像ファイルから Content-Type と拡張子を判定する共通ヘルパー
+  (String contentType, String fileExt) _resolveImageFormat(File file) {
+    final extension = file.path.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return ('image/png', 'png');
+      case 'webp':
+        return ('image/webp', 'webp');
+      case 'gif':
+        return ('image/gif', 'gif');
+      case 'heic':
+      case 'heif':
+        return ('image/heic', 'heic');
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return ('image/jpeg', 'jpg');
+    }
+  }
+
   @override
   Future<Profile> updateProfile({
     required String nickname,
@@ -162,34 +182,64 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     String? avatarUrl;
+    String? uploadedFilePath; // ロールバック対象のパスを保持
+
     if (avatarImage != null) {
-      final filePath =
-          '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final (contentType, fileExt) = _resolveImageFormat(avatarImage);
+      uploadedFilePath =
+          '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
 
       await _client.storage
           .from('avatars')
           .upload(
-            filePath,
+            uploadedFilePath,
             avatarImage,
-            fileOptions: const FileOptions(
-              contentType: 'image/jpeg',
-              upsert: true,
-            ),
+            fileOptions: FileOptions(contentType: contentType, upsert: true),
           );
 
-      avatarUrl = _client.storage.from('avatars').getPublicUrl(filePath);
+      avatarUrl = _client.storage
+          .from('avatars')
+          .getPublicUrl(uploadedFilePath);
     }
 
     final updateData = <String, dynamic>{
       'id': user.id,
       'nickname': trimmed,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
     if (avatarUrl != null) {
       updateData['avatar_url'] = avatarUrl;
     }
 
-    await _client.from('profiles').upsert(updateData);
+    // DB更新失敗時のロールバック
+    try {
+      await _client.from('profiles').upsert(updateData);
+    } catch (dbError, dbStackTrace) {
+      developer.log(
+        'DB更新失敗のためロールバックを実行します: $uploadedFilePath',
+        name: 'AuthRepository',
+        error: dbError,
+        stackTrace: dbStackTrace,
+      );
+
+      if (uploadedFilePath != null) {
+        try {
+          await _client.storage.from('avatars').remove([uploadedFilePath]);
+          developer.log(
+            'ロールバック削除成功: $uploadedFilePath',
+            name: 'AuthRepository',
+          );
+        } catch (storageError, storageStackTrace) {
+          developer.log(
+            'ロールバック削除中にエラーが発生しました',
+            name: 'AuthRepository',
+            error: storageError,
+            stackTrace: storageStackTrace,
+          );
+        }
+      }
+      rethrow;
+    }
 
     final profile = await getCurrentProfile();
     if (profile == null) {

@@ -23,13 +23,14 @@ class _ProfilePageState extends State<ProfilePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 画面が破棄されていないか確認してから実行
       if (!mounted) return;
-      _loadProfile();
+      // キャッシュが存在するか取得中なら何もしない（forceRefresh: false）
+      _loadProfile(forceRefresh: false);
     });
   }
 
-  Future<void> _loadProfile() async {
+  Future<void> _loadProfile({bool forceRefresh = false}) async {
     final vm = context.read<AuthViewModel>();
-    await vm.loadCurrentProfile();
+    await vm.loadCurrentProfile(forceRefresh: forceRefresh);
 
     if (!mounted) return;
     if (vm.state.profileErrorMessage != null) {
@@ -39,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
           action: SnackBarAction(
             label: '再試行',
             textColor: AppColors.orange,
-            onPressed: _loadProfile,
+            onPressed: () => _loadProfile(forceRefresh: true),
           ),
         ),
       );
@@ -260,268 +261,270 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 32),
+      body: RefreshIndicator(
+        color: AppColors.orange,
+        onRefresh: () => _loadProfile(forceRefresh: true),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 32),
 
-              const Text(
-                'PROFILE',
-                style: TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              const Text(
-                'View your profile information',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-
-              const SizedBox(height: 32),
-
-              // プロフィール画像（タップ・カメラボタンから即座に画像変更＆自動保存）
-              const AvatarEditView(size: 110),
-
-              const SizedBox(height: 32),
-
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'USER NAME',
+                const Text(
+                  'PROFILE',
                   style: TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 32,
                     fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    letterSpacing: 0.5,
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
-              // ユーザー名表示
-              Container(
-                width: double.infinity,
-                height: 48,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: state.profileErrorMessage != null
-                        ? Colors.red.withValues(alpha: 0.7)
-                        : AppColors.border,
-                    width: 2,
+                const Text(
+                  'View your profile information',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+
+                const SizedBox(height: 32),
+
+                const AvatarEditView(size: 110),
+
+                const SizedBox(height: 32),
+
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'USER NAME',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: state.isProfileLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              displayName,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: nameColor,
-                              ),
-                            ),
-                          ),
-                          if (state.profileErrorMessage != null)
-                            IconButton(
-                              icon: const Icon(
-                                Icons.refresh,
-                                size: 20,
-                                color: Colors.red,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              onPressed: _loadProfile,
-                            ),
-                        ],
-                      ),
-              ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 8),
 
-              // アカウント設定
-              _buildCardGroup([
-                _buildListTile(
-                  icon: Icons.person_outline,
-                  title: 'ユーザー名変更',
-                  onTap: isAnyLoading
-                      ? () {}
-                      : () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const EditUsernamePage(),
-                          ),
-                        ),
-                  enabled: !isAnyLoading,
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  icon: Icons.lock_outline,
-                  title: 'パスワード変更',
-                  onTap: isAnyLoading
-                      ? () {}
-                      : () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const EditPasswordPage(),
-                          ),
-                        ),
-                  enabled: !isAnyLoading,
-                ),
-              ]),
-
-              const SizedBox(height: 16),
-
-              // 通知設定
-              _buildCardGroup([
-                _buildListTile(
-                  icon: Icons.notifications_outlined,
-                  title: '通知設定',
-                  onTap: () => _navigateToSubPage(context, '通知設定'),
-                ),
-              ]),
-
-              const SizedBox(height: 16),
-
-              // アプリ情報
-              _buildCardGroup([
-                _buildListTile(
-                  title: '利用規約',
-                  onTap: () => _navigateToSubPage(context, '利用規約'),
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  title: 'プライバシーポリシー',
-                  onTap: () => _navigateToSubPage(context, 'プライバシーポリシー'),
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  title: 'お知らせ',
-                  onTap: () => _navigateToSubPage(context, 'お知らせ'),
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  title: 'ライセンス',
-                  onTap: () => _navigateToSubPage(context, 'ライセンス'),
-                ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE2E8F0),
-                ),
-                _buildListTile(
-                  title: 'お問い合わせ',
-                  onTap: () => _navigateToSubPage(context, 'お問い合わせ'),
-                ),
-              ]),
-
-              const SizedBox(height: 28),
-
-              // ログアウトボタン
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: isAnyLoading
-                      ? null
-                      : () => _handleSignOut(context, viewModel),
-                  style:
-                      ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        side: const BorderSide(
-                          color: AppColors.border,
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ).copyWith(
-                        overlayColor: WidgetStatePropertyAll(
-                          AppColors.orange.withValues(alpha: 0.2),
-                        ),
-                      ),
-                  child: state.isAuthActionLoading
+                Container(
+                  width: double.infinity,
+                  height: 48,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: state.profileErrorMessage != null
+                          ? Colors.red.withValues(alpha: 0.7)
+                          : AppColors.border,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: state.isProfileLoading
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 18,
+                          height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text(
-                          'ログアウト',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                displayName,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: nameColor,
+                                ),
+                              ),
+                            ),
+                            if (state.profileErrorMessage != null)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () =>
+                                    _loadProfile(forceRefresh: true),
+                              ),
+                          ],
+                        ),
+                ),
+
+                const SizedBox(height: 24),
+
+                _buildCardGroup([
+                  _buildListTile(
+                    icon: Icons.person_outline,
+                    title: 'ユーザー名変更',
+                    onTap: isAnyLoading
+                        ? () {}
+                        : () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditUsernamePage(),
+                            ),
+                          ),
+                    enabled: !isAnyLoading,
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  _buildListTile(
+                    icon: Icons.lock_outline,
+                    title: 'パスワード変更',
+                    onTap: isAnyLoading
+                        ? () {}
+                        : () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditPasswordPage(),
+                            ),
+                          ),
+                    enabled: !isAnyLoading,
+                  ),
+                ]),
+
+                const SizedBox(height: 16),
+
+                _buildCardGroup([
+                  _buildListTile(
+                    icon: Icons.notifications_outlined,
+                    title: '通知設定',
+                    onTap: () => _navigateToSubPage(context, '通知設定'),
+                  ),
+                ]),
+
+                const SizedBox(height: 16),
+
+                _buildCardGroup([
+                  _buildListTile(
+                    title: '利用規約',
+                    onTap: () => _navigateToSubPage(context, '利用規約'),
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  _buildListTile(
+                    title: 'プライバシーポリシー',
+                    onTap: () => _navigateToSubPage(context, 'プライバシーポリシー'),
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  _buildListTile(
+                    title: 'お知らせ',
+                    onTap: () => _navigateToSubPage(context, 'お知らせ'),
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  _buildListTile(
+                    title: 'ライセンス',
+                    onTap: () => _navigateToSubPage(context, 'ライセンス'),
+                  ),
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  _buildListTile(
+                    title: 'お問い合わせ',
+                    onTap: () => _navigateToSubPage(context, 'お問い合わせ'),
+                  ),
+                ]),
+
+                const SizedBox(height: 28),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: isAnyLoading
+                        ? null
+                        : () => _handleSignOut(context, viewModel),
+                    style:
+                        ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          side: const BorderSide(
+                            color: AppColors.border,
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ).copyWith(
+                          overlayColor: WidgetStatePropertyAll(
+                            AppColors.orange.withValues(alpha: 0.2),
                           ),
                         ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // アカウント削除ボタン
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: isAnyLoading
-                      ? null
-                      : () => _handleDeleteAccount(context, viewModel),
-                  style:
-                      OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red, width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ).copyWith(
-                        overlayColor: WidgetStatePropertyAll(
-                          AppColors.orange.withValues(alpha: 0.2),
-                        ),
-                      ),
-                  child: const Text(
-                    'アカウント削除',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    child: state.isAuthActionLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'ログアウト',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: isAnyLoading
+                        ? null
+                        : () => _handleDeleteAccount(context, viewModel),
+                    style:
+                        OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red, width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ).copyWith(
+                          overlayColor: WidgetStatePropertyAll(
+                            AppColors.orange.withValues(alpha: 0.2),
+                          ),
+                        ),
+                    child: const Text(
+                      'アカウント削除',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),

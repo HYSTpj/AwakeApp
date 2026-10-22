@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_repository_test_mocks.dart';
 
+class MockFile extends Mock implements File {}
+
 void main() {
   setUpAll(() {
     registerAuthRepositoryTestFallbacks();
@@ -14,13 +16,33 @@ void main() {
 
   late MockSupabaseClient mockSupabaseClient;
   late MockGoTrueClient mockGoTrueClient;
+  late MockSupabaseStorageClient mockStorageClient;
+  late MockStorageFileApi mockStorageFileApi;
+  late MockSupabaseQueryBuilder mockQueryBuilder;
   late SupabaseAuthRepository repository;
+
+  final mockUser = MockUser();
+  const testUserId = 'test-user-id';
 
   setUp(() {
     mockSupabaseClient = MockSupabaseClient();
     mockGoTrueClient = MockGoTrueClient();
+    mockStorageClient = MockSupabaseStorageClient();
+    mockStorageFileApi = MockStorageFileApi();
+    mockQueryBuilder = MockSupabaseQueryBuilder();
 
+    when(() => mockUser.id).thenReturn(testUserId);
+    when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
     when(() => mockSupabaseClient.auth).thenReturn(mockGoTrueClient);
+    when(() => mockSupabaseClient.storage).thenReturn(mockStorageClient);
+    when(
+      () => mockStorageClient.from('avatars'),
+    ).thenReturn(mockStorageFileApi);
+
+    when(
+      () => mockSupabaseClient.from('profiles'),
+    ).thenAnswer((_) => mockQueryBuilder);
+
     repository = SupabaseAuthRepository(mockSupabaseClient);
   });
 
@@ -35,10 +57,6 @@ void main() {
     });
 
     test('空白のみの名前を渡した場合: 通信前に ArgumentError が投げられること', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('test-user-id');
-      when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
       expect(
         () => repository.updateProfile(nickname: ''),
         throwsA(isA<ArgumentError>()),
@@ -53,10 +71,6 @@ void main() {
     });
 
     test('30文字を超える名前を渡した場合: 通信前に ArgumentError が投げられること', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('test-user-id');
-      when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
       final over30Chars = 'a' * 31;
 
       expect(
@@ -70,12 +84,8 @@ void main() {
     test(
       '前後に空白がある有効な名前と画像なしの場合: trim された名前で profiles に upsert され、プロフィールが再取得されること',
       () async {
-        final mockUser = MockUser();
-        when(() => mockUser.id).thenReturn('test-user-id');
-        when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
         final dummyProfile = <String, dynamic>{
-          'id': 'test-user-id',
+          'id': testUserId,
           'nickname': 'Bob',
           'avatar_url': null,
           'sleep_past_count': 0,
@@ -84,7 +94,6 @@ void main() {
           'updated_at': '2026-10-21T00:00:00.000Z',
         };
 
-        final mockQueryBuilder = MockSupabaseQueryBuilder();
         final mockFilterBuilder = MockPostgrestFilterBuilder();
         final fakeUpsertBuilder = FakePostgrestFilterBuilder();
         final fakeMaybeSingleBuilder = FakePostgrestNullableMapTransformBuilder(
@@ -92,16 +101,13 @@ void main() {
         );
 
         when(
-          () => mockSupabaseClient.from('profiles'),
-        ).thenAnswer((_) => mockQueryBuilder);
-        when(
           () => mockQueryBuilder.upsert(any()),
         ).thenAnswer((_) => fakeUpsertBuilder);
         when(
           () => mockQueryBuilder.select(),
         ).thenAnswer((_) => mockFilterBuilder);
         when(
-          () => mockFilterBuilder.eq('id', 'test-user-id'),
+          () => mockFilterBuilder.eq('id', testUserId),
         ).thenAnswer((_) => mockFilterBuilder);
         when(
           () => mockFilterBuilder.maybeSingle(),
@@ -116,42 +122,51 @@ void main() {
         ).captured;
         final payload = Map<String, dynamic>.from(captured.first as Map);
         expect(payload['nickname'], equals('Bob'));
-        expect(payload['id'], equals('test-user-id'));
+        expect(payload['id'], equals(testUserId));
         expect(payload.containsKey('avatar_url'), isFalse);
+
+        verifyNever(
+          () => mockStorageFileApi.upload(
+            any(),
+            any(),
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        );
+        verifyNever(() => mockStorageFileApi.remove(any()));
       },
     );
 
-    test('画像ファイルが指定された場合: Storage にアップロードされ、URL を含めて upsert されること', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('test-user-id');
-      when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
+    test('PNG 画像指定時: 正しい拡張子と Content-Type (image/png) でアップロードされること', () async {
+      final mockPngFile = MockFile();
+      when(() => mockPngFile.path).thenReturn('/tmp/avatar.png');
 
-      final dummyProfile = <String, dynamic>{
-        'id': 'test-user-id',
-        'nickname': 'Bob',
-        'avatar_url': 'https://example.com/avatar.jpg',
-        'sleep_past_count': 0,
-        'late_count': 0,
-        'created_at': '2026-09-21T00:00:00.000Z',
-        'updated_at': '2026-10-21T00:00:00.000Z',
-      };
-
-      final mockStorage = MockSupabaseStorageClient();
-      final mockStorageFileApi = MockStorageFileApi();
-      when(() => mockSupabaseClient.storage).thenReturn(mockStorage);
-      when(() => mockStorage.from('avatars')).thenReturn(mockStorageFileApi);
       when(
         () => mockStorageFileApi.upload(
-          any(),
-          any(),
-          fileOptions: any(named: 'fileOptions'),
+          any(that: endsWith('.png')),
+          mockPngFile,
+          fileOptions: any(
+            named: 'fileOptions',
+            that: predicate<FileOptions>(
+              (opt) => opt.contentType == 'image/png',
+            ),
+          ),
         ),
-      ).thenAnswer((_) async => 'path/to/avatar');
+      ).thenAnswer((_) async => 'uploaded_path.png');
+
       when(
         () => mockStorageFileApi.getPublicUrl(any()),
-      ).thenReturn('https://example.com/avatar.jpg');
+      ).thenReturn('https://example.com/avatar.png');
 
-      final mockQueryBuilder = MockSupabaseQueryBuilder();
+      final dummyProfile = <String, dynamic>{
+        'id': testUserId,
+        'nickname': 'TestUser',
+        'avatar_url': 'https://example.com/avatar.png',
+        'sleep_past_count': 0,
+        'late_count': 0,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
       final mockFilterBuilder = MockPostgrestFilterBuilder();
       final fakeUpsertBuilder = FakePostgrestFilterBuilder();
       final fakeMaybeSingleBuilder = FakePostgrestNullableMapTransformBuilder(
@@ -159,44 +174,165 @@ void main() {
       );
 
       when(
-        () => mockSupabaseClient.from('profiles'),
-      ).thenAnswer((_) => mockQueryBuilder);
-      when(
         () => mockQueryBuilder.upsert(any()),
       ).thenAnswer((_) => fakeUpsertBuilder);
       when(
         () => mockQueryBuilder.select(),
       ).thenAnswer((_) => mockFilterBuilder);
       when(
-        () => mockFilterBuilder.eq('id', 'test-user-id'),
+        () => mockFilterBuilder.eq('id', testUserId),
       ).thenAnswer((_) => mockFilterBuilder);
       when(
         () => mockFilterBuilder.maybeSingle(),
       ).thenAnswer((_) => fakeMaybeSingleBuilder);
 
-      final dummyFile = File('dummy/path/avatar.jpg');
-
       final result = await repository.updateProfile(
-        nickname: 'Bob',
-        avatarImage: dummyFile,
+        nickname: 'TestUser',
+        avatarImage: mockPngFile,
       );
 
-      expect(result.avatarUrl, equals('https://example.com/avatar.jpg'));
+      expect(result.avatarUrl, equals('https://example.com/avatar.png'));
 
       verify(
         () => mockStorageFileApi.upload(
-          any(that: contains('test-user-id/avatar_')),
-          dummyFile,
-          fileOptions: any(named: 'fileOptions'),
+          any(
+            that: predicate<String>(
+              (path) =>
+                  path.startsWith('$testUserId/') && path.endsWith('.png'),
+            ),
+          ),
+          mockPngFile,
+          fileOptions: any(
+            named: 'fileOptions',
+            that: predicate<FileOptions>(
+              (opt) => opt.contentType == 'image/png',
+            ),
+          ),
         ),
       ).called(1);
-
-      final captured = verify(
-        () => mockQueryBuilder.upsert(captureAny()),
-      ).captured;
-      final payload = Map<String, dynamic>.from(captured.first as Map);
-      expect(payload['avatar_url'], equals('https://example.com/avatar.jpg'));
     });
+
+    test(
+      'HEIC 画像指定時: 正しい拡張子と Content-Type (image/heic) でアップロードされること',
+      () async {
+        final mockHeicFile = MockFile();
+        when(() => mockHeicFile.path).thenReturn('/tmp/photo.HEIC');
+
+        when(
+          () => mockStorageFileApi.upload(
+            any(that: endsWith('.heic')),
+            mockHeicFile,
+            fileOptions: any(
+              named: 'fileOptions',
+              that: predicate<FileOptions>(
+                (opt) => opt.contentType == 'image/heic',
+              ),
+            ),
+          ),
+        ).thenAnswer((_) async => 'uploaded_path.heic');
+
+        when(
+          () => mockStorageFileApi.getPublicUrl(any()),
+        ).thenReturn('https://example.com/avatar.heic');
+
+        final dummyProfile = <String, dynamic>{
+          'id': testUserId,
+          'nickname': 'TestUser',
+          'avatar_url': 'https://example.com/avatar.heic',
+          'sleep_past_count': 0,
+          'late_count': 0,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+
+        final mockFilterBuilder = MockPostgrestFilterBuilder();
+        final fakeUpsertBuilder = FakePostgrestFilterBuilder();
+        final fakeMaybeSingleBuilder = FakePostgrestNullableMapTransformBuilder(
+          dummyProfile,
+        );
+
+        when(
+          () => mockQueryBuilder.upsert(any()),
+        ).thenAnswer((_) => fakeUpsertBuilder);
+        when(
+          () => mockQueryBuilder.select(),
+        ).thenAnswer((_) => mockFilterBuilder);
+        when(
+          () => mockFilterBuilder.eq('id', testUserId),
+        ).thenAnswer((_) => mockFilterBuilder);
+        when(
+          () => mockFilterBuilder.maybeSingle(),
+        ).thenAnswer((_) => fakeMaybeSingleBuilder);
+
+        await repository.updateProfile(
+          nickname: 'TestUser',
+          avatarImage: mockHeicFile,
+        );
+
+        verify(
+          () => mockStorageFileApi.upload(
+            any(that: predicate<String>((path) => path.endsWith('.heic'))),
+            mockHeicFile,
+            fileOptions: any(
+              named: 'fileOptions',
+              that: predicate<FileOptions>(
+                (opt) => opt.contentType == 'image/heic',
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'DB 更新失敗時: アップロードされた画像が Storage から削除（ロールバック）され、例外が再スローされること',
+      () async {
+        final mockJpegFile = MockFile();
+        when(() => mockJpegFile.path).thenReturn('/tmp/avatar.jpg');
+
+        when(
+          () => mockStorageFileApi.upload(
+            any(),
+            mockJpegFile,
+            fileOptions: any(named: 'fileOptions'),
+          ),
+        ).thenAnswer((_) async => 'uploaded_path.jpg');
+
+        when(
+          () => mockStorageFileApi.getPublicUrl(any()),
+        ).thenReturn('https://example.com/avatar.jpg');
+
+        when(
+          () => mockStorageFileApi.remove(any()),
+        ).thenAnswer((_) async => []);
+
+        when(() => mockQueryBuilder.upsert(any())).thenAnswer(
+          (_) => FakePostgrestFilterBuilder.error(
+            const PostgrestException(message: 'DB connection error'),
+          ),
+        );
+
+        await expectLater(
+          () => repository.updateProfile(
+            nickname: 'TestUser',
+            avatarImage: mockJpegFile,
+          ),
+          throwsA(isA<PostgrestException>()),
+        );
+
+        verify(
+          () => mockStorageFileApi.remove(
+            any(
+              that: predicate<List<String>>((paths) {
+                return paths.length == 1 &&
+                    paths.first.startsWith('$testUserId/avatar_') &&
+                    paths.first.endsWith('.jpg');
+              }),
+            ),
+          ),
+        ).called(1);
+      },
+    );
   });
 
   group('SupabaseAuthRepository.updateNickname', () {
@@ -212,10 +348,6 @@ void main() {
     });
 
     test('空白のみの名前を渡した場合: 通信前に ArgumentError が投げられること', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('test-user-id');
-      when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
       expect(
         () => repository.updateNickname(''),
         throwsA(isA<ArgumentError>()),
@@ -230,10 +362,6 @@ void main() {
     });
 
     test('30文字を超える名前を渡した場合: 通信前に ArgumentError が投げられること', () async {
-      final mockUser = MockUser();
-      when(() => mockUser.id).thenReturn('test-user-id');
-      when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
       final over30Chars = 'a' * 31;
 
       expect(
@@ -247,12 +375,8 @@ void main() {
     test(
       '前後に空白がある有効な名前を渡した場合: trim された名前で Supabase に update が発行されること',
       () async {
-        final mockUser = MockUser();
-        when(() => mockUser.id).thenReturn('test-user-id');
-        when(() => mockGoTrueClient.currentUser).thenReturn(mockUser);
-
         final dummyResponse = <String, dynamic>{
-          'id': 'test-user-id',
+          'id': testUserId,
           'nickname': 'Alice',
           'avatar_url': null,
           'sleep_past_count': 0,
@@ -261,7 +385,6 @@ void main() {
           'updated_at': '2026-10-21T00:00:00.000Z',
         };
 
-        final mockQueryBuilder = MockSupabaseQueryBuilder();
         final mockFilterBuilder = MockPostgrestFilterBuilder();
         final mockTransformBuilder = MockPostgrestTransformBuilder();
         final fakeMapTransformBuilder = FakePostgrestMapTransformBuilder(
@@ -269,13 +392,10 @@ void main() {
         );
 
         when(
-          () => mockSupabaseClient.from('profiles'),
-        ).thenAnswer((_) => mockQueryBuilder);
-        when(
           () => mockQueryBuilder.update(any()),
         ).thenAnswer((_) => mockFilterBuilder);
         when(
-          () => mockFilterBuilder.eq('id', 'test-user-id'),
+          () => mockFilterBuilder.eq('id', testUserId),
         ).thenAnswer((_) => mockFilterBuilder);
         when(
           () => mockFilterBuilder.select(),
