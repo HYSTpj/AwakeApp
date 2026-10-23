@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/models/event.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/event_list_page.dart';
 import '../helpers/admin_event_test_helpers.dart';
@@ -79,9 +80,15 @@ void main() {
       when(
         () => mockRepository.getEvents('group-1'),
       ).thenAnswer((_) async => [createDummyEvent()]);
+
       await tester.pumpWidget(
-        ChangeNotifierProvider<AdminEventViewModel>.value(
-          value: viewModel,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AdminEventViewModel>.value(value: viewModel),
+            ChangeNotifierProvider<AuthViewModel>.value(
+              value: createMockAuthViewModel(),
+            ),
+          ],
           child: const MaterialApp(
             home: EventListPage(groupId: 'group-1', myRole: 0),
           ),

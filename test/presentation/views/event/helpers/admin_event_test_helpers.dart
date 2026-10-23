@@ -7,12 +7,16 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/data/repositories/admin_event_repository.dart';
+import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_application_1/models/event.dart';
 import 'package:flutter_application_1/models/event_report.dart';
 import 'package:flutter_application_1/models/profile.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 
 class MockAdminEventRepository extends Mock implements AdminEventRepository {}
+
+class MockAuthRepository extends Mock implements AuthRepository {}
 
 class MockGeocodingPlatform extends GeocodingPlatform {
   @override
@@ -29,6 +33,20 @@ class MockGeocodingPlatform extends GeocodingPlatform {
       ),
     ];
   }
+}
+
+// プロフィール取得を返すAuthViewModelを生成する
+AuthViewModel createMockAuthViewModel() {
+  final mockAuthRepo = MockAuthRepository();
+  final dummyUser = createDummyProfile(
+    id: 'dummy-auth-user',
+    nickname: 'TestUser',
+  );
+  when(() => mockAuthRepo.currentUserId).thenReturn(dummyUser.id);
+  when(
+    () => mockAuthRepo.getCurrentProfile(),
+  ).thenAnswer((_) async => dummyUser);
+  return AuthViewModel(mockAuthRepo);
 }
 
 void setupTestEnvironment() {
@@ -54,12 +72,19 @@ void setupTestEnvironment() {
   });
 }
 
+/// イベント画面用のテストWidgetを構築する
 Widget buildTestableWidget({
   required AdminEventViewModel viewModel,
+  AuthViewModel? authViewModel,
   required Widget child,
 }) {
-  return ChangeNotifierProvider<AdminEventViewModel>.value(
-    value: viewModel,
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AdminEventViewModel>.value(value: viewModel),
+      ChangeNotifierProvider<AuthViewModel>.value(
+        value: authViewModel ?? createMockAuthViewModel(),
+      ),
+    ],
     child: MaterialApp(home: Scaffold(body: child)),
   );
 }
