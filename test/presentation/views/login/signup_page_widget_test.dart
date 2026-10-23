@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/views/login/signup_page.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -29,7 +30,11 @@ void main() {
       await tester.pumpWidget(
         ChangeNotifierProvider<AuthViewModel>.value(
           value: viewModel,
-          child: const MaterialApp(home: CreateAccountPage()),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CreateAccountPage(),
+          ),
         ),
       );
 
