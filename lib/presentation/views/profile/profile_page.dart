@@ -202,9 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            viewModel.state.authErrorMessage ?? 'アカウントの削除に失敗しました',
-          ),
+          content: Text(viewModel.state.authErrorMessage ?? 'アカウントの削除に失敗しました'),
         ),
       );
     }

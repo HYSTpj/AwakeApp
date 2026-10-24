@@ -175,6 +175,7 @@ class SupabaseAuthRepository implements AuthRepository {
       throw const AuthException('ログインしていません');
     }
 
+    // updateProfile 側も 30 文字ガードとトリムを適用して統一
     final trimmed = nickname.trim();
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
@@ -184,7 +185,7 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     String? avatarUrl;
-    String? uploadedFilePath;
+    String? uploadedFilePath; // ロールバック対象のパスを保持
 
     if (avatarImage != null) {
       final (contentType, fileExt) = _resolveImageFormat(avatarImage);
@@ -213,6 +214,7 @@ class SupabaseAuthRepository implements AuthRepository {
       updateData['avatar_url'] = avatarUrl;
     }
 
+    // DB更新失敗時のロールバック
     try {
       await _client.from('profiles').upsert(updateData);
     } catch (dbError, dbStackTrace) {
@@ -256,6 +258,7 @@ class SupabaseAuthRepository implements AuthRepository {
       throw Exception('ユーザーが認証されていません');
     }
 
+    // 入力値をトリムし、空欄と文字数を検証
     final trimmed = newNickname.trim();
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
@@ -348,6 +351,7 @@ class SupabaseAuthRepository implements AuthRepository {
     return Profile.fromJson(response);
   }
 
+  /// 古いアバター画像を安全に削除
   Future<void> _deleteOldAvatarQuietly(String userId, String oldUrl) async {
     try {
       final uri = Uri.tryParse(oldUrl);
@@ -396,6 +400,7 @@ class SupabaseAuthRepository implements AuthRepository {
       throw const AuthException('認証セッションがありません');
     }
 
+    // 1. 現在のパスワードで再認証を試みる
     try {
       await _client.auth.signInWithPassword(
         email: email,
@@ -408,6 +413,7 @@ class SupabaseAuthRepository implements AuthRepository {
       rethrow;
     }
 
+    // 2. 新しいパスワードに更新する
     await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 
@@ -480,11 +486,17 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   Future<void> _deleteLateEvidenceFolder({required String userId}) async {
-    final eventDirs = await _listAllFiles(bucket: 'late-evidences', path: userId);
+    final eventDirs = await _listAllFiles(
+      bucket: 'late-evidences',
+      path: userId,
+    );
     final List<String> allFilePaths = [];
 
     for (final dirPath in eventDirs) {
-      final files = await _listAllFiles(bucket: 'late-evidences', path: dirPath);
+      final files = await _listAllFiles(
+        bucket: 'late-evidences',
+        path: dirPath,
+      );
       allFilePaths.addAll(files);
     }
 
@@ -500,7 +512,9 @@ class SupabaseAuthRepository implements AuthRepository {
     int offset = 0;
 
     while (true) {
-      final objects = await _client.storage.from(bucket).list(
+      final objects = await _client.storage
+          .from(bucket)
+          .list(
             path: path,
             searchOptions: SearchOptions(
               limit: pageSize,
