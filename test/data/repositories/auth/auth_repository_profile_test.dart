@@ -344,7 +344,6 @@ void main() {
         () => mockStorageClient.from('late-evidences'),
       ).thenReturn(mockLateStorageApi);
 
-      // avatars バケットの list スタブ（デフォルト空リスト）
       when(
         () => mockStorageFileApi.list(
           path: any(named: 'path'),
@@ -352,7 +351,6 @@ void main() {
         ),
       ).thenAnswer((_) async => <FileObject>[]);
 
-      // late-evidences バケットの list スタブ（デフォルト空リスト）
       when(
         () => mockLateStorageApi.list(
           path: any(named: 'path'),
@@ -419,7 +417,6 @@ void main() {
 
         await repository.deleteAccount();
 
-        // verifyInOrder を用いて RPC -> Storage.remove -> signOut の順序を厳密に検証
         verifyInOrder([
           () => mockSupabaseClient.rpc('delete_user'),
           () => mockStorageFileApi.remove(['$testUserId/avatar_1.jpg']),
@@ -622,7 +619,6 @@ void main() {
         ).thenAnswer((_) => FakePostgrestFilterBuilder());
         when(() => mockGoTrueClient.signOut()).thenAnswer((_) async {});
 
-        // 1. avatars にファイルが存在する設定
         final avatarFile = FileObject.fromJson(<String, dynamic>{
           'name': 'avatar_1.jpg',
           'id': '1',
@@ -640,7 +636,6 @@ void main() {
           ),
         ).thenAnswer((_) async => [avatarFile]);
 
-        // 2. late-evidences にもイベントフォルダと画像が存在する設定
         final eventDir = FileObject.fromJson(<String, dynamic>{
           'name': 'event_1',
           'id': 'dir_1',
@@ -673,7 +668,6 @@ void main() {
 
         await repository.deleteAccount();
 
-        // RPC -> avatars.remove -> late-evidences.remove -> signOut の厳密な実行順序を検証
         verifyInOrder([
           () => mockSupabaseClient.rpc('delete_user'),
           () => mockStorageFileApi.remove(['$testUserId/avatar_1.jpg']),
@@ -692,7 +686,6 @@ void main() {
         ).thenAnswer((_) => FakePostgrestFilterBuilder());
         when(() => mockGoTrueClient.signOut()).thenAnswer((_) async {});
 
-        // 1. avatars の list 呼び出しでネットワークエラーを発生させる
         when(
           () => mockStorageFileApi.list(
             path: any(named: 'path'),
@@ -700,7 +693,6 @@ void main() {
           ),
         ).thenThrow(Exception('avatars storage timeout'));
 
-        // 2. late-evidences にはファイルが存在する設定
         final eventDir = FileObject.fromJson(<String, dynamic>{
           'name': 'event_1',
           'id': 'dir_1',
