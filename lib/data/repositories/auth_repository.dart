@@ -43,6 +43,9 @@ abstract class AuthRepository {
     required String currentPassword,
     required String newPassword,
   });
+
+  /// 現在ログイン中のユーザーアカウントを完全に削除する
+  Future<void> deleteAccount();
 }
 
 // Supabase Auth および PostgreSQL（profilesテーブル）を用いた認証リポジトリ実装
@@ -172,7 +175,6 @@ class SupabaseAuthRepository implements AuthRepository {
       throw const AuthException('ログインしていません');
     }
 
-    // updateProfile 側も 30 文字ガードとトリムを適用して統一
     final trimmed = nickname.trim();
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
@@ -182,7 +184,7 @@ class SupabaseAuthRepository implements AuthRepository {
     }
 
     String? avatarUrl;
-    String? uploadedFilePath; // ロールバック対象のパスを保持
+    String? uploadedFilePath;
 
     if (avatarImage != null) {
       final (contentType, fileExt) = _resolveImageFormat(avatarImage);
@@ -211,7 +213,6 @@ class SupabaseAuthRepository implements AuthRepository {
       updateData['avatar_url'] = avatarUrl;
     }
 
-    // DB更新失敗時のロールバック
     try {
       await _client.from('profiles').upsert(updateData);
     } catch (dbError, dbStackTrace) {
@@ -255,7 +256,6 @@ class SupabaseAuthRepository implements AuthRepository {
       throw Exception('ユーザーが認証されていません');
     }
 
-    // 入力値をトリムし、空欄と文字数を検証
     final trimmed = newNickname.trim();
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
@@ -291,36 +291,7 @@ class SupabaseAuthRepository implements AuthRepository {
         .maybeSingle();
     final oldAvatarUrl = currentProfileRes?['avatar_url'] as String?;
 
-    final extension = avatarImage.path.split('.').last.toLowerCase();
-    final String contentType;
-    final String fileExt;
-
-    switch (extension) {
-      case 'png':
-        contentType = 'image/png';
-        fileExt = 'png';
-        break;
-      case 'webp':
-        contentType = 'image/webp';
-        fileExt = 'webp';
-        break;
-      case 'gif':
-        contentType = 'image/gif';
-        fileExt = 'gif';
-        break;
-      case 'heic':
-      case 'heif':
-        contentType = 'image/heic';
-        fileExt = 'heic';
-        break;
-      case 'jpg':
-      case 'jpeg':
-      default:
-        contentType = 'image/jpeg';
-        fileExt = 'jpg';
-        break;
-    }
-
+    final (contentType, fileExt) = _resolveImageFormat(avatarImage);
     final newFilePath =
         '${user.id}/avatar_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
 
@@ -377,7 +348,6 @@ class SupabaseAuthRepository implements AuthRepository {
     return Profile.fromJson(response);
   }
 
-  /// 古いアバター画像を安全に削除
   Future<void> _deleteOldAvatarQuietly(String userId, String oldUrl) async {
     try {
       final uri = Uri.tryParse(oldUrl);
@@ -426,7 +396,6 @@ class SupabaseAuthRepository implements AuthRepository {
       throw const AuthException('認証セッションがありません');
     }
 
-    // 1. 現在のパスワードで再認証を試みる
     try {
       await _client.auth.signInWithPassword(
         email: email,
@@ -439,7 +408,133 @@ class SupabaseAuthRepository implements AuthRepository {
       rethrow;
     }
 
-    // 2. 新しいパスワードに更新する
     await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('認証セッションがありません');
+    }
+
+    final userId = user.id;
+
+    // 1. DB / Auth からのユーザー完全削除（RPC）
+    // 理由を問わず RPC が失敗した場合は削除失敗として例外を投げる
+    try {
+      await _client.rpc('delete_user');
+    } catch (e, st) {
+      developer.log(
+        'アカウント削除RPC呼び出しに失敗しました',
+        name: 'AuthRepository',
+        error: e,
+        stackTrace: st,
+      );
+      throw const AuthException('アカウントの削除に失敗しました。時間をおいて再試行してください');
+    }
+
+    // 2. avatars の物理削除（ベストエフォート）
+    try {
+      await _deleteUserStorageFolder(bucket: 'avatars', folderPath: userId);
+    } catch (e, st) {
+      developer.log(
+        'avatars の物理削除に失敗しました: $userId',
+        name: 'AuthRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
+
+    // 3. late-evidences の物理削除（ベストエフォート）
+    try {
+      await _deleteLateEvidenceFolder(userId: userId);
+    } catch (e, st) {
+      developer.log(
+        'late-evidences の物理削除に失敗しました: $userId',
+        name: 'AuthRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
+
+    // 4. ローカルセッション破棄
+    try {
+      await _client.auth.signOut();
+    } catch (e, st) {
+      developer.log(
+        'リモートアカウント削除後のローカルサインアウトで例外（警告扱い）',
+        name: 'AuthRepository',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  Future<void> _deleteUserStorageFolder({
+    required String bucket,
+    required String folderPath,
+  }) async {
+    final allFilePaths = await _listAllFiles(bucket: bucket, path: folderPath);
+    await _removeInChunks(bucket: bucket, paths: allFilePaths);
+  }
+
+  Future<void> _deleteLateEvidenceFolder({required String userId}) async {
+    final eventDirs = await _listAllFiles(bucket: 'late-evidences', path: userId);
+    final List<String> allFilePaths = [];
+
+    for (final dirPath in eventDirs) {
+      final files = await _listAllFiles(bucket: 'late-evidences', path: dirPath);
+      allFilePaths.addAll(files);
+    }
+
+    await _removeInChunks(bucket: 'late-evidences', paths: allFilePaths);
+  }
+
+  Future<List<String>> _listAllFiles({
+    required String bucket,
+    required String path,
+  }) async {
+    final List<String> filePaths = [];
+    const int pageSize = 100;
+    int offset = 0;
+
+    while (true) {
+      final objects = await _client.storage.from(bucket).list(
+            path: path,
+            searchOptions: SearchOptions(
+              limit: pageSize,
+              offset: offset,
+              sortBy: const SortBy(column: 'name', order: 'asc'),
+            ),
+          );
+
+      if (objects.isEmpty) break;
+
+      for (final obj in objects) {
+        filePaths.add('$path/${obj.name}');
+      }
+
+      if (objects.length < pageSize) break;
+      offset += pageSize;
+    }
+
+    return filePaths;
+  }
+
+  Future<void> _removeInChunks({
+    required String bucket,
+    required List<String> paths,
+  }) async {
+    if (paths.isEmpty) return;
+
+    const int chunkSize = 100;
+    for (int i = 0; i < paths.length; i += chunkSize) {
+      final chunk = paths.sublist(
+        i,
+        i + chunkSize > paths.length ? paths.length : i + chunkSize,
+      );
+      await _client.storage.from(bucket).remove(chunk);
+    }
   }
 }
