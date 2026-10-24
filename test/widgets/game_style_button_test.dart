@@ -94,5 +94,38 @@ void main() {
     // ヒント: 「'送信' という文字列が1つも見つからない」ことを確認するには
     //   findsOneWidget の代わりに何を使えばよいか？
     expect(find.text('送信'), findsNothing);
+  }); 
+  testWidgets('無効状態でもElevatedButtonの背景色は透明のまま（下のGameStyleBoxの色を隠さない）', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GameStyleButton(
+            label: '送信',
+            backgroundColor: Colors.orange,
+            textColor: Colors.black,
+            onPressed: null, // 無効状態
+          ),
+        ),
+      ),
+    );
+
+    // ⑩ ここを埋める
+    // ヒント: https://api.flutter.dev/flutter/flutter_test/WidgetController/widget.html
+    //   find.byType(ElevatedButton) で見つかった ElevatedButton 自体（インスタンス）を取り出す。
+    //   tester.widget<型>(Finder) というジェネリクス付きの呼び方を使う。
+    final elevatedButton = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+
+    // ⑪ ここを埋める
+    // ヒント: ElevatedButton.style（ButtonStyle?）が持つ backgroundColor
+    //   （WidgetStateProperty<Color?>?）を取り出し、
+    //   .resolve({WidgetState.disabled}) で「無効状態のときの色」を計算する。
+    //   https://api.flutter.dev/flutter/widgets/WidgetStateProperty-class.html
+    final disabledColor = elevatedButton.style?.backgroundColor?.resolve({WidgetState.disabled});
+
+    // ⑫ ここを埋める
+    // ヒント: 610dec1 で直したバグ（無効状態でグレーに塗りつぶされ、
+    //   下のGameStyleBoxの色が隠れてしまう）が再発していないことを確認する。
+    //   disabledColor は何色であるべきか？ lib/widgets/game_style_button.dart を見て確認する。
+    expect(disabledColor, Colors.transparent);
   });
 }
