@@ -102,4 +102,22 @@ void registerAuthRepositoryTestFallbacks() {
   registerFallbackValue(FakeFile());
   registerFallbackValue(const FileOptions());
   registerFallbackValue(FakeUserAttributes());
+  registerFallbackValue(const SearchOptions());
+  registerFallbackValue('');
+}
+
+class FakePostgrestRpcBuilder extends Fake
+    implements PostgrestFilterBuilder<dynamic> {
+  final Future<dynamic> _future;
+
+  FakePostgrestRpcBuilder([dynamic response])
+    : _future = Future.value(response);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(dynamic value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
 }

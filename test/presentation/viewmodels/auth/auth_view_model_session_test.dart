@@ -145,4 +145,29 @@ void main() {
       expect(viewModel.state.authErrorMessage, isNot(contains('Exception')));
     });
   });
+
+  group('AuthViewModel - アカウント削除テスト', () {
+    test('deleteAccount 成功時: state が初期化され true が返ること', () async {
+      when(() => mockAuthRepository.deleteAccount()).thenAnswer((_) async {});
+
+      final result = await viewModel.deleteAccount();
+
+      expect(result, isTrue);
+      expect(viewModel.state.user, isNull);
+      expect(viewModel.state.isLoading, isFalse);
+      verify(() => mockAuthRepository.deleteAccount()).called(1);
+    });
+
+    test('deleteAccount 失敗時: 日本語エラーメッセージが設定され false が返ること', () async {
+      when(
+        () => mockAuthRepository.deleteAccount(),
+      ).thenThrow(const AuthException('アカウントの削除に失敗しました'));
+
+      final result = await viewModel.deleteAccount();
+
+      expect(result, isFalse);
+      expect(viewModel.state.isLoading, isFalse);
+      expect(viewModel.state.errorMessage, equals('アカウントの削除に失敗しました'));
+    });
+  });
 }
