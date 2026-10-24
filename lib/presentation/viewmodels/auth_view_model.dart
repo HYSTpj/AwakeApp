@@ -376,6 +376,37 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  /// アカウント削除の実行
+  Future<bool> deleteAccount() async {
+    if (_state.isAuthActionLoading || _state.isProfileLoading) {
+      return false;
+    }
+
+    _activeSessionToken++;
+    _state = _state.copyWith(
+      isAuthActionLoading: true,
+      clearOutcome: true,
+      clearProfileError: true,
+      isProfileLoading: false,
+    );
+    notifyListeners();
+
+    try {
+      await _authRepository.deleteAccount();
+      _state = const AuthState();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('アカウント削除中にエラーが発生しました: $e');
+      _state = _state.copyWith(
+        isAuthActionLoading: false,
+        outcome: AuthFailed(_toUserMessage(e)),
+      );
+      notifyListeners();
+      return false;
+    }
+  }
 }
 
 /// エラーメッセージをユーザー向け日本語に変換
@@ -394,8 +425,11 @@ String _toUserMessage(Object error) {
       case 'Password should be at least 6 characters.':
         return 'パスワードは6文字以上で入力してください';
       case '現在のパスワードが正しくありません':
+      case 'アカウントの削除に失敗しました':
+      case 'アカウントの削除に失敗しました。時間をおいて再試行してください':
         return error.message;
       default:
+        // 未知のエラー・英語の生エラーは安全に汎用メッセージへ倒す
         break;
     }
   }
