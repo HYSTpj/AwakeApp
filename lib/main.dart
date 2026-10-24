@@ -6,7 +6,8 @@ import 'package:alarm/utils/alarm_set.dart';
 import 'services/alarm_service.dart';
 import 'services/gradual_vibration_controller.dart';
 import 'services/vibration_service.dart';
-import 'presentation/views/login/login_page.dart'; // ログインページのインポート
+import 'presentation/views/login/login_page.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 // Supabaseを利用するためのパッケージ
 import 'package:provider/provider.dart';
@@ -33,7 +34,6 @@ void main() async {
   await Alarm.init();
 
   // Supabaseを初期化
-  // 直書き文字列から EnvConfig 経由に変更
   await Supabase.initialize(
     url: EnvConfig.supabaseUrl,
     publishableKey: EnvConfig.supabaseAnonKey,
@@ -94,15 +94,10 @@ class _MyAppState extends State<MyApp> {
   final AlarmService _alarmService = RealAlarmService();
   StreamSubscription<AlarmSet>? _ringingSubscription;
   Set<int> _lastRingingIds = {};
-  // 表示中ダイアログのアラームID（null=非表示）。通知経由の停止でダイアログを閉じる際にも使う。
   int? _showingDialogAlarmId;
-  // ダイアログを重ねて表示しないための待ち行列。
   final List<AlarmSettings> _pendingDialogAlarms = [];
-  // アラームIDごとの「停止済み」管理（全体で1つのフラグだと他のアラームに影響するため）。
   final Set<int> _stoppedAlarmIds = {};
-  // アラームIDごとのバイブレーションコントローラー（共用すると後発アラームが先発の振動を乗っ取るため）。
   final Map<int, GradualVibrationController> _vibrationControllers = {};
-  // 振幅制御対応のキャッシュをアラーム間で共有するため、VibrationServiceはアプリ全体で1つを使い回す。
   final VibrationService _vibrationService = RealVibrationService.instance;
 
   @override
@@ -113,18 +108,15 @@ class _MyAppState extends State<MyApp> {
       final newIds = currentIds.difference(_lastRingingIds);
       for (final id in newIds) {
         final alarm = alarmSet.alarms.firstWhere((a) => a.id == id);
-        // unawaited()で囲み、内部の例外が握りつぶされずZoneのエラーハンドラーに届くようにする。
         unawaited(_showAlarmDialog(alarm));
         unawaited(_startGradualVibration(alarm.id));
       }
 
-      // 通知の停止アクションなどダイアログを経由しない停止もここで検知し、カスタムバイブレーションを止める。
       final removedIds = _lastRingingIds.difference(currentIds);
       for (final id in removedIds) {
         _stopCustomVibration(id);
         _pendingDialogAlarms.removeWhere((a) => a.id == id);
 
-        // このアラームのダイアログが表示中であれば閉じる（ストップボタン経由の二重popは起きない）。
         if (_showingDialogAlarmId == id) {
           final navigatorState = _navigatorKey.currentState;
           if (navigatorState != null && navigatorState.canPop()) {
@@ -139,7 +131,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _showAlarmDialog(AlarmSettings alarmSettings) async {
     if (_showingDialogAlarmId != null) {
-      // 重ねて表示すると操作不能になるため、表示中のダイアログが閉じるまで待ち行列に積む。
       _pendingDialogAlarms.add(alarmSettings);
       return;
     }
@@ -178,7 +169,6 @@ class _MyAppState extends State<MyApp> {
                       return;
                     }
 
-                    // このアラームIDだけを「停止済み」にする（他のアラームには影響しない）
                     _stoppedAlarmIds.add(alarmSettings.id);
                     Navigator.of(context).pop();
 
@@ -187,7 +177,6 @@ class _MyAppState extends State<MyApp> {
                     try {
                       await _alarmService.stop(alarmSettings.id);
 
-                      // Supabase RPC経由で起床/出発の打刻処理を実行
                       if (eventId != null) {
                         try {
                           Map<String, dynamic>? result;
@@ -198,7 +187,6 @@ class _MyAppState extends State<MyApp> {
                             result = await widget.memberEventRepository
                                 .reportDeparture(eventId);
                           }
-                          // RPCは例外を投げずに失敗を返すことがあるためsuccessフィールドも確認する。
                           if (result != null && result['success'] != true) {
                             debugPrint('アラーム停止後のステータス更新に失敗: $result');
                           }
@@ -207,7 +195,6 @@ class _MyAppState extends State<MyApp> {
                         }
                       }
                     } finally {
-                      // 停止処理が完全に終わってから印を外す（ダイアログが閉じた瞬間ではない）
                       _stoppedAlarmIds.remove(alarmSettings.id);
                     }
                   },
@@ -234,10 +221,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _startGradualVibration(int alarmId) {
-    // 既存のコントローラーを停止せず上書きするとTimer.periodicがリークするため、先に停止する。
     final existing = _vibrationControllers.remove(alarmId);
     if (existing != null) {
-      // 他のアラームのコントローラーが残っている間はcancel()を呼ばない（その振動も止めてしまうため）。
       unawaited(
         existing.stop(cancelVibration: _vibrationControllers.isEmpty),
       );
@@ -255,7 +240,6 @@ class _MyAppState extends State<MyApp> {
   void _stopCustomVibration(int alarmId) {
     final controller = _vibrationControllers.remove(alarmId);
     if (controller != null) {
-      // 他のアラームのコントローラーが残っている間はcancel()を呼ばない（その振動も止めてしまうため）。
       unawaited(
         controller.stop(cancelVibration: _vibrationControllers.isEmpty),
       );
@@ -279,12 +263,34 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: _navigatorKey,
       title: 'Awake App',
       theme: ThemeData(
-        // デザインタイプの有効設定
         useMaterial3: true,
-        // アプリ全体の基本色設定
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+        ),
       ),
-      // 最初に表示する画面
+
+      localizationsDelegates:
+          AppLocalizations.localizationsDelegates,
+      supportedLocales:
+          AppLocalizations.supportedLocales,
+
+      localeResolutionCallback: (
+        locale,
+        supportedLocales,
+      ) {
+        if (locale == null) {
+          return const Locale('ja');
+        }
+
+        for (final supportedLocale in supportedLocales) {
+          if (supportedLocale.languageCode ==
+              locale.languageCode) {
+            return supportedLocale;
+          }
+        }
+
+        return const Locale('ja');
+      },
       home: LoginPage(),
     );
   }
