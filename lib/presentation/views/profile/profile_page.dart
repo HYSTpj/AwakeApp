@@ -128,21 +128,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  /// アカウント削除確認ダイアログの表示と画面遷移
+  /// アカウント削除確認ダイアログの表示と実行
   Future<void> _handleDeleteAccount(
     BuildContext context,
     AuthViewModel viewModel,
   ) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.background,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: AppColors.border, width: 2),
         ),
         title: const Text(
-          'アカウント削除（準備中）',
+          'アカウント削除の確認',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -150,38 +151,31 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         content: const Text(
-          '現在アカウント削除機能は準備中です。\n実行するとログアウトしてログイン画面に戻ります。よろしいですか？',
-          style: TextStyle(height: 1.4),
+          'アカウントを削除すると、これまでの起床記録やプロフィール情報はすべて消去され、復元できません。\n\n'
+          '【ご注意】\n'
+          'あなたが「唯一の管理者」となっているグループが存在する場合、そのグループおよび他のメンバーのイベント・参加記録もすべて一緒に削除されます。\n\n'
+          '本当にアカウントを削除しますか？',
+          style: TextStyle(height: 1.5, fontSize: 14),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            style: TextButton.styleFrom(foregroundColor: Colors.black54)
-                .copyWith(
-                  overlayColor: WidgetStatePropertyAll(
-                    AppColors.orange.withValues(alpha: 0.2),
-                  ),
-                ),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            style: TextButton.styleFrom(foregroundColor: Colors.black54),
             child: const Text('キャンセル'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    side: const BorderSide(color: AppColors.border, width: 1.5),
-                  ),
-                ).copyWith(
-                  overlayColor: WidgetStatePropertyAll(
-                    AppColors.orange.withValues(alpha: 0.3),
-                  ),
-                ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+                side: const BorderSide(color: AppColors.border, width: 1.5),
+              ),
+            ),
             child: const Text(
-              'ログアウトする',
+              '完全に削除する',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -191,11 +185,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (shouldDelete != true || !context.mounted) return;
 
-    // TODO: 将来的にアカウント削除用API/Repository処理に差し替える
-    final success = await viewModel.signOut();
+    final success = await viewModel.deleteAccount();
     if (!context.mounted) return;
 
     if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('アカウントを削除しました'),
+          duration: Duration(seconds: 4),
+        ),
+      );
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginPage()),
         (Route<dynamic> route) => false,
@@ -203,7 +202,9 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.state.authErrorMessage ?? 'ログアウトに失敗しました'),
+          content: Text(
+            viewModel.state.authErrorMessage ?? 'アカウントの削除に失敗しました',
+          ),
         ),
       );
     }
@@ -500,25 +501,29 @@ class _ProfilePageState extends State<ProfilePage> {
                     onPressed: isAnyLoading
                         ? null
                         : () => _handleDeleteAccount(context, viewModel),
-                    style:
-                        OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red, width: 1.5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ).copyWith(
-                          overlayColor: WidgetStatePropertyAll(
-                            AppColors.orange.withValues(alpha: 0.2),
-                          ),
-                        ),
-                    child: const Text(
-                      'アカウント削除',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    child: state.isAuthActionLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.red,
+                            ),
+                          )
+                        : const Text(
+                            'アカウント削除',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
                   ),
                 ),
 
