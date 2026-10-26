@@ -48,9 +48,8 @@ Widget createAccountBody(
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      AppLocalizations.of(context)!.userName, 
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12
-                      )
+                      AppLocalizations.of(context)!.userName,
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
                     )
                   ),
                   
@@ -77,9 +76,9 @@ Widget createAccountBody(
                   const SizedBox(height: 24),
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(AppLocalizations.of(context)!.profilePicture, 
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12
-                    )
+                    child: Text(
+                      AppLocalizations.of(context)!.profilePicture, 
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
                     )
                   ),
 
@@ -151,7 +150,10 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: Text(AppLocalizations.of(context)!.createAccount, style: TextStyle(fontWeight: FontWeight.w900)),
+                      child: Text(
+                        AppLocalizations.of(context)!.createAccount, 
+                        style: TextStyle(fontWeight: FontWeight.w900)
+                      ),
                     ),
                   ),
 

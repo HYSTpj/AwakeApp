@@ -15,11 +15,11 @@
   "returnToLogin": "ログイン画面へ戻る",
 
   "signIn": "ログイン",
-  "loginCatchCopy": "遅刻するものには汚名を。\n間に合うものには称号を。",
+  "loginCatchCopy": "遅刻するものには汚名を\n間に合うものには称号を",
   "emailAddress": "メールアドレス",
   "password": "パスワード",
   "login": "ログイン",
 
   "signupTitle": "アカウント作成",
-  "signupCatchCopy": "時間を制する仲間たちへようこそ。\nAWAKEを始めましょう！"
+  "signupCatchCopy": "ようこそAWAKEへ。\nさっそく始めましょう"
 }

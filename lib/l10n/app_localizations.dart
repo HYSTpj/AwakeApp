@@ -185,7 +185,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginCatchCopy.
   ///
   /// In en, this message translates to:
-  /// **'We give medals to the timely and\nshame to the tardy'**
+  /// **'For those who are late, a mark of shame.\nFor those who make it on time, a badge of honor.'**
   String get loginCatchCopy;
 
   /// No description provided for @emailAddress.
@@ -215,7 +215,7 @@ abstract class AppLocalizations {
   /// No description provided for @signupCatchCopy.
   ///
   /// In en, this message translates to:
-  /// **'Join us among the elite who master time.\nLet\'s AWAKE!'**
+  /// **'Welcome to AWAKE.\nLet\'s get started.'**
   String get signupCatchCopy;
 }
 

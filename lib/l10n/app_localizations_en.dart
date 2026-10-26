@@ -54,7 +54,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginCatchCopy =>
-      'We give medals to the timely and\nshame to the tardy';
+      'For those who are late, a mark of shame.\nFor those who make it on time, a badge of honor.';
 
   @override
   String get emailAddress => 'EMAIL ADDRESS';
@@ -69,6 +69,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signupTitle => 'CREATE ACCOUNT';
 
   @override
-  String get signupCatchCopy =>
-      'Join us among the elite who master time.\nLet\'s AWAKE!';
+  String get signupCatchCopy => 'Welcome to AWAKE.\nLet\'s get started.';
 }

@@ -51,7 +51,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get signIn => 'ログイン';
 
   @override
-  String get loginCatchCopy => '遅刻するものには汚名を。\n間に合うものには称号を。';
+  String get loginCatchCopy => '遅刻するものには汚名を\n間に合うものには称号を';
 
   @override
   String get emailAddress => 'メールアドレス';
@@ -66,5 +66,5 @@ class AppLocalizationsJa extends AppLocalizations {
   String get signupTitle => 'アカウント作成';
 
   @override
-  String get signupCatchCopy => '時間を制する仲間たちへようこそ。\nAWAKEを始めましょう！';
+  String get signupCatchCopy => 'ようこそAWAKEへ。\nさっそく始めましょう';
 }
