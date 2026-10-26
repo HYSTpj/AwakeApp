@@ -91,7 +91,7 @@ BEGIN
     INSERT INTO public.profiles (id, nickname, avatar_url, sleep_past_count, late_count)
     VALUES (
         NEW.id,
-        COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data->>'nickname'), ''), 'No Name'),
+        COALESCE(NULLIF(LEFT(TRIM(NEW.raw_user_meta_data->>'nickname'), 30), ''), 'No Name'),
         NEW.raw_user_meta_data->>'avatar_url',
         0, 0
     )
@@ -109,7 +109,7 @@ CREATE TRIGGER on_auth_user_created
 INSERT INTO public.profiles (id, nickname, avatar_url, sleep_past_count, late_count)
 SELECT 
     id,
-    COALESCE(NULLIF(TRIM(raw_user_meta_data->>'nickname'), ''), 'No Name'),
+    COALESCE(NULLIF(LEFT(TRIM(raw_user_meta_data->>'nickname'), 30), ''), 'No Name'),
     raw_user_meta_data->>'avatar_url',
     0,
     0

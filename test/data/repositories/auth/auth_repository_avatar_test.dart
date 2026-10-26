@@ -154,7 +154,7 @@ void main() {
           ),
         ).thenThrow(const StorageException('Upload failed'));
 
-        expect(
+        await expectLater(
           () => repository.updateAvatar(File('dummy.jpg')),
           throwsA(isA<StorageException>()),
         );
