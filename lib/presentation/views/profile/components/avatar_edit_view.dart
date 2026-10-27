@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../style/app_color.dart';
 import '../../../viewmodels/auth_view_model.dart';
 
@@ -21,6 +22,7 @@ class _AvatarEditViewState extends State<AvatarEditView> {
 
   Future<void> _pickAndUploadImage() async {
     final authViewModel = context.read<AuthViewModel>();
+    final l10n = AppLocalizations.of(context)!;
     if (authViewModel.state.isLoading) return;
 
     final XFile? pickedFile;
@@ -35,14 +37,18 @@ class _AvatarEditViewState extends State<AvatarEditView> {
       if (!mounted) return;
       // 画像ピッカーのプラットフォームエラーなど
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('画像の選択に失敗しました: ${e.message ?? '権限を確認してください'}')),
+        SnackBar(
+          content: Text(
+            '${l10n.avatarPickFailure}: ${e.message ?? l10n.avatarPermissionHint}',
+          ),
+        ),
       );
       return;
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('画像の取得中に予期せぬエラーが発生しました')));
+      ).showSnackBar(SnackBar(content: Text(l10n.avatarUnexpectedFailure)));
       return;
     }
 
@@ -57,9 +63,10 @@ class _AvatarEditViewState extends State<AvatarEditView> {
     if (success) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('プロフィール画像を変更しました')));
+      ).showSnackBar(SnackBar(content: Text(l10n.avatarUpdateSuccess)));
     } else {
-      final errorMsg = authViewModel.state.errorMessage ?? '画像の更新に失敗しました';
+      final errorMsg =
+          authViewModel.state.errorMessage ?? l10n.avatarUpdateFailure;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(errorMsg)));

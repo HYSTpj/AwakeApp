@@ -159,6 +159,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editPasswordSubmit => 'Change password';
 
   @override
+  String get avatarPickFailure => 'Failed to select an image';
+
+  @override
+  String get avatarPermissionHint => 'Please check your permissions';
+
+  @override
+  String get avatarUnexpectedFailure =>
+      'An unexpected error occurred while getting the image';
+
+  @override
+  String get avatarUpdateSuccess => 'Profile image changed';
+
+  @override
+  String get avatarUpdateFailure => 'Failed to update the image';
+
+  @override
   String profileSubPagePreparing(String title) {
     return '$title is currently under construction';
   }

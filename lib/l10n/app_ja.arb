@@ -33,7 +33,7 @@
   "editUsernameRequired": "ユーザー名を入力してください",
   "editUsernameTooLong": "ユーザー名は30文字以内で入力してください",
   "editUsernameSave": "変更を保存",
-  
+
   "editPasswordSuccess": "パスワードを変更しました",
   "editPasswordFailure": "パスワードの変更に失敗しました",
   "editPasswordDescription": "セキュリティ保護のため、現在のパスワードと新しいパスワードを入力してください。",
@@ -50,6 +50,12 @@
   "editPasswordConfirmRequired": "確認用パスワードを入力してください",
   "editPasswordMismatch": "新しいパスワードと一致しません",
   "editPasswordSubmit": "パスワードを変更する",
+
+  "avatarPickFailure": "画像の選択に失敗しました",
+  "avatarPermissionHint": "権限を確認してください",
+  "avatarUnexpectedFailure": "画像の取得中に予期せぬエラーが発生しました",
+  "avatarUpdateSuccess": "プロフィール画像を変更しました",
+  "avatarUpdateFailure": "画像の更新に失敗しました",
 
   "profileSubPagePreparing": "{title} は現在準備中です",
   "@profileSubPagePreparing": {

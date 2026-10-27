@@ -386,6 +386,36 @@ abstract class AppLocalizations {
   /// **'Change password'**
   String get editPasswordSubmit;
 
+  /// No description provided for @avatarPickFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to select an image'**
+  String get avatarPickFailure;
+
+  /// No description provided for @avatarPermissionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your permissions'**
+  String get avatarPermissionHint;
+
+  /// No description provided for @avatarUnexpectedFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred while getting the image'**
+  String get avatarUnexpectedFailure;
+
+  /// No description provided for @avatarUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile image changed'**
+  String get avatarUpdateSuccess;
+
+  /// No description provided for @avatarUpdateFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update the image'**
+  String get avatarUpdateFailure;
+
   /// Message shown on profile setting pages that are not implemented yet.
   ///
   /// In en, this message translates to:

@@ -155,6 +155,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editPasswordSubmit => 'パスワードを変更する';
 
   @override
+  String get avatarPickFailure => '画像の選択に失敗しました';
+
+  @override
+  String get avatarPermissionHint => '権限を確認してください';
+
+  @override
+  String get avatarUnexpectedFailure => '画像の取得中に予期せぬエラーが発生しました';
+
+  @override
+  String get avatarUpdateSuccess => 'プロフィール画像を変更しました';
+
+  @override
+  String get avatarUpdateFailure => '画像の更新に失敗しました';
+
+  @override
   String profileSubPagePreparing(String title) {
     return '$title は現在準備中です';
   }

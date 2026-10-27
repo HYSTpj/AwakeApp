@@ -33,7 +33,7 @@
   "editUsernameRequired": "Please enter a username",
   "editUsernameTooLong": "Username must be 30 characters or fewer",
   "editUsernameSave": "Save changes",
-  
+
   "editPasswordSuccess": "Password changed",
   "editPasswordFailure": "Failed to change password",
   "editPasswordDescription": "For security, enter your current password and a new password.",
@@ -50,6 +50,12 @@
   "editPasswordConfirmRequired": "Please enter the password for confirmation",
   "editPasswordMismatch": "Passwords do not match",
   "editPasswordSubmit": "Change password",
+
+  "avatarPickFailure": "Failed to select an image",
+  "avatarPermissionHint": "Please check your permissions",
+  "avatarUnexpectedFailure": "An unexpected error occurred while getting the image",
+  "avatarUpdateSuccess": "Profile image changed",
+  "avatarUpdateFailure": "Failed to update the image",
 
   "profileSubPagePreparing": "{title} is currently under construction",
   "@profileSubPagePreparing": {
