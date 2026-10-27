@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/data/repositories/auth_repository.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 import 'package:flutter_application_1/models/profile.dart';
 import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/views/profile/profile_page.dart';
@@ -31,7 +32,12 @@ void main() {
   Widget createWidgetUnderTest() {
     return ChangeNotifierProvider<AuthViewModel>.value(
       value: authViewModel,
-      child: const MaterialApp(home: ProfilePage()),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('ja'),
+        home: const ProfilePage(),
+      ),
     );
   }
 

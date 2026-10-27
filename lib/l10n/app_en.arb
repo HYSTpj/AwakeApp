@@ -1,0 +1,37 @@
+{
+  "@@locale": "en",
+  "profileRetry": "Retry",
+  "profileLogout": "Log out",
+  "profileLogoutConfirmation": "Are you sure you want to log out?",
+  "profileCancel": "Cancel",
+  "profileDeleteAccountConfirmationTitle": "Confirm account deletion",
+  "profileDeleteAccountConfirmation": "Deleting your account will permanently erase your wake-up records and profile information.\n\nNote:\nIf you are the sole administrator of any groups, those groups and all events and participation records of their other members will also be deleted.\n\nAre you sure you want to delete your account?",
+  "profileDeleteAccountConfirm": "Delete permanently",
+  "profileAccountDeleted": "Account deleted",
+  "profileAccountDelete": "Delete account",
+  "profileLogoutFailed": "Failed to log out",
+  "profileAccountDeleteFailed": "Failed to delete account",
+  "profileFetchFailed": "Failed to load",
+  "profileNotSet": "Not set",
+  "profileTitle": "Profile",
+  "profileHeading": "PROFILE",
+  "profileDescription": "View your profile information",
+  "profileUsernameLabel": "USER NAME",
+  "profileChangeUsername": "Change username",
+  "profileChangePassword": "Change password",
+  "profileNotificationSettings": "Notification settings",
+  "profileTermsOfUse": "Terms of use",
+  "profilePrivacyPolicy": "Privacy policy",
+  "profileAnnouncements": "Announcements",
+  "profileLicenses": "Licenses",
+  "profileContact": "Contact us",
+  "profileSubPagePreparing": "{title} is currently under construction",
+  "@profileSubPagePreparing": {
+    "description": "Message shown on profile setting pages that are not implemented yet.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "@@locale": "ja",
+  "profileRetry": "再試行",
+  "profileLogout": "ログアウト",
+  "profileLogoutConfirmation": "ログアウトしてもよろしいですか？",
+  "profileCancel": "キャンセル",
+  "profileDeleteAccountConfirmationTitle": "アカウント削除の確認",
+  "profileDeleteAccountConfirmation": "アカウントを削除すると、これまでの起床記録やプロフィール情報はすべて消去され、復元できません。\n\n【ご注意】\nあなたが「唯一の管理者」となっているグループが存在する場合、そのグループおよび他のメンバーのイベント・参加記録もすべて一緒に削除されます。\n\n本当にアカウントを削除しますか？",
+  "profileDeleteAccountConfirm": "完全に削除する",
+  "profileAccountDeleted": "アカウントを削除しました",
+  "profileAccountDelete": "アカウント削除",
+  "profileLogoutFailed": "ログアウトに失敗しました",
+  "profileAccountDeleteFailed": "アカウントの削除に失敗しました",
+  "profileFetchFailed": "取得失敗",
+  "profileNotSet": "未設定",
+  "profileTitle": "プロフィール",
+  "profileHeading": "プロフィール",
+  "profileDescription": "プロフィール情報を確認できます",
+  "profileUsernameLabel": "ユーザー名",
+  "profileChangeUsername": "ユーザー名変更",
+  "profileChangePassword": "パスワード変更",
+  "profileNotificationSettings": "通知設定",
+  "profileTermsOfUse": "利用規約",
+  "profilePrivacyPolicy": "プライバシーポリシー",
+  "profileAnnouncements": "お知らせ",
+  "profileLicenses": "ライセンス",
+  "profileContact": "お問い合わせ",
+  "profileSubPagePreparing": "{title} は現在準備中です",
+  "@profileSubPagePreparing": {
+    "description": "未実装のプロフィール設定画面に表示するメッセージです。",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
+}

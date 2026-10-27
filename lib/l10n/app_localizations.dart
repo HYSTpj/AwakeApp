@@ -97,6 +97,162 @@ abstract class AppLocalizations {
     Locale('en'),
     Locale('ja'),
   ];
+
+  /// No description provided for @profileRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get profileRetry;
+
+  /// No description provided for @profileLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get profileLogout;
+
+  /// No description provided for @profileLogoutConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out?'**
+  String get profileLogoutConfirmation;
+
+  /// No description provided for @profileCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get profileCancel;
+
+  /// No description provided for @profileDeleteAccountConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm account deletion'**
+  String get profileDeleteAccountConfirmationTitle;
+
+  /// No description provided for @profileDeleteAccountConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting your account will permanently erase your wake-up records and profile information.\n\nNote:\nIf you are the sole administrator of any groups, those groups and all events and participation records of their other members will also be deleted.\n\nAre you sure you want to delete your account?'**
+  String get profileDeleteAccountConfirmation;
+
+  /// No description provided for @profileDeleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get profileDeleteAccountConfirm;
+
+  /// No description provided for @profileAccountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get profileAccountDeleted;
+
+  /// No description provided for @profileAccountDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get profileAccountDelete;
+
+  /// No description provided for @profileLogoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to log out'**
+  String get profileLogoutFailed;
+
+  /// No description provided for @profileAccountDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account'**
+  String get profileAccountDeleteFailed;
+
+  /// No description provided for @profileFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load'**
+  String get profileFetchFailed;
+
+  /// No description provided for @profileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profileNotSet;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'PROFILE'**
+  String get profileHeading;
+
+  /// No description provided for @profileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View your profile information'**
+  String get profileDescription;
+
+  /// No description provided for @profileUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'USER NAME'**
+  String get profileUsernameLabel;
+
+  /// No description provided for @profileChangeUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Change username'**
+  String get profileChangeUsername;
+
+  /// No description provided for @profileChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get profileChangePassword;
+
+  /// No description provided for @profileNotificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings'**
+  String get profileNotificationSettings;
+
+  /// No description provided for @profileTermsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get profileTermsOfUse;
+
+  /// No description provided for @profilePrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get profilePrivacyPolicy;
+
+  /// No description provided for @profileAnnouncements.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcements'**
+  String get profileAnnouncements;
+
+  /// No description provided for @profileLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get profileLicenses;
+
+  /// No description provided for @profileContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us'**
+  String get profileContact;
+
+  /// Message shown on profile setting pages that are not implemented yet.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is currently under construction'**
+  String profileSubPagePreparing(String title);
 }
 
 class _AppLocalizationsDelegate

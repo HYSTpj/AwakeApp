@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -30,6 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadProfile({bool forceRefresh = false}) async {
     final vm = context.read<AuthViewModel>();
+    final l10n = AppLocalizations.of(context)!;
     await vm.loadCurrentProfile(forceRefresh: forceRefresh);
 
     if (!mounted) return;
@@ -38,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
         SnackBar(
           content: Text(vm.state.profileErrorMessage!),
           action: SnackBarAction(
-            label: '再試行',
+            label: l10n.profileRetry,
             textColor: AppColors.orange,
             onPressed: () => _loadProfile(forceRefresh: true),
           ),
@@ -60,6 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
     BuildContext context,
     AuthViewModel viewModel,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final shouldSignOut = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -68,11 +71,11 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: AppColors.border, width: 2),
         ),
-        title: const Text(
-          'ログアウト',
+        title: Text(
+          l10n.profileLogout,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        content: const Text('ログアウトしてもよろしいですか？'),
+        content: Text(l10n.profileLogoutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -82,7 +85,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     AppColors.orange.withValues(alpha: 0.2),
                   ),
                 ),
-            child: const Text('キャンセル'),
+            child: Text(l10n.profileCancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -100,8 +103,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     Colors.black.withValues(alpha: 0.1),
                   ),
                 ),
-            child: const Text(
-              'ログアウト',
+            child: Text(
+              l10n.profileLogout,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -122,7 +125,9 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.state.authErrorMessage ?? 'ログアウトに失敗しました'),
+          content: Text(
+            viewModel.state.authErrorMessage ?? l10n.profileLogoutFailed,
+          ),
         ),
       );
     }
@@ -133,6 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
     BuildContext context,
     AuthViewModel viewModel,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final shouldDelete = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -142,26 +148,23 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: AppColors.border, width: 2),
         ),
-        title: const Text(
-          'アカウント削除の確認',
+        title: Text(
+          l10n.profileDeleteAccountConfirmationTitle,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
             color: Colors.red,
           ),
         ),
-        content: const Text(
-          'アカウントを削除すると、これまでの起床記録やプロフィール情報はすべて消去され、復元できません。\n\n'
-          '【ご注意】\n'
-          'あなたが「唯一の管理者」となっているグループが存在する場合、そのグループおよび他のメンバーのイベント・参加記録もすべて一緒に削除されます。\n\n'
-          '本当にアカウントを削除しますか？',
+        content: Text(
+          l10n.profileDeleteAccountConfirmation,
           style: TextStyle(height: 1.5, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
             style: TextButton.styleFrom(foregroundColor: Colors.black54),
-            child: const Text('キャンセル'),
+            child: Text(l10n.profileCancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -174,8 +177,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 side: const BorderSide(color: AppColors.border, width: 1.5),
               ),
             ),
-            child: const Text(
-              '完全に削除する',
+            child: Text(
+              l10n.profileDeleteAccountConfirm,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -190,8 +193,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('アカウントを削除しました'),
+        SnackBar(
+          content: Text(l10n.profileAccountDeleted),
           duration: Duration(seconds: 4),
         ),
       );
@@ -202,7 +205,9 @@ class _ProfilePageState extends State<ProfilePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.state.authErrorMessage ?? 'アカウントの削除に失敗しました'),
+          content: Text(
+            viewModel.state.authErrorMessage ?? l10n.profileAccountDeleteFailed,
+          ),
         ),
       );
     }
@@ -210,6 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final viewModel = context.watch<AuthViewModel>();
     final state = viewModel.state;
     final profile = state.user;
@@ -223,13 +229,13 @@ class _ProfilePageState extends State<ProfilePage> {
       displayName = '';
       nameColor = Colors.black;
     } else if (state.profileErrorMessage != null) {
-      displayName = '取得失敗';
+      displayName = l10n.profileFetchFailed;
       nameColor = Colors.red;
     } else if (profile != null && profile.nickname.isNotEmpty) {
       displayName = profile.nickname;
       nameColor = Colors.black;
     } else {
-      displayName = '未設定';
+      displayName = l10n.profileNotSet;
       nameColor = Colors.black54;
     }
 
@@ -248,8 +254,8 @@ class _ProfilePageState extends State<ProfilePage> {
             foregroundColor: Colors.black,
             elevation: 0,
             centerTitle: true,
-            title: const Text(
-              'プロフィール',
+            title: Text(
+              l10n.profileTitle,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             leadingWidth: 56,
@@ -271,8 +277,8 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 const SizedBox(height: 32),
 
-                const Text(
-                  'PROFILE',
+                Text(
+                  l10n.profileHeading,
                   style: TextStyle(
                     color: Color(0xFF0F172A),
                     fontSize: 32,
@@ -282,8 +288,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const SizedBox(height: 12),
 
-                const Text(
-                  'View your profile information',
+                Text(
+                  l10n.profileDescription,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Colors.black87),
                 ),
@@ -294,10 +300,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 const SizedBox(height: 32),
 
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'USER NAME',
+                    l10n.profileUsernameLabel,
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 12,
@@ -362,7 +368,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildCardGroup([
                   _buildListTile(
                     icon: Icons.person_outline,
-                    title: 'ユーザー名変更',
+                    title: l10n.profileChangeUsername,
                     onTap: isAnyLoading
                         ? () {}
                         : () => Navigator.push(
@@ -380,7 +386,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   _buildListTile(
                     icon: Icons.lock_outline,
-                    title: 'パスワード変更',
+                    title: l10n.profileChangePassword,
                     onTap: isAnyLoading
                         ? () {}
                         : () => Navigator.push(
@@ -398,8 +404,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildCardGroup([
                   _buildListTile(
                     icon: Icons.notifications_outlined,
-                    title: '通知設定',
-                    onTap: () => _navigateToSubPage(context, '通知設定'),
+                    title: l10n.profileNotificationSettings,
+                    onTap: () => _navigateToSubPage(
+                      context,
+                      l10n.profileNotificationSettings,
+                    ),
                   ),
                 ]),
 
@@ -407,8 +416,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 _buildCardGroup([
                   _buildListTile(
-                    title: '利用規約',
-                    onTap: () => _navigateToSubPage(context, '利用規約'),
+                    title: l10n.profileTermsOfUse,
+                    onTap: () =>
+                        _navigateToSubPage(context, l10n.profileTermsOfUse),
                   ),
                   const Divider(
                     height: 1,
@@ -416,8 +426,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Color(0xFFE2E8F0),
                   ),
                   _buildListTile(
-                    title: 'プライバシーポリシー',
-                    onTap: () => _navigateToSubPage(context, 'プライバシーポリシー'),
+                    title: l10n.profilePrivacyPolicy,
+                    onTap: () =>
+                        _navigateToSubPage(context, l10n.profilePrivacyPolicy),
                   ),
                   const Divider(
                     height: 1,
@@ -425,8 +436,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Color(0xFFE2E8F0),
                   ),
                   _buildListTile(
-                    title: 'お知らせ',
-                    onTap: () => _navigateToSubPage(context, 'お知らせ'),
+                    title: l10n.profileAnnouncements,
+                    onTap: () =>
+                        _navigateToSubPage(context, l10n.profileAnnouncements),
                   ),
                   const Divider(
                     height: 1,
@@ -434,8 +446,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Color(0xFFE2E8F0),
                   ),
                   _buildListTile(
-                    title: 'ライセンス',
-                    onTap: () => _navigateToSubPage(context, 'ライセンス'),
+                    title: l10n.profileLicenses,
+                    onTap: () =>
+                        _navigateToSubPage(context, l10n.profileLicenses),
                   ),
                   const Divider(
                     height: 1,
@@ -443,8 +456,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Color(0xFFE2E8F0),
                   ),
                   _buildListTile(
-                    title: 'お問い合わせ',
-                    onTap: () => _navigateToSubPage(context, 'お問い合わせ'),
+                    title: l10n.profileContact,
+                    onTap: () =>
+                        _navigateToSubPage(context, l10n.profileContact),
                   ),
                 ]),
 
@@ -480,8 +494,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text(
-                            'ログアウト',
+                        : Text(
+                            l10n.profileLogout,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
@@ -515,8 +529,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: Colors.red,
                             ),
                           )
-                        : const Text(
-                            'アカウント削除',
+                        : Text(
+                            l10n.profileAccountDelete,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
@@ -648,7 +662,7 @@ class _ProfileSubPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              '$title は現在準備中です',
+              AppLocalizations.of(context)!.profileSubPagePreparing(title),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
