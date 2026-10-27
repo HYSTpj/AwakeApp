@@ -501,7 +501,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MAPS_API_KEY = "$(API_KEY)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterApplication1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -688,7 +687,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MAPS_API_KEY = "$(API_KEY)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterApplication1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -713,7 +711,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MAPS_API_KEY = "$(API_KEY)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterApplication1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
