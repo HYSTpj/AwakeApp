@@ -107,6 +107,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editUsernameSave => 'Save changes';
 
   @override
+  String get editPasswordSuccess => 'Password changed';
+
+  @override
+  String get editPasswordFailure => 'Failed to change password';
+
+  @override
+  String get editPasswordDescription =>
+      'For security, enter your current password and a new password.';
+
+  @override
+  String get editPasswordCurrentLabel => 'CURRENT PASSWORD';
+
+  @override
+  String get editPasswordCurrentHint => 'Current password';
+
+  @override
+  String get editPasswordCurrentRequired =>
+      'Please enter your current password';
+
+  @override
+  String get editPasswordNewLabel => 'NEW PASSWORD';
+
+  @override
+  String get editPasswordNewHint => 'New password (6 or more characters)';
+
+  @override
+  String get editPasswordNewRequired => 'Please enter a new password';
+
+  @override
+  String get editPasswordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get editPasswordDifferentRequired =>
+      'Please enter a password different from your current password';
+
+  @override
+  String get editPasswordConfirmLabel => 'CONFIRM PASSWORD';
+
+  @override
+  String get editPasswordConfirmHint => 'Re-enter new password';
+
+  @override
+  String get editPasswordConfirmRequired =>
+      'Please enter the password for confirmation';
+
+  @override
+  String get editPasswordMismatch => 'Passwords do not match';
+
+  @override
+  String get editPasswordSubmit => 'Change password';
+
+  @override
   String profileSubPagePreparing(String title) {
     return '$title is currently under construction';
   }

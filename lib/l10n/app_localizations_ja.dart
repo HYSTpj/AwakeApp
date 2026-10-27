@@ -106,6 +106,55 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editUsernameSave => '変更を保存';
 
   @override
+  String get editPasswordSuccess => 'パスワードを変更しました';
+
+  @override
+  String get editPasswordFailure => 'パスワードの変更に失敗しました';
+
+  @override
+  String get editPasswordDescription =>
+      'セキュリティ保護のため、現在のパスワードと新しいパスワードを入力してください。';
+
+  @override
+  String get editPasswordCurrentLabel => '現在のパスワード';
+
+  @override
+  String get editPasswordCurrentHint => '現在のパスワード';
+
+  @override
+  String get editPasswordCurrentRequired => '現在のパスワードを入力してください';
+
+  @override
+  String get editPasswordNewLabel => '新しいパスワード';
+
+  @override
+  String get editPasswordNewHint => '新しいパスワード（6文字以上）';
+
+  @override
+  String get editPasswordNewRequired => '新しいパスワードを入力してください';
+
+  @override
+  String get editPasswordTooShort => 'パスワードは6文字以上で入力してください';
+
+  @override
+  String get editPasswordDifferentRequired => '現在のパスワードとは異なるパスワードを入力してください';
+
+  @override
+  String get editPasswordConfirmLabel => '確認用パスワード';
+
+  @override
+  String get editPasswordConfirmHint => '新しいパスワード（再入力）';
+
+  @override
+  String get editPasswordConfirmRequired => '確認用パスワードを入力してください';
+
+  @override
+  String get editPasswordMismatch => '新しいパスワードと一致しません';
+
+  @override
+  String get editPasswordSubmit => 'パスワードを変更する';
+
+  @override
   String profileSubPagePreparing(String title) {
     return '$title は現在準備中です';
   }

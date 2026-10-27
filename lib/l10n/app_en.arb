@@ -34,6 +34,23 @@
   "editUsernameTooLong": "Username must be 30 characters or fewer",
   "editUsernameSave": "Save changes",
   
+  "editPasswordSuccess": "Password changed",
+  "editPasswordFailure": "Failed to change password",
+  "editPasswordDescription": "For security, enter your current password and a new password.",
+  "editPasswordCurrentLabel": "CURRENT PASSWORD",
+  "editPasswordCurrentHint": "Current password",
+  "editPasswordCurrentRequired": "Please enter your current password",
+  "editPasswordNewLabel": "NEW PASSWORD",
+  "editPasswordNewHint": "New password (6 or more characters)",
+  "editPasswordNewRequired": "Please enter a new password",
+  "editPasswordTooShort": "Password must be at least 6 characters",
+  "editPasswordDifferentRequired": "Please enter a password different from your current password",
+  "editPasswordConfirmLabel": "CONFIRM PASSWORD",
+  "editPasswordConfirmHint": "Re-enter new password",
+  "editPasswordConfirmRequired": "Please enter the password for confirmation",
+  "editPasswordMismatch": "Passwords do not match",
+  "editPasswordSubmit": "Change password",
+
   "profileSubPagePreparing": "{title} is currently under construction",
   "@profileSubPagePreparing": {
     "description": "Message shown on profile setting pages that are not implemented yet.",

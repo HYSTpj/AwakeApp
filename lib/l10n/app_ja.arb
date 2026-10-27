@@ -34,6 +34,23 @@
   "editUsernameTooLong": "ユーザー名は30文字以内で入力してください",
   "editUsernameSave": "変更を保存",
   
+  "editPasswordSuccess": "パスワードを変更しました",
+  "editPasswordFailure": "パスワードの変更に失敗しました",
+  "editPasswordDescription": "セキュリティ保護のため、現在のパスワードと新しいパスワードを入力してください。",
+  "editPasswordCurrentLabel": "現在のパスワード",
+  "editPasswordCurrentHint": "現在のパスワード",
+  "editPasswordCurrentRequired": "現在のパスワードを入力してください",
+  "editPasswordNewLabel": "新しいパスワード",
+  "editPasswordNewHint": "新しいパスワード（6文字以上）",
+  "editPasswordNewRequired": "新しいパスワードを入力してください",
+  "editPasswordTooShort": "パスワードは6文字以上で入力してください",
+  "editPasswordDifferentRequired": "現在のパスワードとは異なるパスワードを入力してください",
+  "editPasswordConfirmLabel": "確認用パスワード",
+  "editPasswordConfirmHint": "新しいパスワード（再入力）",
+  "editPasswordConfirmRequired": "確認用パスワードを入力してください",
+  "editPasswordMismatch": "新しいパスワードと一致しません",
+  "editPasswordSubmit": "パスワードを変更する",
+
   "profileSubPagePreparing": "{title} は現在準備中です",
   "@profileSubPagePreparing": {
     "description": "未実装のプロフィール設定画面に表示するメッセージです。",

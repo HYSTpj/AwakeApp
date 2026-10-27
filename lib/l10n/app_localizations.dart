@@ -290,6 +290,102 @@ abstract class AppLocalizations {
   /// **'Save changes'**
   String get editUsernameSave;
 
+  /// No description provided for @editPasswordSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed'**
+  String get editPasswordSuccess;
+
+  /// No description provided for @editPasswordFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change password'**
+  String get editPasswordFailure;
+
+  /// No description provided for @editPasswordDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For security, enter your current password and a new password.'**
+  String get editPasswordDescription;
+
+  /// No description provided for @editPasswordCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT PASSWORD'**
+  String get editPasswordCurrentLabel;
+
+  /// No description provided for @editPasswordCurrentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get editPasswordCurrentHint;
+
+  /// No description provided for @editPasswordCurrentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your current password'**
+  String get editPasswordCurrentRequired;
+
+  /// No description provided for @editPasswordNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW PASSWORD'**
+  String get editPasswordNewLabel;
+
+  /// No description provided for @editPasswordNewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New password (6 or more characters)'**
+  String get editPasswordNewHint;
+
+  /// No description provided for @editPasswordNewRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a new password'**
+  String get editPasswordNewRequired;
+
+  /// No description provided for @editPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get editPasswordTooShort;
+
+  /// No description provided for @editPasswordDifferentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a password different from your current password'**
+  String get editPasswordDifferentRequired;
+
+  /// No description provided for @editPasswordConfirmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM PASSWORD'**
+  String get editPasswordConfirmLabel;
+
+  /// No description provided for @editPasswordConfirmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter new password'**
+  String get editPasswordConfirmHint;
+
+  /// No description provided for @editPasswordConfirmRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the password for confirmation'**
+  String get editPasswordConfirmRequired;
+
+  /// No description provided for @editPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get editPasswordMismatch;
+
+  /// No description provided for @editPasswordSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get editPasswordSubmit;
+
   /// Message shown on profile setting pages that are not implemented yet.
   ///
   /// In en, this message translates to:
