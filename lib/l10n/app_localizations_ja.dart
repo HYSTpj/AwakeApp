@@ -85,6 +85,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileContact => 'お問い合わせ';
 
   @override
+  String get editUsernameSuccess => 'ユーザー名を変更しました';
+
+  @override
+  String get editUsernameFailure => '変更に失敗しました';
+
+  @override
+  String get editUsernameLabel => '新しいユーザー名';
+
+  @override
+  String get editUsernameHint => 'ユーザー名を入力';
+
+  @override
+  String get editUsernameRequired => 'ユーザー名を入力してください';
+
+  @override
+  String get editUsernameTooLong => 'ユーザー名は30文字以内で入力してください';
+
+  @override
+  String get editUsernameSave => '変更を保存';
+
+  @override
   String profileSubPagePreparing(String title) {
     return '$title は現在準備中です';
   }

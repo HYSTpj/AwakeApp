@@ -54,7 +54,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('TestUser'), findsOneWidget);
-      expect(find.text('PROFILE'), findsOneWidget);
+      expect(find.text('プロフィール'), findsNWidgets(2));
       expect(find.text('ユーザー名変更'), findsOneWidget);
       expect(find.text('パスワード変更'), findsOneWidget);
     });

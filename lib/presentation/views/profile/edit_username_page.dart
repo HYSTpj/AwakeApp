@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -36,6 +37,7 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
 
     final newNickname = _controller.text.trim();
     final viewModel = context.read<AuthViewModel>();
+    final l10n = AppLocalizations.of(context)!;
 
     final success = await viewModel.updateNickname(newNickname);
 
@@ -44,12 +46,14 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
     if (success) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('ユーザー名を変更しました')));
+      ).showSnackBar(SnackBar(content: Text(l10n.editUsernameSuccess)));
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.state.authErrorMessage ?? '変更に失敗しました'),
+          content: Text(
+            viewModel.state.authErrorMessage ?? l10n.editUsernameFailure,
+          ),
         ),
       );
     }
@@ -57,6 +61,7 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final viewModel = context.watch<AuthViewModel>();
     final isLoading = viewModel.state.isAuthActionLoading;
 
@@ -75,8 +80,8 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
             foregroundColor: Colors.black,
             elevation: 0,
             centerTitle: true,
-            title: const Text(
-              'ユーザー名変更',
+            title: Text(
+              l10n.profileChangeUsername,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             leadingWidth: 56,
@@ -94,8 +99,8 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'NEW USER NAME',
+              Text(
+                l10n.editUsernameLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 12,
@@ -108,7 +113,7 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
                 controller: _controller,
                 enabled: !isLoading,
                 decoration: InputDecoration(
-                  hintText: 'ユーザー名を入力',
+                  hintText: l10n.editUsernameHint,
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
@@ -143,10 +148,10 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'ユーザー名を入力してください';
+                    return l10n.editUsernameRequired;
                   }
                   if (value.trim().length > 30) {
-                    return 'ユーザー名は30文字以内で入力してください';
+                    return l10n.editUsernameTooLong;
                   }
                   return null;
                 },
@@ -177,8 +182,8 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
                             color: Colors.black,
                           ),
                         )
-                      : const Text(
-                          '変更を保存',
+                      : Text(
+                          l10n.editUsernameSave,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

@@ -25,6 +25,15 @@
   "profileAnnouncements": "お知らせ",
   "profileLicenses": "ライセンス",
   "profileContact": "お問い合わせ",
+
+  "editUsernameSuccess": "ユーザー名を変更しました",
+  "editUsernameFailure": "変更に失敗しました",
+  "editUsernameLabel": "新しいユーザー名",
+  "editUsernameHint": "ユーザー名を入力",
+  "editUsernameRequired": "ユーザー名を入力してください",
+  "editUsernameTooLong": "ユーザー名は30文字以内で入力してください",
+  "editUsernameSave": "変更を保存",
+  
   "profileSubPagePreparing": "{title} は現在準備中です",
   "@profileSubPagePreparing": {
     "description": "未実装のプロフィール設定画面に表示するメッセージです。",

@@ -25,6 +25,15 @@
   "profileAnnouncements": "Announcements",
   "profileLicenses": "Licenses",
   "profileContact": "Contact us",
+
+  "editUsernameSuccess": "Username changed",
+  "editUsernameFailure": "Failed to change username",
+  "editUsernameLabel": "NEW USER NAME",
+  "editUsernameHint": "Enter username",
+  "editUsernameRequired": "Please enter a username",
+  "editUsernameTooLong": "Username must be 30 characters or fewer",
+  "editUsernameSave": "Save changes",
+  
   "profileSubPagePreparing": "{title} is currently under construction",
   "@profileSubPagePreparing": {
     "description": "Message shown on profile setting pages that are not implemented yet.",

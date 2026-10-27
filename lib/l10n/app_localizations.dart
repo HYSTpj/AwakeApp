@@ -248,6 +248,48 @@ abstract class AppLocalizations {
   /// **'Contact us'**
   String get profileContact;
 
+  /// No description provided for @editUsernameSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Username changed'**
+  String get editUsernameSuccess;
+
+  /// No description provided for @editUsernameFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change username'**
+  String get editUsernameFailure;
+
+  /// No description provided for @editUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW USER NAME'**
+  String get editUsernameLabel;
+
+  /// No description provided for @editUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter username'**
+  String get editUsernameHint;
+
+  /// No description provided for @editUsernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a username'**
+  String get editUsernameRequired;
+
+  /// No description provided for @editUsernameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be 30 characters or fewer'**
+  String get editUsernameTooLong;
+
+  /// No description provided for @editUsernameSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editUsernameSave;
+
   /// Message shown on profile setting pages that are not implemented yet.
   ///
   /// In en, this message translates to:
