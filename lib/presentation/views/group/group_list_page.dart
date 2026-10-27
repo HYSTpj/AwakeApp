@@ -30,7 +30,9 @@ class _GroupListPageState extends State<GroupListPage> {
     super.initState();
     _viewModel = context.read<GroupViewModel>();
     _viewModel.addListener(_onViewModelUpdated);
-    _initGroups();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initGroups();
+    });
   }
 
   Future<void> _initGroups() async {
