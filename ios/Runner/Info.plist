@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>MapsAPIKey</key>
+	<string>$(MAPS_API_KEY)</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>このアプリには位置情報が必要です</string>
 	<key>NSLocationAlwaysUsageDescription</key>
