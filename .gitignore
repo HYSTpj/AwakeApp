@@ -54,6 +54,7 @@ app.*.map.json
 /android/app/src/main/AndroidManifest.xml
 /ios/Runner/AppDelegate.swift
 /ios/Runner/GoogleService-Info.plist
+/ios/Flutter/Secrets.xcconfig
 
 env/*.json
 !env/env.example.json
