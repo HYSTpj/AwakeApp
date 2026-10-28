@@ -1,13 +1,9 @@
-/*
-- プロフィール設定画面（アカウント作成直後）のUIコードです。
-*/
-
 import 'package:flutter/material.dart';
 import 'login_header.dart';
-import 'loading_button_label.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../common_effects.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 Widget createAccountBody(
   BuildContext context, {
@@ -32,8 +28,8 @@ Widget createAccountBody(
               child: Column(
                 children: [
                   const SizedBox(height: 24),
-                  const Text(
-                    'CREATE PROFILE',
+                  Text(
+                    AppLocalizations.of(context)!.createProfile,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFF0F172A),
@@ -42,22 +38,19 @@ Widget createAccountBody(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const Text(
-                    'Show the world who you are. Customize your look.',
+                  Text(
+                    AppLocalizations.of(context)!.createProfileDescription,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                   ),
 
                   const SizedBox(height: 24),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'USER NAME',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
+                      AppLocalizations.of(context)!.userName,
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
+                    )
                   ),
 
                   const SizedBox(height: 8),
@@ -72,10 +65,8 @@ Widget createAccountBody(
                     ),
                     child: TextField(
                       controller: userNameController,
-                      enabled: !isLoading,
-                      maxLength: 30,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your username',
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context)!.enterUserName,
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                         counterText: '',
@@ -84,15 +75,12 @@ Widget createAccountBody(
                   ),
 
                   const SizedBox(height: 24),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'PROFILE PICTURE',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
+                      AppLocalizations.of(context)!.profilePicture, 
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
+                    )
                   ),
 
                   const SizedBox(height: 16),
@@ -138,8 +126,8 @@ Widget createAccountBody(
                           borderRadius: BorderRadius.zero,
                         ),
                       ),
-                      child: const Text(
-                        'UPLOAD IMAGE',
+                      child: Text(
+                        AppLocalizations.of(context)!.uploadImage,
                         style: TextStyle(
                           color: Colors.black,
                           fontFamily: 'Noto Sans JP',
@@ -168,10 +156,9 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: LoadingButtonLabel(
-                        isLoading: isLoading,
-                        label: 'CREATE ACCOUNT',
-                        fontWeight: FontWeight.w900,
+                      child: Text(
+                        AppLocalizations.of(context)!.createAccount, 
+                        style: TextStyle(fontWeight: FontWeight.w900)
                       ),
                     ),
                   ),
@@ -194,8 +181,8 @@ Widget createAccountBody(
                           borderRadius: BorderRadius.zero,
                         ),
                       ),
-                      child: const Text(
-                        'RETURN TO LOGIN',
+                      child: Text(
+                        AppLocalizations.of(context)!.returnToLogin,
                         style: TextStyle(
                           color: Colors.black,
                           fontFamily: 'Noto Sans JP',

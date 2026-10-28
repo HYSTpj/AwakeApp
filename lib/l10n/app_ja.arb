@@ -1,4 +1,58 @@
 {
+  "loginRequiredFields": "メールアドレスとパスワードを入力してください",
+  "loginFailed": "ログインに失敗しました",
+  "userNameRequired": "ユーザー名を入力してください",
+  "notLoggedIn": "ログインしていません",
+  "profileSaveFailed": "プロファイルの保存に失敗しました",
+
+  "createProfile": "プロフィール作成",
+  "createProfileDescription": "プロフィール画像とユーザー名を設定します",
+  "userName": "ユーザー名",
+  "enterUserName": "ユーザー名を入力",
+  "profilePicture": "プロフィール画像",
+  "uploadImage": "画像をアップロード",
+  "createAccount": "アカウント作成",
+  "returnToLogin": "ログイン画面へ戻る",
+
+  "signIn": "ログイン",
+  "loginCatchCopy": "遅刻するものには汚名を\n間に合うものには称号を",
+  "emailAddress": "メールアドレス",
+  "password": "パスワード",
+  "login": "ログイン",
+
+  "signupTitle": "アカウント作成",
+  "signupCatchCopy": "ようこそAWAKEへ。\nさっそく始めましょう",
+
+  "invitationCode": "招待コード",
+  "enterInvitationCode": "招待コードを入力してください",
+  "pleaseLogIn": "ログインしてください",
+  "joinedGroup": "グループに参加しました",
+  "errorOccurred": "エラーが発生しました",
+  "add": "参加",
+
+  "createGroup": "グループ作成",
+  "addGroup": "グループ参加",
+  "deleteGroup": "グループ脱退",
+
+  "enterGroupName": "グループ名を入力してください",
+  "createdNewGroup": "グループを作成しました",
+  "enterNewGroupName": "新しいグループ名を入力",
+  "create": "作成",
+
+  "confirmation": "確認",
+  "leaveGroupConfirmation": "本当にこのグループから脱退しますか？",
+  "cancel": "キャンセル",
+  "delete": "脱退",
+  "leftGroup": "グループから脱退しました",
+  "enterInvitationCodeToLeave": "脱退する招待コードを入力",
+  "deleteGroupAction": "脱退",
+
+  "groupName": "グループ名",
+  "copiedInvitationCode": "招待コードをコピーしました",
+  "createOrAddOrDelete": "グループ作成・参加・脱退",
+  "failedToGetRole": "権限情報を取得できませんでした",
+  "selectGroup": "グループを選択",
+  
   "@@locale": "ja",
   "profileRetry": "再試行",
   "profileLogout": "ログアウト",
