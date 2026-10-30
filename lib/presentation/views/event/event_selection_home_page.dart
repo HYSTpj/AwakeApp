@@ -78,6 +78,12 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
             selectedGroupName = currentGroup['group_name'] as String?;
             myRole = (currentGroup['role'] as int?) ?? 1;
             _eventsFuture = _fetchEvents(selectedGroupId!);
+          } else {
+            // 所属グループが0件になった場合、古い groupId が items に存在しない
+            // 状態で DropdownButton に渡ってしまうため選択状態をクリアする。
+            selectedGroupId = null;
+            selectedGroupName = null;
+            _eventsFuture = null;
           }
         });
       }
@@ -122,14 +128,33 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   }
 
   Widget _buildGroupDropdown() {
+    final decoration = BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black, width: 4),
+    );
+
+    // _myGroups の読み込みが完了する前は、selectedGroupId(widget.groupId) に
+    // 対応する DropdownMenuItem がまだ items に存在しないため、
+    // DropdownButton の "value と items の整合性" アサーションに失敗する。
+    // 読み込み完了までは Dropdown 自体を描画しない。
+    if (_isLoadingGroups) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: decoration,
+        child: const SizedBox(
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black, width: 4),
-      ),
+      decoration: decoration,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedGroupId,
