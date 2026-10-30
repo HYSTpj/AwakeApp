@@ -146,6 +146,28 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
               letterSpacing: 0.5,
             ),
           ),
+          selectedItemBuilder: (BuildContext context) {
+            return [
+              ..._myGroups.map((group) {
+                return Text(
+                  group['group_name'] ?? 'Unnamed Group',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1C1C),
+                  ),
+                );
+              }),
+              const Text(
+                'CREATE OR ADD OR DELETE',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFFF5C00),
+                ),
+              ),
+            ];
+          },
           items: [
             ..._myGroups.map((group) {
               return DropdownMenuItem<String>(
