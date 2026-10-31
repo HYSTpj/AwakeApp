@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/models/event_member_status.dart';
 import 'package:flutter_application_1/models/event_report.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
 import 'package:flutter_application_1/presentation/views/event/checkin/memberpost_page.dart';
@@ -329,8 +330,15 @@ void main() {
               onPressed: () {
                 rootNavKey.currentState!.push(
                   MaterialPageRoute(
-                    builder: (_) => ChangeNotifierProvider.value(
-                      value: viewModel,
+                    builder: (_) => MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider<AdminEventViewModel>.value(
+                          value: viewModel,
+                        ),
+                        ChangeNotifierProvider<AuthViewModel>.value(
+                          value: createMockAuthViewModel(),
+                        ),
+                      ],
                       child: const Scaffold(
                         body: MemberStatusPage(
                           groupId: 'grp_1',
