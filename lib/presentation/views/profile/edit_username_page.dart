@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../config/validation_constants.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -107,6 +108,7 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
               TextFormField(
                 controller: _controller,
                 enabled: !isLoading,
+                maxLength: ValidationConstants.nicknameMaxLength,
                 decoration: InputDecoration(
                   hintText: 'ユーザー名を入力',
                   filled: true,
@@ -145,8 +147,9 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'ユーザー名を入力してください';
                   }
-                  if (value.trim().length > 30) {
-                    return 'ユーザー名は30文字以内で入力してください';
+                  if (value.trim().length >
+                      ValidationConstants.nicknameMaxLength) {
+                    return 'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください';
                   }
                   return null;
                 },

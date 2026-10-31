@@ -50,6 +50,41 @@ void main() {
       },
     );
 
+    test('再取得に失敗しても、表示中のプロフィール情報を保持すること', () async {
+      when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+      when(
+        () => mockAuthRepository.getCurrentProfile(),
+      ).thenAnswer((_) async => testProfile);
+
+      await viewModel.loadCurrentProfile();
+
+      when(
+        () => mockAuthRepository.getCurrentProfile(),
+      ).thenThrow(Exception('Network Error'));
+
+      await viewModel.loadCurrentProfile(forceRefresh: true);
+
+      expect(viewModel.state.user, equals(testProfile));
+      expect(viewModel.state.profileErrorMessage, isNotNull);
+      expect(viewModel.state.isProfileLoading, isFalse);
+    });
+
+    test('未ログイン状態になった場合、プロフィール情報とエラーをクリアすること', () async {
+      when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+      when(
+        () => mockAuthRepository.getCurrentProfile(),
+      ).thenThrow(Exception('Network Error'));
+
+      await viewModel.loadCurrentProfile();
+      expect(viewModel.state.profileErrorMessage, isNotNull);
+
+      when(() => mockAuthRepository.currentUserId).thenReturn(null);
+      await viewModel.loadCurrentProfile(forceRefresh: true);
+
+      expect(viewModel.state.user, isNull);
+      expect(viewModel.state.profileErrorMessage, isNull);
+    });
+
     test('プロフィール取得中にログアウトが完了した場合: 遅れて返ったプロフィールは破棄され未ログイン状態が維持されること', () async {
       final profileCompleter = Completer<Profile?>();
 

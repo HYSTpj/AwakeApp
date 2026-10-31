@@ -120,6 +120,24 @@ void main() {
   });
 
   group('AuthViewModel - サインアウトテスト', () {
+    test('signOut 実行中に再度呼んでも、2回目は早期リターンすること', () async {
+      final completer = Completer<void>();
+      when(
+        () => mockAuthRepository.signOut(),
+      ).thenAnswer((_) => completer.future);
+
+      final firstCall = viewModel.signOut();
+      expect(viewModel.state.isAuthActionLoading, isTrue);
+
+      final secondResult = await viewModel.signOut();
+
+      expect(secondResult, isFalse);
+      verify(() => mockAuthRepository.signOut()).called(1);
+
+      completer.complete();
+      expect(await firstCall, isTrue);
+    });
+
     test('signOut 実行時: state が初期化されること', () async {
       when(() => mockAuthRepository.signOut()).thenAnswer((_) async {});
 

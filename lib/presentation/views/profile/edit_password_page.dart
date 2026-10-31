@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../../config/validation_constants.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -129,6 +130,7 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
                       () => _obscureCurrentPassword = !_obscureCurrentPassword,
                     );
                   },
+                  onChanged: (_) => _formKey.currentState?.validate(),
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return '現在のパスワードを入力してください';
@@ -161,8 +163,8 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
                     if (val == null || val.isEmpty) {
                       return '新しいパスワードを入力してください';
                     }
-                    if (val.length < 6) {
-                      return 'パスワードは6文字以上で入力してください';
+                    if (val.length < ValidationConstants.passwordMinLength) {
+                      return 'パスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください';
                     }
                     if (val == _currentPasswordController.text) {
                       return '現在のパスワードとは異なるパスワードを入力してください';
@@ -259,6 +261,7 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
     required VoidCallback onToggleVisibility,
     required String? Function(String?) validator,
     required bool enabled,
+    ValueChanged<String>? onChanged,
     Iterable<String>? autofillHints,
   }) {
     return TextFormField(
@@ -266,6 +269,7 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
       obscureText: obscureText,
       enabled: enabled,
       validator: validator,
+      onChanged: onChanged,
       autofillHints: autofillHints,
       keyboardType: TextInputType.visiblePassword,
       decoration: InputDecoration(

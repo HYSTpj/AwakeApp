@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../config/validation_constants.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../models/profile.dart';
 
@@ -152,8 +153,14 @@ class AuthViewModel extends ChangeNotifier {
 
     final uidAtStart = _authRepository.currentUserId;
     if (uidAtStart == null) {
-      if (_state.user != null || _state.isProfileLoading) {
-        _state = _state.copyWith(clearUser: true, isProfileLoading: false);
+      if (_state.user != null ||
+          _state.isProfileLoading ||
+          _state.profileErrorMessage != null) {
+        _state = _state.copyWith(
+          clearUser: true,
+          isProfileLoading: false,
+          clearProfileError: true,
+        );
         notifyListeners();
       }
       return;
@@ -198,7 +205,6 @@ class AuthViewModel extends ChangeNotifier {
       }
 
       _state = _state.copyWith(
-        clearUser: true,
         isProfileLoading: false,
         profileErrorMessage: 'プロフィールの取得に失敗しました。時間をおいて再試行してください',
       );
@@ -215,9 +221,11 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return null;
     }
-    if (trimmed.length > 30) {
+    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
       _state = _state.copyWith(
-        outcome: const AuthFailed('ユーザー名は30文字以内で入力してください'),
+        outcome: const AuthFailed(
+          'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
+        ),
       );
       notifyListeners();
       return null;
@@ -328,9 +336,11 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < ValidationConstants.passwordMinLength) {
       _state = _state.copyWith(
-        outcome: const AuthFailed('新しいパスワードは6文字以上で入力してください'),
+        outcome: const AuthFailed(
+          '新しいパスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください',
+        ),
       );
       notifyListeners();
       return false;
@@ -411,6 +421,9 @@ class AuthViewModel extends ChangeNotifier {
 
 /// エラーメッセージをユーザー向け日本語に変換
 String _toUserMessage(Object error) {
+  if (error is StorageException) {
+    return '画像の更新に失敗しました。画像形式やサイズを確認してください';
+  }
   if (error is AuthException) {
     switch (error.message) {
       case 'Invalid login credentials':

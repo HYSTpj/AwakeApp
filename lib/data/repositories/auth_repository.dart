@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../config/validation_constants.dart';
 import '../../models/profile.dart';
 
 // サインアップ後、メール確認が完了するまでセッションが発行されない状態を示す例外
@@ -180,8 +182,10 @@ class SupabaseAuthRepository implements AuthRepository {
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
     }
-    if (trimmed.length > 30) {
-      throw ArgumentError('ユーザー名は30文字以内で入力してください');
+    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
+      throw ArgumentError(
+        'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
+      );
     }
 
     String? avatarUrl;
@@ -263,8 +267,10 @@ class SupabaseAuthRepository implements AuthRepository {
     if (trimmed.isEmpty) {
       throw ArgumentError('ユーザー名を入力してください');
     }
-    if (trimmed.length > 30) {
-      throw ArgumentError('ユーザー名は30文字以内で入力してください');
+    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
+      throw ArgumentError(
+        'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
+      );
     }
 
     final response = await _client
@@ -387,8 +393,10 @@ class SupabaseAuthRepository implements AuthRepository {
     if (newPassword.isEmpty) {
       throw ArgumentError('新しいパスワードを入力してください');
     }
-    if (newPassword.length < 6) {
-      throw ArgumentError('パスワードは6文字以上で入力してください');
+    if (newPassword.length < ValidationConstants.passwordMinLength) {
+      throw ArgumentError(
+        'パスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください',
+      );
     }
     if (newPassword == currentPassword) {
       throw ArgumentError('新しいパスワードは現在のパスワードと異なるものを設定してください');

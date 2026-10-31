@@ -189,14 +189,10 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!context.mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('アカウントを削除しました'),
-          duration: Duration(seconds: 4),
-        ),
-      );
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
+        MaterialPageRoute(
+          builder: (_) => const LoginPage(message: 'アカウントを削除しました'),
+        ),
         (Route<dynamic> route) => false,
       );
     } else {
@@ -222,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (state.isProfileLoading) {
       displayName = '';
       nameColor = Colors.black;
-    } else if (state.profileErrorMessage != null) {
+    } else if (profile == null && state.profileErrorMessage != null) {
       displayName = '取得失敗';
       nameColor = Colors.red;
     } else if (profile != null && profile.nickname.isNotEmpty) {
@@ -400,53 +396,41 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icons.notifications_outlined,
                     title: '通知設定',
                     onTap: () => _navigateToSubPage(context, '通知設定'),
+                    enabled: !isAnyLoading,
                   ),
                 ]),
 
                 const SizedBox(height: 16),
 
-                _buildCardGroup([
-                  _buildListTile(
-                    title: '利用規約',
-                    onTap: () => _navigateToSubPage(context, '利用規約'),
-                  ),
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color(0xFFE2E8F0),
-                  ),
-                  _buildListTile(
-                    title: 'プライバシーポリシー',
-                    onTap: () => _navigateToSubPage(context, 'プライバシーポリシー'),
-                  ),
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color(0xFFE2E8F0),
-                  ),
-                  _buildListTile(
-                    title: 'お知らせ',
-                    onTap: () => _navigateToSubPage(context, 'お知らせ'),
-                  ),
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color(0xFFE2E8F0),
-                  ),
-                  _buildListTile(
-                    title: 'ライセンス',
-                    onTap: () => _navigateToSubPage(context, 'ライセンス'),
-                  ),
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color(0xFFE2E8F0),
-                  ),
-                  _buildListTile(
-                    title: 'お問い合わせ',
-                    onTap: () => _navigateToSubPage(context, 'お問い合わせ'),
-                  ),
-                ]),
+                _buildCardGroup(
+                  _buildSeparatedTiles([
+                    _buildListTile(
+                      title: '利用規約',
+                      onTap: () => _navigateToSubPage(context, '利用規約'),
+                      enabled: !isAnyLoading,
+                    ),
+                    _buildListTile(
+                      title: 'プライバシーポリシー',
+                      onTap: () => _navigateToSubPage(context, 'プライバシーポリシー'),
+                      enabled: !isAnyLoading,
+                    ),
+                    _buildListTile(
+                      title: 'お知らせ',
+                      onTap: () => _navigateToSubPage(context, 'お知らせ'),
+                      enabled: !isAnyLoading,
+                    ),
+                    _buildListTile(
+                      title: 'ライセンス',
+                      onTap: () => _navigateToSubPage(context, 'ライセンス'),
+                      enabled: !isAnyLoading,
+                    ),
+                    _buildListTile(
+                      title: 'お問い合わせ',
+                      onTap: () => _navigateToSubPage(context, 'お問い合わせ'),
+                      enabled: !isAnyLoading,
+                    ),
+                  ]),
+                ),
 
                 const SizedBox(height: 28),
 
@@ -548,6 +532,19 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(children: children),
       ),
     );
+  }
+
+  static List<Widget> _buildSeparatedTiles(List<Widget> tiles) {
+    final children = <Widget>[];
+    for (var index = 0; index < tiles.length; index++) {
+      if (index > 0) {
+        children.add(
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+        );
+      }
+      children.add(tiles[index]);
+    }
+    return children;
   }
 
   static Widget _buildListTile({

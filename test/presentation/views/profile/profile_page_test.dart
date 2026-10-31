@@ -105,5 +105,46 @@ void main() {
       // 再試行成功でニックネームが表示されること
       expect(find.text('TestUser'), findsOneWidget);
     });
+
+    testWidgets('ログアウト確認ダイアログをキャンセルできること', (tester) async {
+      when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+      when(
+        () => mockAuthRepository.getCurrentProfile(),
+      ).thenAnswer((_) async => testProfile);
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('ログアウト').first);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'ログアウト').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ログアウトしてもよろしいですか？'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'キャンセル'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ログアウトしてもよろしいですか？'), findsNothing);
+      verifyNever(() => mockAuthRepository.signOut());
+    });
+
+    testWidgets('ログアウト実行後にログイン画面へ遷移すること', (tester) async {
+      when(() => mockAuthRepository.currentUserId).thenReturn(testProfile.id);
+      when(
+        () => mockAuthRepository.getCurrentProfile(),
+      ).thenAnswer((_) async => testProfile);
+      when(() => mockAuthRepository.signOut()).thenAnswer((_) async {});
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('ログアウト').first);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'ログアウト').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'ログアウト').last);
+      await tester.pumpAndSettle();
+
+      verify(() => mockAuthRepository.signOut()).called(1);
+      expect(find.text('SIGN IN'), findsOneWidget);
+    });
   });
 }
