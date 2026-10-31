@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'screen/create_account_body.dart';
@@ -53,14 +54,23 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
     );
-    // 非同期処理後にウィジェットが破棄されている可能性を考慮
+    if (pickedFile == null) return;
+
+    final CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: pickedFile.path,
+      aspectRatio: const CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ),
+    );
+
+    if (croppedFile == null) return;
+
     if (!mounted) return;
 
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImage = File(pickedFile.path);
-      });
-    }
+    setState(() {
+      _pickedImage = File(croppedFile.path);
+    });
   }
 
   // アカウント作成の処理(AuthViewModel経由でプロフィールを保存)
