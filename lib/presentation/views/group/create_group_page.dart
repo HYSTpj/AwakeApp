@@ -6,6 +6,7 @@ import '../../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 /// グループ作成ページ
 class CreateGroupPage extends StatefulWidget {
@@ -50,7 +51,11 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     final name = _controller.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter group name.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.enterGroupName,
+          )
+        ),
       );
       return;
     }
@@ -60,7 +65,11 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにログインするよう表示
-        const SnackBar(content: Text('Please log in.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.pleaseLogIn
+          )
+        ),
       );
       return;
     }
@@ -71,12 +80,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Created a new group.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.createdNewGroup
+          )
+        ),
       );
       // 作成完了後は一覧まで戻る
       Navigator.pop(context, true);
     } else {
-      final errorMsg = _viewModel.state.errorMessage ?? 'An error has occurred.';
+      final errorMsg = _viewModel.state.errorMessage ?? AppLocalizations.of(context)!.errorOccurred;
       ScaffoldMessenger.of(context).showSnackBar( // スナックバーにメッセージを表示
         SnackBar(content: Text(errorMsg)),
       );
@@ -126,8 +139,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       ),
       child: TextField(
         controller: _controller,
-        decoration: const InputDecoration(
-          hintText: 'Enter new group name', // うっすら文字
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.enterGroupName, // うっすら文字
           border: InputBorder.none, // 枠線
           contentPadding: EdgeInsets.only(left: 15, top: 15), // 余白
         ),
@@ -157,8 +170,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             ),
             child: isLoading
                 ? const CircularProgressIndicator() // ローディングインジケーター
-                : const Text(
-                    'Create',
+                : Text(
+                    AppLocalizations.of(context)!.create,
                     style: TextStyle(fontSize: 24),
                   ),
           ),
