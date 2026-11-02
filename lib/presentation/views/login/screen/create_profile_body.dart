@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_header.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 Widget createAccountBody(
   BuildContext context, {
@@ -29,8 +30,8 @@ Widget createAccountBody(
                   children: [
                     const SizedBox(height: 24),
 
-                    const Text(
-                      'CREATE PROFILE',
+                    Text(
+                      AppLocalizations.of(context)!.createProfile,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF0F172A),
@@ -40,8 +41,8 @@ Widget createAccountBody(
                       ),
                     ),
 
-                    const Text(
-                      'Show the world who you are. Customize your look.',
+                    Text(
+                      AppLocalizations.of(context)!.createProfileDescription,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -51,10 +52,10 @@ Widget createAccountBody(
 
                     const SizedBox(height: 24),
 
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'USER NAME',
+                        AppLocalizations.of(context)!.userName,
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 12,
@@ -76,8 +77,8 @@ Widget createAccountBody(
                       ),
                       child: TextField(
                         controller: userNameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your username',
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context)!.enterUserName,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,
@@ -88,10 +89,10 @@ Widget createAccountBody(
 
                     const SizedBox(height: 24),
 
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'PROFILE PICTURE',
+                        AppLocalizations.of(context)!.profilePicture,
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 12,
@@ -163,8 +164,8 @@ Widget createAccountBody(
                             borderRadius: BorderRadius.zero,
                           ),
                         ),
-                        child: const Text(
-                          'UPLOAD IMAGE',
+                        child: Text(
+                          AppLocalizations.of(context)!.uploadImage,
                           style: TextStyle(
                             color: Colors.black,
                             fontFamily: 'Noto Sans JP',
@@ -203,8 +204,8 @@ Widget createAccountBody(
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'CREATE ACCOUNT',
+                        child: Text(
+                          AppLocalizations.of(context)!.createAccount,
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
                           ),
@@ -240,8 +241,8 @@ Widget createAccountBody(
                             borderRadius: BorderRadius.zero,
                           ),
                         ),
-                        child: const Text(
-                          'RETURN TO LOGIN',
+                        child: Text(
+                          AppLocalizations.of(context)!.returnToLogin,
                           style: TextStyle(
                             color: Colors.black,
                             fontFamily: 'Noto Sans JP',
