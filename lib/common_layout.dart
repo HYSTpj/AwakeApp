@@ -145,10 +145,20 @@ class _CommonLayoutState extends State<CommonLayout> {
     const double radius = 18.0;
 
     if (avatarUrl == null || avatarUrl.isEmpty) {
-      return const CircleAvatar(
-        radius: radius,
-        backgroundColor: Colors.grey,
-        child: Icon(Icons.person, color: Colors.white, size: 22),
+      return Container(
+        width: radius * 2,
+        height: radius * 2,
+        foregroundDecoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.fromBorderSide(
+            BorderSide(color: _borderColor, width: 3),
+          ),
+        ),
+        child: const CircleAvatar(
+          radius: radius,
+          backgroundColor: Colors.grey,
+          child: Icon(Icons.person, color: Colors.white, size: 22),
+        ),
       );
     }
 
@@ -158,6 +168,12 @@ class _CommonLayoutState extends State<CommonLayout> {
       decoration: const BoxDecoration(
         color: Colors.grey,
         shape: BoxShape.circle,
+      ),
+      foregroundDecoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.fromBorderSide(
+          BorderSide(color: _borderColor, width: 3),
+        ),
       ),
       child: ClipOval(
         child: Image.network(
