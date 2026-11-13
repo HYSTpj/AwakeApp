@@ -124,6 +124,7 @@ class _SetTimePageState extends State<SetTimePage> {
       eventId: widget.eventId,
       eventTitle: widget.eventTitle,
       myRole: widget.myRole,
+      arrivalTime: widget.arrivalTime,
       body: AnimatedBuilder(
         animation: _viewModel,
         builder: (context, _) {

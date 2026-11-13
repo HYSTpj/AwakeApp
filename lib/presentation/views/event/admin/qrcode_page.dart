@@ -40,6 +40,9 @@ class _QrcodePageState extends State<QrcodePage> {
       eventId: widget.eventId,
       eventTitle: widget.eventTitle,
       myRole: widget.myRole,
+      arrivalTimeDisplay: widget.arrivalTime,
+      password: widget.password,
+      qrcodeId: widget.qrcodeId,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
