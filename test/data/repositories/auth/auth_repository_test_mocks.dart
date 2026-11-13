@@ -1,0 +1,123 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class MockSupabaseClient extends Mock implements SupabaseClient {}
+
+class MockGoTrueClient extends Mock implements GoTrueClient {}
+
+class MockUser extends Mock implements User {}
+
+class MockUserResponse extends Mock implements UserResponse {}
+
+class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
+
+class MockPostgrestFilterBuilder extends Mock
+    implements PostgrestFilterBuilder<PostgrestList> {}
+
+class MockPostgrestTransformBuilder extends Mock
+    implements PostgrestTransformBuilder<PostgrestList> {}
+
+class MockSupabaseStorageClient extends Mock implements SupabaseStorageClient {}
+
+class MockStorageFileApi extends Mock implements StorageFileApi {}
+
+class FakeFile extends Fake implements File {}
+
+class FakeFileOptions extends Fake implements FileOptions {}
+
+class FakeUserAttributes extends Fake implements UserAttributes {}
+
+class FakePostgrestMapTransformBuilder extends Fake
+    implements PostgrestTransformBuilder<PostgrestMap> {
+  final Future<PostgrestMap> _future;
+
+  FakePostgrestMapTransformBuilder(PostgrestMap response)
+    : _future = Future.value(response);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(PostgrestMap value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
+}
+
+class FakePostgrestNullableMapTransformBuilder extends Fake
+    implements PostgrestTransformBuilder<PostgrestMap?> {
+  final Future<PostgrestMap?> _future;
+
+  FakePostgrestNullableMapTransformBuilder(PostgrestMap? response)
+    : _future = Future.value(response);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(PostgrestMap? value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
+}
+
+class FakePostgrestFilterBuilder extends Fake
+    implements PostgrestFilterBuilder<PostgrestList> {
+  final Future<PostgrestList> _future;
+
+  FakePostgrestFilterBuilder([PostgrestList? response])
+    : _future = Future.value(response ?? []);
+
+  // エラー用のファクトリコンストラクタを追加
+  FakePostgrestFilterBuilder.error(Object error)
+    : _future = Future<PostgrestList>.error(error);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(PostgrestList value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
+}
+
+class FakePostgrestErrorTransformBuilder extends Fake
+    implements PostgrestTransformBuilder<PostgrestMap> {
+  final Future<PostgrestMap> _future;
+
+  FakePostgrestErrorTransformBuilder(Object error)
+    : _future = Future<PostgrestMap>.error(error);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(PostgrestMap value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
+}
+
+void registerAuthRepositoryTestFallbacks() {
+  registerFallbackValue(FakeFile());
+  registerFallbackValue(const FileOptions());
+  registerFallbackValue(FakeUserAttributes());
+  registerFallbackValue(const SearchOptions());
+  registerFallbackValue('');
+}
+
+class FakePostgrestRpcBuilder extends Fake
+    implements PostgrestFilterBuilder<dynamic> {
+  final Future<dynamic> _future;
+
+  FakePostgrestRpcBuilder([dynamic response])
+    : _future = Future.value(response);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(dynamic value) onValue, {
+    Function? onError,
+  }) {
+    return _future.then(onValue, onError: onError);
+  }
+}

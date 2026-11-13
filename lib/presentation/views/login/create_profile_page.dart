@@ -44,7 +44,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
   // スナックバー表示の処理
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // 画像選択の処理
@@ -52,7 +54,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
     );
-
     if (pickedFile == null) return;
 
     final CroppedFile? croppedFile = await ImageCropper().cropImage(
@@ -65,7 +66,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
     if (croppedFile == null) return;
 
-    // CodeRabbit指摘箇所
     if (!mounted) return;
 
     setState(() {
@@ -82,6 +82,11 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     final String name = _userNameController.text.trim();
     if (name.isEmpty) {
       _showSnackBar('ユーザー名を入力してください');
+      return;
+    }
+
+    if (name.length > 30) {
+      _showSnackBar('ユーザー名は30文字以内で入力してください');
       return;
     }
 

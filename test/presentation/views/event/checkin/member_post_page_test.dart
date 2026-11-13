@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/models/event_report.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/checkin/memberpost_page.dart';
 import '../helpers/admin_event_test_helpers.dart';
 
@@ -33,15 +35,18 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MemberPostPage(
-              profile: dummyProfile,
-              report: dummyReport,
-              groupId: 'group-1',
-              eventId: 'event-1',
-              eventTitle: '大会当日',
-              myRole: 0,
+        ChangeNotifierProvider<AuthViewModel>.value(
+          value: createMockAuthViewModel(),
+          child: MaterialApp(
+            home: Scaffold(
+              body: MemberPostPage(
+                profile: dummyProfile,
+                report: dummyReport,
+                groupId: 'group-1',
+                eventId: 'event-1',
+                eventTitle: '大会当日',
+                myRole: 0,
+              ),
             ),
           ),
         ),

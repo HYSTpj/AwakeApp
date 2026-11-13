@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/models/event.dart';
 import 'package:flutter_application_1/models/profile.dart';
+import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/select_participants_page.dart';
 import '../helpers/admin_event_test_helpers.dart';
@@ -148,8 +149,13 @@ void main() {
       ).thenAnswer((_) => createCompleter.future);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<AdminEventViewModel>.value(
-          value: viewModel,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AdminEventViewModel>.value(value: viewModel),
+            ChangeNotifierProvider<AuthViewModel>.value(
+              value: createMockAuthViewModel(),
+            ),
+          ],
           child: MaterialApp(
             home: Navigator(
               onGenerateRoute: (_) => MaterialPageRoute(
