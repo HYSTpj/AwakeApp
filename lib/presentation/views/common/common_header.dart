@@ -29,7 +29,7 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
   static const Key profileButtonKey = Key('common_header_profile_button');
 
   @override
-  Size get preferredSize => const Size.fromHeight(75);
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
     final topInset = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
-      height: 75 + topInset,
+      height: 64 + topInset,
       padding: EdgeInsets.only(top: 24 + topInset, right: 10, bottom: 16),
       decoration: const BoxDecoration(
         color: _background,
@@ -49,14 +49,20 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          const _AppNameLabel(),
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: -9,
+            child: Center(child: _AppNameLabel()),
+          ),
           Positioned(
-            left: 24,
-            top: -10,
+            left: 10,
+            top: -28,
             child: _ModeSwitch(mode: mode, onChanged: onModeChanged),
           ),
           Positioned(
             right: 0,
+            top: -21,
             child: _ProfileSettingButton(
               key: profileButtonKey,
               onTap: onProfileTap,
@@ -94,8 +100,8 @@ class _ModeSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 3),
+      height: 58,
+      padding: const EdgeInsets.only(left: 7, right: 13, top: 3, bottom: 3),
       decoration: BoxDecoration(
         color: const Color(0xFF6B7280),
         borderRadius: BorderRadius.circular(10),
@@ -165,7 +171,7 @@ class _ModeSwitchButton extends StatelessWidget {
                   ),
                   const BoxShadow(color: Colors.black, offset: Offset(4, 4)),
                 ]
-              : null,
+              : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
         ),
         padding: const EdgeInsets.all(3),
         child: Center(
