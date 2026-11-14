@@ -30,7 +30,9 @@ class CommonFooter extends StatelessWidget {
   static const Color _navBorderColor = Color(0xFF334155);
 
   static const Key homeButtonKey = Key('common_footer_home_button');
-  static const Key eventCreateButtonKey = Key('common_footer_event_create_button');
+  static const Key eventCreateButtonKey = Key(
+    'common_footer_event_create_button',
+  );
   static const Key forumButtonKey = Key('common_footer_forum_button');
   static const Key rankingButtonKey = Key('common_footer_ranking_button');
   static const Key plusButtonKey = Key('common_footer_plus_button');
@@ -41,68 +43,74 @@ class CommonFooter extends StatelessWidget {
         ? 'assets/icons/common_layout/icon_forum_admin.svg'
         : 'assets/icons/common_layout/icon_forum_member.svg';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            height: 94,
-            constraints: const BoxConstraints(maxWidth: 384),
-            width: 302,
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-            decoration: BoxDecoration(
-              color: _navBackground,
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: _navBorderColor, width: 4),
+    // bottomNavigationBar はホームインジケーター分の余白をScaffoldが
+    // 自動で確保してくれないため、自前でSafeAreaに包んで被らないようにする。
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              height: 94,
+              constraints: const BoxConstraints(maxWidth: 384),
+              width: 302,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+              decoration: BoxDecoration(
+                color: _navBackground,
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: _navBorderColor, width: 4),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _FooterIconButton(
+                    key: CommonFooter.homeButtonKey,
+                    assetName: 'assets/icons/common_layout/icon_home.svg',
+                    iconWidth: 23.55,
+                    iconHeight: 18.55,
+                    onTap: onHomeTap,
+                  ),
+                  _FooterIconButton(
+                    key: CommonFooter.eventCreateButtonKey,
+                    assetName:
+                        'assets/icons/common_layout/icon_event_create.svg',
+                    boxSize: 56,
+                    iconWidth: 35,
+                    iconHeight: 35,
+                    onTap: onEventCreateTap,
+                  ),
+                  _FooterIconButton(
+                    key: CommonFooter.forumButtonKey,
+                    assetName: forumAsset,
+                    iconWidth: 21,
+                    iconHeight: mode == AppMode.admin ? 20.925 : 21,
+                    onTap: onForumTap,
+                  ),
+                  _FooterIconButton(
+                    key: CommonFooter.rankingButtonKey,
+                    assetName: 'assets/icons/common_layout/icon_crown.svg',
+                    iconWidth: 26,
+                    iconHeight: 26,
+                    onTap: onRankingTap,
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _FooterIconButton(
-                  key: CommonFooter.homeButtonKey,
-                  assetName: 'assets/icons/common_layout/icon_home.svg',
-                  iconWidth: 23.55,
-                  iconHeight: 18.55,
-                  onTap: onHomeTap,
-                ),
-                _FooterIconButton(
-                  key: CommonFooter.eventCreateButtonKey,
-                  assetName: 'assets/icons/common_layout/icon_event_create.svg',
-                  boxSize: 56,
-                  iconWidth: 35,
-                  iconHeight: 35,
-                  onTap: onEventCreateTap,
-                ),
-                _FooterIconButton(
-                  key: CommonFooter.forumButtonKey,
-                  assetName: forumAsset,
-                  iconWidth: 21,
-                  iconHeight: mode == AppMode.admin ? 20.925 : 21,
-                  onTap: onForumTap,
-                ),
-                _FooterIconButton(
-                  key: CommonFooter.rankingButtonKey,
-                  assetName: 'assets/icons/common_layout/icon_crown.svg',
-                  iconWidth: 26,
-                  iconHeight: 26,
-                  onTap: onRankingTap,
-                ),
-              ],
+            const SizedBox(width: 2),
+            _FooterIconButton(
+              key: CommonFooter.plusButtonKey,
+              assetName: 'assets/icons/common_layout/icon_plus.svg',
+              backgroundColor: const Color(0xFF4ADE80),
+              boxSize: 60,
+              iconWidth: 35,
+              iconHeight: 35,
+              onTap: onPlusTap,
             ),
-          ),
-          const SizedBox(width: 2),
-          _FooterIconButton(
-            key: CommonFooter.plusButtonKey,
-            assetName: 'assets/icons/common_layout/icon_plus.svg',
-            backgroundColor: const Color(0xFF4ADE80),
-            boxSize: 60,
-            iconWidth: 35,
-            iconHeight: 35,
-            onTap: onPlusTap,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -138,7 +146,9 @@ class _FooterIconButton extends StatelessWidget {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.black, width: 3),
-          boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
+          boxShadow: const [
+            BoxShadow(color: Colors.black, offset: Offset(4, 4)),
+          ],
         ),
         child: SvgPicture.asset(
           assetName,

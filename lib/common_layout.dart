@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'presentation/views/common/app_mode.dart';
+import 'presentation/views/common/common_header.dart';
+import 'presentation/views/common/common_footer.dart';
 import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
-import 'presentation/views/event/checkin/member_check_in_page.dart';
+import 'presentation/views/event/admin/memberstatus_page.dart';
+import 'presentation/views/event/schedule/set_time_page.dart';
 import 'presentation/views/ranking/ranking_page.dart';
 import 'presentation/views/event/event_selection_home_page.dart';
 import 'presentation/views/profile/profile_page.dart';
@@ -15,6 +18,12 @@ class CommonLayout extends StatefulWidget {
   final String? eventId;
   final String? eventTitle;
   final int? myRole;
+  // SetTimePage（メンバーのEventCreateボタン遷移先）に渡すための、そのイベントの到着目標時刻。
+  final DateTime? arrivalTime;
+  // MemberStatusPage（Homeボタン遷移先）表示用。整形済み文字列・パスコード・QRコード照合トークン。
+  final String? arrivalTimeDisplay;
+  final String? password;
+  final String? qrcodeId;
 
   const CommonLayout({
     super.key,
@@ -25,6 +34,10 @@ class CommonLayout extends StatefulWidget {
     this.eventId,
     this.eventTitle,
     this.myRole,
+    this.arrivalTime,
+    this.arrivalTimeDisplay,
+    this.password,
+    this.qrcodeId,
   });
 
 
@@ -33,221 +46,132 @@ class CommonLayout extends StatefulWidget {
 }
 
 class _CommonLayoutState extends State<CommonLayout> {
-  static const _bottomNavigationItems = <BottomNavigationBarItem>[
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.group),
-      ),
-      label: 'group',
-    ),
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.calendar_month),
-      ),
-      label: 'event',
-    ),
-    BottomNavigationBarItem(
-      icon: Padding(
-        padding: EdgeInsets.only(top: 25),
-        child: Icon(Icons.qr_code),
-      ),
-      label: 'check-in',
-    ),
-  ];
-
-  static const Color _themeColor = Colors.deepOrangeAccent;
   static const Color _backgroundColor = Color(0xFFF8F6F6);
-  static const Color _borderColor = Color(0xFF1A1C1C);
+
+  AppMode get _mode => widget.myRole == 0 ? AppMode.admin : AppMode.member;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 4.0),
-        child: Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: _borderColor, width: 4),
-            ),
-          ),
-          child: _buildAppBar(context),
-        ),
+      appBar: CommonHeader(
+        mode: _mode,
+        onModeChanged: (mode) => _onModeChanged(context, mode),
+        onProfileTap: () => _onProfilePressed(context),
       ),
       body: widget.body,
       floatingActionButton: widget.floatingActionButton,
       floatingActionButtonLocation:
           FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: _buildBottomNavigationBar(context),
-    );
-  }
-
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      leadingWidth: 100,
-      leading: _buildLeftIcons(context),
-      title: const Text(
-        'AWAKE',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      bottomNavigationBar: CommonFooter(
+        mode: _mode,
+        onHomeTap: () => _onHomeTap(context),
+        onEventCreateTap: () => _onEventCreateTap(context),
+        onForumTap: () => _onComingSoon(context),
+        onRankingTap: () => _onRankingTap(context),
+        onPlusTap: () => _onComingSoon(context),
       ),
-      centerTitle: true,
-      actions: _buildRightIcons(context),
-      backgroundColor: _themeColor,
-      foregroundColor: Colors.black,
-      elevation: 0,
-    );
-  }
-  Widget _buildLeftIcons(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.flag, color: Colors.black),
-          onPressed: () {
-            _onLeaderPressed(context);
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.schedule, color: Colors.black),
-          onPressed: () {
-            _onMemberPressed(context);
-          },
-        ),
-      ],
     );
   }
 
-  ///AppBarの右側
-  List<Widget> _buildRightIcons(BuildContext context) {
-    final client = Supabase.instance.client;
-    final currentUser = client.auth.currentUser;
-
-    if (currentUser == null) {
-      return [
-        const Padding(
-          padding: EdgeInsets.only(right: 16),
-          child: CircleAvatar(
-            backgroundColor: Colors.grey,
-            child: Icon(Icons.person, color: Colors.white),
-          ),
-        )
-      ];
+  void _onModeChanged(BuildContext context, AppMode mode) {
+    if (mode == AppMode.member) {
+      _onMemberPressed(context);
+    } else {
+      _onLeaderPressed(context);
     }
-    return [
-      Padding(
-        padding: const EdgeInsets.only(right: 16),
-        child: GestureDetector(
-          onTap: () => _onProfilePressed(context),
-          child: FutureBuilder<Map<String, dynamic>?>(
-            future: client
-                .from('profiles')
-                .select('avatar_url')
-                .eq('id', currentUser.id)
-                .maybeSingle(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting ||
-                  snapshot.hasError ||
-                  !snapshot.hasData) {
-                return const CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white),
-                );
-              }
-
-              final profileData = snapshot.data ?? {};
-              final String? avatarUrl = profileData['avatar_url'];
-
-              return CircleAvatar(
-                backgroundColor: Colors.grey,
-                backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
-                    ? NetworkImage(avatarUrl)
-                    : null,
-                child: (avatarUrl == null || avatarUrl.isEmpty)
-                    ? const Icon(Icons.person, color: Colors.white)
-                    : null,
-              );
-            },
-          ),
-        ),
-      ),
-    ];
   }
 
+  void _onHomeTap(BuildContext context) {
+    if (widget.groupId == null || widget.myRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select group.')),
+      );
+      return;
+    }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _themeColor,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: _borderColor, width: 4),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.black.withValues(alpha: 0.5),
-          items: _bottomNavigationItems,
-          onTap: (index) => _onNavigationTap(context, index),
+    if (widget.eventId == null ||
+        widget.eventTitle == null ||
+        widget.arrivalTimeDisplay == null ||
+        widget.password == null ||
+        widget.qrcodeId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select event.')),
+      );
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MemberStatusPage(
+          groupId: widget.groupId!,
+          eventId: widget.eventId!,
+          eventTitle: widget.eventTitle!,
+          myRole: widget.myRole!,
+          arrivalTime: widget.arrivalTimeDisplay!,
+          password: widget.password!,
+          qrcodeId: widget.qrcodeId!,
         ),
       ),
     );
   }
 
-  void _onNavigationTap(BuildContext context, int index) {
-    if (index != 0) {
-      if (widget.groupId == null || widget.myRole == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select group.')),
-        );
-        return;
-      }
+  void _onEventCreateTap(BuildContext context) {
+    if (widget.groupId == null || widget.myRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select group.')),
+      );
+      return;
     }
-    Widget? nextPage;
-    switch (index) {
-      case 0:
-        nextPage = GroupListPage(initialGroupId: widget.groupId);
-        break;
-      case 1:
 
-        if (widget.myRole == 0) {
-            nextPage = CreateEventPage(
-              groupId: widget.groupId!,
-              myRole: widget.myRole!
-          );
-        } else {
-          // 利用者の時
-          if (widget.eventId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please select event.')),
-            );
-          }else {
-            nextPage = MemberCheckInPage(
-              eventId: widget.eventId!,
-              eventTitle: widget.eventTitle ?? '',
-              groupId: widget.groupId!,
-              groupName: widget.groupName ?? 'Group',
-              myRole: widget.myRole!,
-            );
-          }
-        }
-        break;
-      case 2:
-        nextPage = const RankingPreview();
-        break;
-    }
-    if (nextPage != null) {
+    if (widget.myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => nextPage!),
+        MaterialPageRoute(
+          builder: (context) => CreateEventPage(
+            groupId: widget.groupId!,
+            myRole: widget.myRole!,
+          ),
+        ),
       );
+      return;
     }
+
+    if (widget.eventId == null ||
+        widget.eventTitle == null ||
+        widget.arrivalTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select event.')),
+      );
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SetTimePage(
+          groupId: widget.groupId!,
+          eventId: widget.eventId!,
+          eventTitle: widget.eventTitle!,
+          myRole: widget.myRole!,
+          arrivalTime: widget.arrivalTime!,
+        ),
+      ),
+    );
+  }
+
+  void _onRankingTap(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const RankingPreview()),
+    );
+  }
+
+  void _onComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Coming soon.')),
+    );
   }
 
   void _onLeaderPressed(BuildContext context) {
