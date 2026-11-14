@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/common_layout.dart';
+import 'package:flutter_application_1/presentation/viewmodels/app_mode_controller.dart';
+import 'package:flutter_application_1/presentation/views/common/app_mode.dart';
 import 'package:flutter_application_1/presentation/views/common/common_header.dart';
 import 'package:flutter_application_1/presentation/views/common/common_footer.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
@@ -30,6 +32,10 @@ void main() {
         publishableKey: 'dummy-anon-key-for-widget-testing',
       );
     } catch (_) {}
+  });
+
+  setUp(() {
+    AppModeController.instance.setMode(AppMode.member);
   });
 
   Widget buildTestableWidget(CommonLayout layout) {

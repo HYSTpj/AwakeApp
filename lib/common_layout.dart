@@ -9,6 +9,7 @@ import 'presentation/views/event/schedule/set_time_page.dart';
 import 'presentation/views/ranking/ranking_page.dart';
 import 'presentation/views/event/event_selection_home_page.dart';
 import 'presentation/views/profile/profile_page.dart';
+import 'presentation/viewmodels/app_mode_controller.dart';
 
 class CommonLayout extends StatefulWidget {
   final Widget body; // 各画面の代入する中身
@@ -48,31 +49,35 @@ class CommonLayout extends StatefulWidget {
 class _CommonLayoutState extends State<CommonLayout> {
   static const Color _backgroundColor = Color(0xFFF8F6F6);
 
-  AppMode get _mode => widget.myRole == 0 ? AppMode.admin : AppMode.member;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _backgroundColor,
-      // フッターのピル以外の余白部分を透明にし、bodyの内容が透けて見えるようにする。
-      extendBody: true,
-      appBar: CommonHeader(
-        mode: _mode,
-        onModeChanged: (mode) => _onModeChanged(context, mode),
-        onProfileTap: () => _onProfilePressed(context),
-      ),
-      body: widget.body,
-      floatingActionButton: widget.floatingActionButton,
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: CommonFooter(
-        mode: _mode,
-        onHomeTap: () => _onHomeTap(context),
-        onEventCreateTap: () => _onEventCreateTap(context),
-        onForumTap: () => _onComingSoon(context),
-        onRankingTap: () => _onRankingTap(context),
-        onPlusTap: () => _onComingSoon(context),
-      ),
+    return ListenableBuilder(
+      listenable: AppModeController.instance,
+      builder: (context, _) {
+        final mode = AppModeController.instance.mode;
+        return Scaffold(
+          backgroundColor: _backgroundColor,
+          // フッターのピル以外の余白部分を透明にし、bodyの内容が透けて見えるようにする。
+          extendBody: true,
+          appBar: CommonHeader(
+            mode: mode,
+            onModeChanged: (mode) => _onModeChanged(context, mode),
+            onProfileTap: () => _onProfilePressed(context),
+          ),
+          body: widget.body,
+          floatingActionButton: widget.floatingActionButton,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.endFloat,
+          bottomNavigationBar: CommonFooter(
+            mode: mode,
+            onHomeTap: () => _onHomeTap(context),
+            onEventCreateTap: () => _onEventCreateTap(context),
+            onForumTap: () => _onComingSoon(context),
+            onRankingTap: () => _onRankingTap(context),
+            onPlusTap: () => _onComingSoon(context),
+          ),
+        );
+      },
     );
   }
 
@@ -187,6 +192,7 @@ class _CommonLayoutState extends State<CommonLayout> {
 
     // 管理者のときだけ遷移を許可
     if (widget.myRole == 0) {
+      AppModeController.instance.setMode(AppMode.admin);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: widget.groupId)),
@@ -206,6 +212,7 @@ class _CommonLayoutState extends State<CommonLayout> {
       return;
     }
 
+    AppModeController.instance.setMode(AppMode.member);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
