@@ -29,6 +29,13 @@ class CommonFooter extends StatelessWidget {
   static const Color _navBackground = Color(0xFFEC5B13);
   static const Color _navBorderColor = Color(0xFF334155);
 
+  static const double _topGap = 8;
+  static const double _pillHeight = 92;
+
+  /// CommonFooter自身の実コンテンツ高さ（デバイスのセーフエリア分は含まない）。
+  /// CommonLayoutがbodyの下部paddingを計算する際に、この値とズレないよう参照する。
+  static const double contentHeight = _topGap + _pillHeight;
+
   static const Key homeButtonKey = Key('common_footer_home_button');
   static const Key eventCreateButtonKey = Key(
     'common_footer_event_create_button',
@@ -48,13 +55,13 @@ class CommonFooter extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: _topGap),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 92,
+              height: _pillHeight,
               constraints: const BoxConstraints(maxWidth: 384),
               width: 302,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

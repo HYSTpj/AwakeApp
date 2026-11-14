@@ -61,7 +61,15 @@ class _CommonLayoutState extends State<CommonLayout> {
         onModeChanged: (mode) => _onModeChanged(context, mode),
         onProfileTap: () => _onProfilePressed(context),
       ),
-      body: widget.body,
+      // extendBodyによりbodyがフッターの裏側まで伸びるため、スクロール可能な
+      // コンテンツの末尾がフッターの不透明なピルに隠れないよう、フッターの
+      // 実コンテンツ高さ＋端末のセーフエリア分の余白をbody側に確保する。
+      body: Padding(
+        padding: EdgeInsets.only(
+          bottom: CommonFooter.contentHeight + MediaQuery.of(context).padding.bottom,
+        ),
+        child: widget.body,
+      ),
       floatingActionButton: widget.floatingActionButton,
       floatingActionButtonLocation:
           FloatingActionButtonLocation.endFloat,
