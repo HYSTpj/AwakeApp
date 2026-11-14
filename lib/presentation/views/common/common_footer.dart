@@ -32,10 +32,6 @@ class CommonFooter extends StatelessWidget {
   static const double _topGap = 8;
   static const double _pillHeight = 92;
 
-  /// CommonFooter自身の実コンテンツ高さ（デバイスのセーフエリア分は含まない）。
-  /// CommonLayoutがbodyの下部paddingを計算する際に、この値とズレないよう参照する。
-  static const double contentHeight = _topGap + _pillHeight;
-
   static const Key homeButtonKey = Key('common_footer_home_button');
   static const Key eventCreateButtonKey = Key(
     'common_footer_event_create_button',
