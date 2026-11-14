@@ -48,16 +48,16 @@ class CommonFooter extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 94,
+              height: 92,
               constraints: const BoxConstraints(maxWidth: 384),
               width: 302,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
                 color: _navBackground,
                 borderRadius: BorderRadius.circular(40),
@@ -71,7 +71,7 @@ class CommonFooter extends StatelessWidget {
                     assetName: 'assets/icons/common_layout/icon_home.svg',
                     boxSize: 52,
                     iconWidth: 25,
-                    iconHeight: 20,
+                    iconHeight: 22,
                     onTap: onHomeTap,
                   ),
                   _FooterIconButton(
@@ -87,8 +87,8 @@ class CommonFooter extends StatelessWidget {
                     key: CommonFooter.forumButtonKey,
                     assetName: forumAsset,
                     boxSize: 52,
-                    iconWidth: 22.75,
-                    iconHeight: mode == AppMode.admin ? 22.67 : 22.75,
+                    iconWidth: 23,
+                    iconHeight: 23,
                     onTap: onForumTap,
                   ),
                   _FooterIconButton(
@@ -102,7 +102,7 @@ class CommonFooter extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: 8),
             _FooterIconButton(
               key: CommonFooter.plusButtonKey,
               assetName: 'assets/icons/common_layout/icon_plus.svg',

@@ -101,7 +101,7 @@ class _ModeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 58,
-      padding: const EdgeInsets.only(left: 7, right: 13, top: 3, bottom: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFF6B7280),
         borderRadius: BorderRadius.circular(10),

@@ -54,6 +54,8 @@ class _CommonLayoutState extends State<CommonLayout> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
+      // フッターのピル以外の余白部分を透明にし、bodyの内容が透けて見えるようにする。
+      extendBody: true,
       appBar: CommonHeader(
         mode: _mode,
         onModeChanged: (mode) => _onModeChanged(context, mode),
