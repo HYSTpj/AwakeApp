@@ -29,14 +29,18 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
   static const Key profileButtonKey = Key('common_header_profile_button');
 
   @override
-  Size get preferredSize => const Size.fromHeight(75);
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold は appBar に対して preferredSize.height + ステータスバー分の
+    // 高さを確保するが、その分の余白は appBar ウィジェット自身が consume する
+    // 必要がある（Scaffoldが自動で中身を下にずらしてくれるわけではない）。
+    final topInset = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
-      height: 75,
-      padding: const EdgeInsets.only(top: 24, right: 10, bottom: 16),
+      height: 64 + topInset,
+      padding: EdgeInsets.only(top: 24 + topInset, right: 10, bottom: 16),
       decoration: const BoxDecoration(
         color: _background,
         border: Border(bottom: BorderSide(color: _borderColor, width: 3)),
@@ -45,14 +49,20 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          const _AppNameLabel(),
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: -9,
+            child: Center(child: _AppNameLabel()),
+          ),
           Positioned(
-            left: 24,
-            top: -10,
+            left: 10,
+            top: -28,
             child: _ModeSwitch(mode: mode, onChanged: onModeChanged),
           ),
           Positioned(
             right: 0,
+            top: -21,
             child: _ProfileSettingButton(
               key: profileButtonKey,
               onTap: onProfileTap,
@@ -90,8 +100,8 @@ class _ModeSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 3),
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFF6B7280),
         borderRadius: BorderRadius.circular(10),
@@ -155,10 +165,13 @@ class _ModeSwitchButton extends StatelessWidget {
           border: Border.all(color: Colors.black, width: 3),
           boxShadow: active
               ? [
-                  BoxShadow(color: activeColor.withValues(alpha: 0.85), blurRadius: 14),
+                  BoxShadow(
+                    color: activeColor.withValues(alpha: 0.85),
+                    blurRadius: 14,
+                  ),
                   const BoxShadow(color: Colors.black, offset: Offset(4, 4)),
                 ]
-              : null,
+              : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
         ),
         padding: const EdgeInsets.all(3),
         child: Center(
@@ -199,7 +212,9 @@ class _ProfileSettingButton extends StatelessWidget {
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.fromBorderSide(BorderSide(color: Colors.black, width: 3)),
+            border: Border.fromBorderSide(
+              BorderSide(color: Colors.black, width: 3),
+            ),
             boxShadow: [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
           ),
           child: ClipOval(
@@ -212,8 +227,7 @@ class _ProfileSettingButton extends StatelessWidget {
                         .eq('id', currentUser.id)
                         .maybeSingle(),
                     builder: (context, snapshot) {
-                      final avatarUrl =
-                          snapshot.data?['avatar_url'] as String?;
+                      final avatarUrl = snapshot.data?['avatar_url'] as String?;
                       if (avatarUrl == null || avatarUrl.isEmpty) {
                         return _placeholderAvatar();
                       }
