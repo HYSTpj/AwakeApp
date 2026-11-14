@@ -33,10 +33,14 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold は appBar に対して preferredSize.height + ステータスバー分の
+    // 高さを確保するが、その分の余白は appBar ウィジェット自身が consume する
+    // 必要がある（Scaffoldが自動で中身を下にずらしてくれるわけではない）。
+    final topInset = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
-      height: 75,
-      padding: const EdgeInsets.only(top: 24, right: 10, bottom: 16),
+      height: 75 + topInset,
+      padding: EdgeInsets.only(top: 24 + topInset, right: 10, bottom: 16),
       decoration: const BoxDecoration(
         color: _background,
         border: Border(bottom: BorderSide(color: _borderColor, width: 3)),
@@ -155,7 +159,10 @@ class _ModeSwitchButton extends StatelessWidget {
           border: Border.all(color: Colors.black, width: 3),
           boxShadow: active
               ? [
-                  BoxShadow(color: activeColor.withValues(alpha: 0.85), blurRadius: 14),
+                  BoxShadow(
+                    color: activeColor.withValues(alpha: 0.85),
+                    blurRadius: 14,
+                  ),
                   const BoxShadow(color: Colors.black, offset: Offset(4, 4)),
                 ]
               : null,
@@ -199,7 +206,9 @@ class _ProfileSettingButton extends StatelessWidget {
           decoration: const BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.fromBorderSide(BorderSide(color: Colors.black, width: 3)),
+            border: Border.fromBorderSide(
+              BorderSide(color: Colors.black, width: 3),
+            ),
             boxShadow: [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
           ),
           child: ClipOval(
@@ -212,8 +221,7 @@ class _ProfileSettingButton extends StatelessWidget {
                         .eq('id', currentUser.id)
                         .maybeSingle(),
                     builder: (context, snapshot) {
-                      final avatarUrl =
-                          snapshot.data?['avatar_url'] as String?;
+                      final avatarUrl = snapshot.data?['avatar_url'] as String?;
                       if (avatarUrl == null || avatarUrl.isEmpty) {
                         return _placeholderAvatar();
                       }
