@@ -306,33 +306,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 14, top: 9),
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: const RoundedRectangleBorder(side: _kBorderSide),
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 0,
-                        offset: const Offset(4, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
             const Padding(
               padding: EdgeInsets.only(top: 8, bottom: 16),
               child: Center(
