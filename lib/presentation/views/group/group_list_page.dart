@@ -98,8 +98,15 @@ class _GroupListPageState extends State<GroupListPage> {
   @override
   Widget build(BuildContext context) {
 
-    final groups = _viewModel.state.groups;
+    // group.id の重複や、selectedGroupId が現在の一覧に存在しない（グループ再読込中
+    // の過渡状態など）場合に DropdownButton のアサーションで落ちないようにするガード。
+    final groups = <String, Group>{
+      for (final g in _viewModel.state.groups) g.id: g,
+    }.values.toList();
     final isLoading = _viewModel.state.isLoading;
+    final dropdownValue = groups.any((g) => g.id == selectedGroupId)
+        ? selectedGroupId
+        : null;
 
     return CommonLayout(
       groupId: selectedGroupId,
@@ -122,7 +129,7 @@ class _GroupListPageState extends State<GroupListPage> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: selectedGroupId,
+                      value: dropdownValue,
                       isExpanded: true,
                       dropdownColor: Colors.white,
                       borderRadius: BorderRadius.circular(12),

@@ -82,6 +82,10 @@ class _CommonLayoutState extends State<CommonLayout> {
   }
 
   void _onModeChanged(BuildContext context, AppMode mode) {
+    // 既に選択中のモードを再タップした場合は、無駄な再遷移（同じページの
+    // reloadレース）を避けるため何もしない。
+    if (AppModeController.instance.mode == mode) return;
+
     if (mode == AppMode.member) {
       _onMemberPressed(context);
     } else {
