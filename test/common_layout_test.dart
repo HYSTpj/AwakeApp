@@ -169,7 +169,7 @@ void main() {
     expect(find.byType(RankingPreview), findsOneWidget);
   });
 
-  testWidgets('フッター: Forum/Plusタップで Coming soon.が表示される', (tester) async {
+  testWidgets('フッター: Forumタップで Coming soon.が表示される', (tester) async {
     await tester.pumpWidget(
       buildTestableWidget(const CommonLayout(body: SizedBox.shrink())),
     );
@@ -177,10 +177,19 @@ void main() {
     await tester.tap(find.byKey(CommonFooter.forumButtonKey));
     await tester.pump();
     expect(find.text('Coming soon.'), findsOneWidget);
+  });
 
-    await tester.tap(find.byKey(CommonFooter.plusButtonKey));
-    await tester.pump();
-    expect(find.text('Coming soon.'), findsOneWidget);
+  group('フッター: Plus', () {
+    testWidgets('イベント情報が揃っていない場合、Please select event.が表示される', (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(const CommonLayout(body: SizedBox.shrink())),
+      );
+
+      await tester.tap(find.byKey(CommonFooter.plusButtonKey));
+      await tester.pump();
+
+      expect(find.text('Please select event.'), findsOneWidget);
+    });
   });
 
   group('ヘッダー: ModeSwitch', () {

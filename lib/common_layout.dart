@@ -8,8 +8,10 @@ import 'presentation/views/event/admin/memberstatus_page.dart';
 import 'presentation/views/event/schedule/set_time_page.dart';
 import 'presentation/views/ranking/ranking_page.dart';
 import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/event/checkin/late_report_page.dart';
 import 'presentation/views/profile/profile_page.dart';
 import 'presentation/viewmodels/app_mode_controller.dart';
+import 'presentation/viewmodels/member_check_in_viewmodel.dart';
 
 class CommonLayout extends StatefulWidget {
   final Widget body; // 各画面の代入する中身
@@ -74,7 +76,7 @@ class _CommonLayoutState extends State<CommonLayout> {
             onEventCreateTap: () => _onEventCreateTap(context),
             onForumTap: () => _onComingSoon(context),
             onRankingTap: () => _onRankingTap(context),
-            onPlusTap: () => _onComingSoon(context),
+            onPlusTap: () => _onPlusTap(context),
           ),
         );
       },
@@ -182,6 +184,40 @@ class _CommonLayoutState extends State<CommonLayout> {
   void _onComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Coming soon.')),
+    );
+  }
+
+  Future<void> _onPlusTap(BuildContext context) async {
+    if (widget.groupId == null || widget.eventId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select event.')),
+      );
+      return;
+    }
+
+    final checkInViewModel = MemberCheckInViewModel(
+      eventId: widget.eventId!,
+      groupId: widget.groupId!,
+    );
+    final reportId = await checkInViewModel.getOrCreateReportId();
+
+    if (!context.mounted) return;
+
+    if (reportId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('投稿を作成できませんでした。')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LateReportPage(
+          reportId: reportId,
+          eventId: widget.eventId!,
+        ),
+      ),
     );
   }
 
