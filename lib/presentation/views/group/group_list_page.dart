@@ -109,6 +109,7 @@ class _GroupListPageState extends State<GroupListPage> {
         : null;
 
     return CommonLayout(
+      showFooter: selectedGroupId != null,
       groupId: selectedGroupId,
       groupName: selectedGroupName,
       myRole: myRole,
@@ -271,7 +272,7 @@ class _GroupListPageState extends State<GroupListPage> {
                 ),
                 Expanded(
                   child: selectedGroupId == null
-                      ? const Center(child: Text('Select group'))
+                      ? const Center(child: Text('グループを選択してください'))
                       : EventListPage(
                           groupId: selectedGroupId!,
                           myRole: myRole ?? 1,

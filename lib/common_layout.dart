@@ -16,6 +16,9 @@ import 'presentation/viewmodels/member_check_in_viewmodel.dart';
 class CommonLayout extends StatefulWidget {
   final Widget body; // 各画面の代入する中身
   final Widget? floatingActionButton; // それぞれのページで使うボタン
+  // メイン画面（GroupListPage）でグループが未選択のときにフッターを隠すためのフラグ。
+  // それ以外の画面は常に表示する。
+  final bool showFooter;
   final String? groupId;
   final String? groupName;
   final String? eventId;
@@ -32,6 +35,7 @@ class CommonLayout extends StatefulWidget {
     super.key,
     required this.body,
     this.floatingActionButton,
+    this.showFooter = true,
     this.groupId,
     this.groupName,
     this.eventId,
@@ -70,14 +74,16 @@ class _CommonLayoutState extends State<CommonLayout> {
           floatingActionButton: widget.floatingActionButton,
           floatingActionButtonLocation:
               FloatingActionButtonLocation.endFloat,
-          bottomNavigationBar: CommonFooter(
-            mode: mode,
-            onHomeTap: () => _onHomeTap(context),
-            onEventCreateTap: () => _onEventCreateTap(context),
-            onForumTap: () => _onComingSoon(context),
-            onRankingTap: () => _onRankingTap(context),
-            onPlusTap: () => _onPlusTap(context),
-          ),
+          bottomNavigationBar: widget.showFooter
+              ? CommonFooter(
+                  mode: mode,
+                  onHomeTap: () => _onHomeTap(context),
+                  onEventCreateTap: () => _onEventCreateTap(context),
+                  onForumTap: () => _onComingSoon(context),
+                  onRankingTap: () => _onRankingTap(context),
+                  onPlusTap: () => _onPlusTap(context),
+                )
+              : null,
         );
       },
     );
