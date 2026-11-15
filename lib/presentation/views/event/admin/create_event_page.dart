@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import '../../../../common_layout.dart';
+import '../../group/group_list_page.dart';
 import 'select_participants_page.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -94,11 +95,13 @@ class _PickerButton extends StatelessWidget {
 
 class CreateEventPage extends StatefulWidget {
   final String groupId;
+  final String groupName;
   final int myRole;
 
   const CreateEventPage({
     super.key,
     required this.groupId,
+    required this.groupName,
     required this.myRole,
   });
 
@@ -276,7 +279,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
       if (!mounted) return;
       if (result == true) {
-        Navigator.pop(context, true);
+        // CreateEventPageはpushReplacementで遷移してきているため、戻り先の
+        // GroupListPageは既に破棄されている。groupIdを明示的に渡して
+        // 同じグループを選択した状態で作り直し、グループ再選択を不要にする。
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GroupListPage(initialGroupId: widget.groupId),
+          ),
+        );
       }
     } finally {
       // 画面から戻ってきた場合に再度タップできるようにフラグを解除
@@ -327,6 +338,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const _LabelText('GROUP'),
+                  const SizedBox(height: 4),
+                  _InputBox(
+                    child: Text(widget.groupName, style: _kValueStyle),
+                  ),
                   const _LabelText('EVENT NAME'),
                   const SizedBox(height: 4),
                   _InputBox(

@@ -21,7 +21,7 @@ void main() {
       await tester.pumpWidget(
         buildTestableWidget(
           viewModel: viewModel,
-          child: const CreateEventPage(groupId: 'test-group', myRole: 0),
+          child: const CreateEventPage(groupId: 'test-group', groupName: 'Test Group', myRole: 0),
         ),
       );
       await tester.pumpAndSettle();
@@ -63,7 +63,7 @@ void main() {
       await tester.pumpWidget(
         buildTestableWidget(
           viewModel: viewModel,
-          child: const CreateEventPage(groupId: 'test-group', myRole: 0),
+          child: const CreateEventPage(groupId: 'test-group', groupName: 'Test Group', myRole: 0),
         ),
       );
       await tester.pumpAndSettle();
