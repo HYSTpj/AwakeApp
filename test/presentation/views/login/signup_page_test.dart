@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_application_1/presentation/viewmodels/auth_view_model.dart';
 import 'package:flutter_application_1/presentation/views/login/signup_page.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -22,61 +23,69 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider<AuthViewModel>.value(
         value: viewModel,
-        child: const MaterialApp(home: CreateAccountPage()),
+        child: const MaterialApp(
+          locale: Locale('ja'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: CreateAccountPage(),
+        ),
       ),
     );
   }
 
   testWidgets(
-      'メール・パスワードが空の場合、CREATE ACCOUNTボタン押下でAuthRepository.signUpが呼ばれず早期リターンすること',
-      (tester) async {
-    await pumpSignupPage(tester);
+    'メール・パスワードが空の場合、CREATE ACCOUNTボタン押下でAuthRepository.signUpが呼ばれず早期リターンすること',
+    (tester) async {
+      await pumpSignupPage(tester);
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'CREATE ACCOUNT'));
-    await tester.pump();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'アカウント作成'));
+      await tester.pump();
 
-    verifyNever(() => mockAuthRepository.signUp(
+      verifyNever(
+        () => mockAuthRepository.signUp(
           email: any(named: 'email'),
           password: any(named: 'password'),
-        ));
-  });
+        ),
+      );
+    },
+  );
 
-  testWidgets(
-      'メールのみ空（パスワードは入力済み）の場合も、signUpが呼ばれず早期リターンすること',
-      (tester) async {
+  testWidgets('メールのみ空（パスワードは入力済み）の場合も、signUpが呼ばれず早期リターンすること', (tester) async {
     await pumpSignupPage(tester);
 
     await tester.enterText(find.byType(TextField).last, 'password123');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'CREATE ACCOUNT'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'アカウント作成'));
     await tester.pump();
 
-    verifyNever(() => mockAuthRepository.signUp(
-          email: any(named: 'email'),
-          password: any(named: 'password'),
-        ));
+    verifyNever(
+      () => mockAuthRepository.signUp(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    );
   });
 
-  testWidgets(
-      'パスワードのみ空（メールは入力済み）の場合も、signUpが呼ばれず早期リターンすること',
-      (tester) async {
+  testWidgets('パスワードのみ空（メールは入力済み）の場合も、signUpが呼ばれず早期リターンすること', (tester) async {
     await pumpSignupPage(tester);
 
     await tester.enterText(find.byType(TextField).first, 'test@example.com');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'CREATE ACCOUNT'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'アカウント作成'));
     await tester.pump();
 
-    verifyNever(() => mockAuthRepository.signUp(
-          email: any(named: 'email'),
-          password: any(named: 'password'),
-        ));
+    verifyNever(
+      () => mockAuthRepository.signUp(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    );
   });
 
-  testWidgets(
-      'メール・パスワードが空の場合、CREATE ACCOUNTボタン押下でSnackBarが表示されること',
-      (tester) async {
+  testWidgets('メール・パスワードが空の場合、CREATE ACCOUNTボタン押下でSnackBarが表示されること', (
+    tester,
+  ) async {
     await pumpSignupPage(tester);
 
-    await tester.tap(find.widgetWithText(ElevatedButton, 'CREATE ACCOUNT'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'アカウント作成'));
     await tester.pump();
 
     expect(find.text('メールアドレスとパスワードを入力してください'), findsOneWidget);
