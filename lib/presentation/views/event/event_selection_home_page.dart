@@ -12,12 +12,16 @@ class EventSelectionHome extends StatefulWidget {
   final String groupId;
   final String groupName;
   final int myRole;
+  // 管理者/メンバー切替時のみ渡される、CommonLayoutのbody/footerスライドイン
+  // アニメーション。詳細はCommonLayoutを参照。
+  final Animation<double>? bodyTransitionAnimation;
 
   const EventSelectionHome({
     super.key,
     required this.groupId,
     required this.groupName,
     required this.myRole,
+    this.bodyTransitionAnimation,
   });
 
   @override
@@ -107,6 +111,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      bodyTransitionAnimation: widget.bodyTransitionAnimation,
       groupId: selectedGroupId,
       groupName: selectedGroupName,
       myRole: myRole,

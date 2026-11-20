@@ -148,6 +148,7 @@ class _EventListPageState extends State<EventListPage> {
                     MaterialPageRoute(
                       builder: (context) => CreateEventPage(
                         groupId: widget.groupId,
+                        groupName: 'Group',
                         myRole: widget.myRole,
                       ),
                     ),

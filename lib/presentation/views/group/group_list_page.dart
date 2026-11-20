@@ -12,8 +12,15 @@ import '../event/event_selection_home_page.dart';
 
 class GroupListPage extends StatefulWidget {
   final String? initialGroupId;
+  // 管理者/メンバー切替時のみ渡される、CommonLayoutのbody/footerスライドイン
+  // アニメーション。詳細はCommonLayoutを参照。
+  final Animation<double>? bodyTransitionAnimation;
 
-  const GroupListPage({super.key, this.initialGroupId});
+  const GroupListPage({
+    super.key,
+    this.initialGroupId,
+    this.bodyTransitionAnimation,
+  });
 
   @override
   State<GroupListPage> createState() => _GroupListPageState();
@@ -110,6 +117,7 @@ class _GroupListPageState extends State<GroupListPage> {
 
     return CommonLayout(
       showFooter: selectedGroupId != null,
+      bodyTransitionAnimation: widget.bodyTransitionAnimation,
       groupId: selectedGroupId,
       groupName: selectedGroupName,
       myRole: myRole,

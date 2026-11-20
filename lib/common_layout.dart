@@ -19,6 +19,9 @@ class CommonLayout extends StatefulWidget {
   // メイン画面（GroupListPage）でグループが未選択のときにフッターを隠すためのフラグ。
   // それ以外の画面は常に表示する。
   final bool showFooter;
+  // 管理者/メンバー切替時にのみ渡される、body+footer（メインコンテンツ）を
+  // 下から上へスライドインさせるためのアニメーション。ヘッダーには適用しない。
+  final Animation<double>? bodyTransitionAnimation;
   final String? groupId;
   final String? groupName;
   final String? eventId;
@@ -36,6 +39,7 @@ class CommonLayout extends StatefulWidget {
     required this.body,
     this.floatingActionButton,
     this.showFooter = true,
+    this.bodyTransitionAnimation,
     this.groupId,
     this.groupName,
     this.eventId,
@@ -55,6 +59,21 @@ class CommonLayout extends StatefulWidget {
 class _CommonLayoutState extends State<CommonLayout> {
   static const Color _backgroundColor = Color(0xFFF8F6F6);
 
+  // 管理者/メンバー切替時のみ、body・footer（メインコンテンツ）を下から
+  // 上へスライドインさせる。ヘッダーはこのアニメーションの対象外とし、
+  // 従来通り即時に切り替わる。
+  Widget _withBodyTransition(Widget child) {
+    final animation = widget.bodyTransitionAnimation;
+    if (animation == null) return child;
+
+    final offsetAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).chain(CurveTween(curve: Curves.easeInOut)).animate(animation);
+
+    return SlideTransition(position: offsetAnimation, child: child);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -70,18 +89,20 @@ class _CommonLayoutState extends State<CommonLayout> {
             onModeChanged: (mode) => _onModeChanged(context, mode),
             onProfileTap: () => _onProfilePressed(context),
           ),
-          body: widget.body,
+          body: _withBodyTransition(widget.body),
           floatingActionButton: widget.floatingActionButton,
           floatingActionButtonLocation:
               FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: widget.showFooter
-              ? CommonFooter(
-                  mode: mode,
-                  onHomeTap: () => _onHomeTap(context),
-                  onEventCreateTap: () => _onEventCreateTap(context),
-                  onForumTap: () => _onComingSoon(context),
-                  onRankingTap: () => _onRankingTap(context),
-                  onPlusTap: () => _onPlusTap(context),
+              ? _withBodyTransition(
+                  CommonFooter(
+                    mode: mode,
+                    onHomeTap: () => _onHomeTap(context),
+                    onEventCreateTap: () => _onEventCreateTap(context),
+                    onForumTap: () => _onComingSoon(context),
+                    onRankingTap: () => _onRankingTap(context),
+                    onPlusTap: () => _onPlusTap(context),
+                  ),
                 )
               : null,
         );
@@ -150,6 +171,7 @@ class _CommonLayoutState extends State<CommonLayout> {
         MaterialPageRoute(
           builder: (context) => CreateEventPage(
             groupId: widget.groupId!,
+            groupName: widget.groupName ?? 'Group',
             myRole: widget.myRole!,
           ),
         ),
@@ -241,7 +263,12 @@ class _CommonLayoutState extends State<CommonLayout> {
       AppModeController.instance.setMode(AppMode.admin);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: widget.groupId)),
+        _slideInRoute(
+          (animation) => GroupListPage(
+            initialGroupId: widget.groupId,
+            bodyTransitionAnimation: animation,
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -261,13 +288,29 @@ class _CommonLayoutState extends State<CommonLayout> {
     AppModeController.instance.setMode(AppMode.member);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => EventSelectionHome(
+      _slideInRoute(
+        (animation) => EventSelectionHome(
           groupId: widget.groupId!,
           groupName: widget.groupName ?? 'Group',
           myRole: widget.myRole!,
+          bodyTransitionAnimation: animation,
         ),
       ),
+    );
+  }
+
+  // 管理者/メンバー切替専用の画面遷移。ページ全体（ヘッダー含む）は従来通り
+  // 即時に切り替わり、渡したanimationを使って遷移先ページのbody/footerだけが
+  // 下から上へスライドインする。
+  // 参考: https://qiita.com/isekiryu/items/be7477659b70bb152733
+  PageRoute<void> _slideInRoute(
+    Widget Function(Animation<double> animation) builder,
+  ) {
+    return PageRouteBuilder<void>(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          builder(animation),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
     );
   }
 
