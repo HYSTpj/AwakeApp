@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/data/repositories/group_repository.dart';
+import 'package:flutter_application_1/models/group.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
 import 'package:flutter_application_1/presentation/views/group/group_list_page.dart';
@@ -65,5 +66,47 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('グループを選択してください'), findsOneWidget);
+  });
+
+  // menuWidthで選択肢一覧を画面幅いっぱいに広げた際に、ドロップダウンを
+  // 開いてもクラッシュしないことを確認する回帰テスト。
+  testWidgets('グループが存在する状態でドロップダウンを開いてもクラッシュしない', (tester) async {
+    final mockGroupRepository = MockGroupRepository();
+    when(() => mockGroupRepository.getGroups()).thenAnswer(
+      (_) async => [
+        Group(
+          id: 'group-1',
+          groupName: '非常に長いグループ名のサンプルでテストします株式会社',
+          invitationCode: 'ABC123',
+          createdAt: DateTime(2026, 1, 1),
+        ),
+      ],
+    );
+    final mockAdminEventRepository = MockAdminEventRepository();
+    when(
+      () => mockAdminEventRepository.getEvents(any()),
+    ).thenAnswer((_) async => []);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<GroupRepository>.value(value: mockGroupRepository),
+          ChangeNotifierProvider<GroupViewModel>(
+            create: (_) => GroupViewModel(mockGroupRepository),
+          ),
+          ChangeNotifierProvider<AdminEventViewModel>(
+            create: (_) => AdminEventViewModel(mockAdminEventRepository),
+          ),
+        ],
+        child: const MaterialApp(home: GroupListPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('GROUP NAME'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('非常に長いグループ名のサンプルでテストします株式会社'), findsOneWidget);
   });
 }

@@ -44,6 +44,9 @@ class EventDropdown extends StatelessWidget {
           // イベント名が2行に折り返しても項目が高さ48pxにクリップされないよう、
           // 項目の実コンテンツに応じた可変高さにする。
           itemHeight: null,
+          // ボタン自体は横並びの半分幅だが、選択肢一覧は画面幅いっぱいに
+          // 広げて見やすくする（左右のマージン24pxずつを差し引く）。
+          menuWidth: MediaQuery.of(context).size.width - 48,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
           icon: const Icon(
