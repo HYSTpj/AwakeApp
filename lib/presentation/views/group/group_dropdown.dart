@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../models/group.dart';
 
 /// グループ名だけを表示・選択する共通ドロップダウン。
 ///
-/// 「GROUP NAME」ヒント表示、グループ一覧（招待コードのコピー付き）、
+/// 「GROUP NAME」ヒント表示、グループ一覧、
 /// 「CREATE OR ADD OR DELETE」特殊項目を表示する。選択中グループが現在の
 /// [groups]に存在しない場合は自動的に未選択表示にフォールバックする。
 class GroupDropdown extends StatelessWidget {
@@ -66,41 +65,16 @@ class GroupDropdown extends StatelessWidget {
             ...groups.map((Group group) {
               return DropdownMenuItem<String>(
                 value: group.id,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        group.groupName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1C1C),
-                          letterSpacing: 0.5,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        Clipboard.setData(
-                          ClipboardData(text: group.invitationCode),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('copied the invitation code'),
-                          ),
-                        );
-                      },
-                      child: const Icon(
-                        Icons.content_copy,
-                        color: Colors.black,
-                        size: 20,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  group.groupName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1C1C),
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               );
             }),
