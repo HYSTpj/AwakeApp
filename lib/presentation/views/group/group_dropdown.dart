@@ -56,23 +56,6 @@ class GroupDropdown extends StatelessWidget {
             ),
             overflow: TextOverflow.ellipsis,
           ),
-          selectedItemBuilder: (context) => groups
-              .map(
-                (g) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    g.groupName,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1C1C),
-                      letterSpacing: 0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
           items: [
             ...groups.map((Group group) {
               return DropdownMenuItem<String>(

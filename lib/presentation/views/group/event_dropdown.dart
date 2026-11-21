@@ -67,23 +67,6 @@ class EventDropdown extends StatelessWidget {
               ),
             ],
           ),
-          selectedItemBuilder: (context) => events
-              .map(
-                (e) => Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    e.title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1C1C),
-                      letterSpacing: 0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
           items: !enabled
               ? const []
               : [
