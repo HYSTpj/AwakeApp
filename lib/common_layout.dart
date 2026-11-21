@@ -3,7 +3,6 @@ import 'presentation/views/common/app_mode.dart';
 import 'presentation/views/common/common_header.dart';
 import 'presentation/views/common/common_footer.dart';
 import 'presentation/views/group/group_list_page.dart';
-import 'presentation/views/event/admin/create_event_page.dart';
 import 'presentation/views/event/admin/memberstatus_page.dart';
 import 'presentation/views/event/schedule/set_time_page.dart';
 import 'presentation/views/ranking/ranking_page.dart';
@@ -166,14 +165,13 @@ class _CommonLayoutState extends State<CommonLayout> {
     }
 
     if (widget.myRole == 0) {
+      // 管理者はまずMEMBER STATUSと同じイベント一覧（GroupListPage→EventListPage）
+      // へ遷移し、そこの「+Add Events」から作成フォーム（CreateEventPage）に進む。
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => CreateEventPage(
-            groupId: widget.groupId!,
-            groupName: widget.groupName ?? 'Group',
-            myRole: widget.myRole!,
-          ),
+          builder: (context) =>
+              GroupListPage(initialGroupId: widget.groupId),
         ),
       );
       return;

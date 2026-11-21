@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/common_layout.dart';
+import 'package:flutter_application_1/data/repositories/group_repository.dart';
 import 'package:flutter_application_1/presentation/viewmodels/app_mode_controller.dart';
+import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
 import 'package:flutter_application_1/presentation/views/common/app_mode.dart';
 import 'package:flutter_application_1/presentation/views/common/common_header.dart';
 import 'package:flutter_application_1/presentation/views/common/common_footer.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
-import 'package:flutter_application_1/presentation/views/event/admin/create_event_page.dart';
 import 'package:flutter_application_1/presentation/views/event/schedule/set_time_page.dart';
+import 'package:flutter_application_1/presentation/views/group/group_list_page.dart';
 import 'package:flutter_application_1/presentation/views/ranking/ranking_page.dart';
+
+class MockGroupRepository extends Mock implements GroupRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -103,13 +109,21 @@ void main() {
   });
 
   group('フッター: EventCreate', () {
-    testWidgets('管理者の場合、CreateEventPageに遷移する', (tester) async {
+    testWidgets('管理者の場合、イベント一覧画面(GroupListPage)に遷移する', (tester) async {
+      final mockGroupRepository = MockGroupRepository();
+      when(
+        () => mockGroupRepository.getGroups(),
+      ).thenAnswer((_) async => []);
+
       await tester.pumpWidget(
-        buildTestableWidget(
-          const CommonLayout(
-            body: SizedBox.shrink(),
-            groupId: 'group-1',
-            myRole: 0,
+        ChangeNotifierProvider<GroupViewModel>(
+          create: (_) => GroupViewModel(mockGroupRepository),
+          child: buildTestableWidget(
+            const CommonLayout(
+              body: SizedBox.shrink(),
+              groupId: 'group-1',
+              myRole: 0,
+            ),
           ),
         ),
       );
@@ -117,7 +131,7 @@ void main() {
       await tester.tap(find.byKey(CommonFooter.eventCreateButtonKey));
       await pumpNavigationFrame(tester);
 
-      expect(find.byType(CreateEventPage), findsOneWidget);
+      expect(find.byType(GroupListPage), findsOneWidget);
     });
 
     testWidgets('メンバーでイベント情報がある場合、SetTimePageに遷移する', (tester) async {
