@@ -142,8 +142,8 @@ class _CommonLayoutState extends State<CommonLayout> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => MemberStatusPage(
+      _instantRoute(
+        (context) => MemberStatusPage(
           groupId: widget.groupId!,
           eventId: widget.eventId!,
           eventTitle: widget.eventTitle!,
@@ -169,9 +169,8 @@ class _CommonLayoutState extends State<CommonLayout> {
       // へ遷移し、そこの「+Add Events」から作成フォーム（CreateEventPage）に進む。
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) =>
-              GroupListPage(initialGroupId: widget.groupId),
+        _instantRoute(
+          (context) => GroupListPage(initialGroupId: widget.groupId),
         ),
       );
       return;
@@ -188,8 +187,8 @@ class _CommonLayoutState extends State<CommonLayout> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => SetTimePage(
+      _instantRoute(
+        (context) => SetTimePage(
           groupId: widget.groupId!,
           eventId: widget.eventId!,
           eventTitle: widget.eventTitle!,
@@ -203,7 +202,7 @@ class _CommonLayoutState extends State<CommonLayout> {
   void _onRankingTap(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const RankingPreview()),
+      _instantRoute((context) => const RankingPreview()),
     );
   }
 
@@ -238,8 +237,8 @@ class _CommonLayoutState extends State<CommonLayout> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => LateReportPage(
+      _instantRoute(
+        (context) => LateReportPage(
           reportId: reportId,
           eventId: widget.eventId!,
         ),
@@ -307,6 +306,21 @@ class _CommonLayoutState extends State<CommonLayout> {
     return PageRouteBuilder<void>(
       pageBuilder: (context, animation, secondaryAnimation) =>
           builder(animation),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          child,
+    );
+  }
+
+  // フッターからの画面遷移共通のルート。ページ全体がスライドする
+  // 「ページング」のような見た目（旧ヘッダー/フッターが新しいものと
+  // 一緒にスライドして二重に見える）を避けるため、ページ切り替えに
+  // トランジションを付けない。遷移先ページが非同期読み込み中に表示する
+  // CircularProgressIndicator（ローディングのくるくる）がそのまま
+  // 即座に見える形になる。
+  PageRoute<T> _instantRoute<T>(WidgetBuilder builder) {
+    return PageRouteBuilder<T>(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          builder(context),
       transitionsBuilder: (context, animation, secondaryAnimation, child) =>
           child,
     );
