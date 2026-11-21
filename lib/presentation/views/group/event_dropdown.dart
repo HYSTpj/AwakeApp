@@ -41,6 +41,9 @@ class EventDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: dropdownValue,
           isExpanded: true,
+          // イベント名が2行に折り返しても項目が高さ48pxにクリップされないよう、
+          // 項目の実コンテンツに応じた可変高さにする。
+          itemHeight: null,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
           icon: const Icon(
@@ -80,6 +83,8 @@ class EventDropdown extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF1A1C1C),
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     );
                   }),

@@ -39,6 +39,9 @@ class GroupDropdown extends StatelessWidget {
         child: DropdownButton<String>(
           value: dropdownValue,
           isExpanded: true,
+          // グループ名が2行に折り返しても項目が高さ48pxにクリップされないよう、
+          // 項目の実コンテンツに応じた可変高さにする。
+          itemHeight: null,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
           icon: const Icon(
@@ -63,15 +66,20 @@ class GroupDropdown extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      group.groupName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1C1C),
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Text(
+                        group.groupName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1C1C),
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () {
                         Clipboard.setData(
