@@ -237,4 +237,38 @@ void main() {
       expect(find.text('閲覧権限がありません（管理者のみ利用可能）'), findsOneWidget);
     });
   });
+
+  testWidgets(
+    'bodyだけが変わる無関係な再描画ではCommonHeader/CommonFooterが再生成されない',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(const CommonLayout(body: SizedBox.shrink())),
+      );
+
+      final headerBefore = tester.widget<CommonHeader>(
+        find.byType(CommonHeader),
+      );
+      final footerBefore = tester.widget<CommonFooter>(
+        find.byType(CommonFooter),
+      );
+
+      // モードは変えず、bodyの内容だけを変えてCommonLayoutを作り直す
+      // （親画面の無関係なsetStateを模倣）。
+      await tester.pumpWidget(
+        buildTestableWidget(
+          CommonLayout(body: Container(key: UniqueKey())),
+        ),
+      );
+
+      final headerAfter = tester.widget<CommonHeader>(
+        find.byType(CommonHeader),
+      );
+      final footerAfter = tester.widget<CommonFooter>(
+        find.byType(CommonFooter),
+      );
+
+      expect(identical(headerBefore, headerAfter), isTrue);
+      expect(identical(footerBefore, footerAfter), isTrue);
+    },
+  );
 }

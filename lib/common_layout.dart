@@ -58,6 +58,29 @@ class CommonLayout extends StatefulWidget {
 class _CommonLayoutState extends State<CommonLayout> {
   static const Color _backgroundColor = Color(0xFFF8F6F6);
 
+  // ヘッダー・フッターは一度だけ生成し、以後は同一インスタンスを使い回す。
+  // CommonLayout自体の再構築（親画面の無関係なsetState等）のたびに
+  // ヘッダー/フッターまでbuildし直されるのを防ぎ、AppModeControllerの
+  // 変更時（各ウィジェット内部のListenableBuilder）だけ再描画されるようにする。
+  late final PreferredSizeWidget _header;
+  late final Widget _footer;
+
+  @override
+  void initState() {
+    super.initState();
+    _header = _AnimatedCommonHeader(
+      onModeChanged: (mode) => _onModeChanged(context, mode),
+      onProfileTap: () => _onProfilePressed(context),
+    );
+    _footer = _AnimatedCommonFooter(
+      onHomeTap: () => _onHomeTap(context),
+      onEventCreateTap: () => _onEventCreateTap(context),
+      onForumTap: () => _onComingSoon(context),
+      onRankingTap: () => _onRankingTap(context),
+      onPlusTap: () => _onPlusTap(context),
+    );
+  }
+
   // 管理者/メンバー切替時のみ、body・footer（メインコンテンツ）を下から
   // 上へスライドインさせる。ヘッダーはこのアニメーションの対象外とし、
   // 従来通り即時に切り替わる。
@@ -75,37 +98,17 @@ class _CommonLayoutState extends State<CommonLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: AppModeController.instance,
-      builder: (context, _) {
-        final mode = AppModeController.instance.mode;
-        return Scaffold(
-          backgroundColor: _backgroundColor,
-          // フッターのピル以外の余白部分を透明にし、bodyの内容が透けて見えるようにする。
-          extendBody: true,
-          appBar: CommonHeader(
-            mode: mode,
-            onModeChanged: (mode) => _onModeChanged(context, mode),
-            onProfileTap: () => _onProfilePressed(context),
-          ),
-          body: _withBodyTransition(widget.body),
-          floatingActionButton: widget.floatingActionButton,
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.endFloat,
-          bottomNavigationBar: widget.showFooter
-              ? _withBodyTransition(
-                  CommonFooter(
-                    mode: mode,
-                    onHomeTap: () => _onHomeTap(context),
-                    onEventCreateTap: () => _onEventCreateTap(context),
-                    onForumTap: () => _onComingSoon(context),
-                    onRankingTap: () => _onRankingTap(context),
-                    onPlusTap: () => _onPlusTap(context),
-                  ),
-                )
-              : null,
-        );
-      },
+    return Scaffold(
+      backgroundColor: _backgroundColor,
+      // フッターのピル以外の余白部分を透明にし、bodyの内容が透けて見えるようにする。
+      extendBody: true,
+      appBar: _header,
+      body: _withBodyTransition(widget.body),
+      floatingActionButton: widget.floatingActionButton,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: widget.showFooter
+          ? _withBodyTransition(_footer)
+          : null,
     );
   }
 
@@ -336,5 +339,65 @@ class _CommonLayoutState extends State<CommonLayout> {
     );
 
     debugPrint('プロフィールページへ遷移');
+  }
+}
+
+// CommonLayoutが何度再構築されても、AppModeControllerが実際に変更通知を
+// 出したときだけCommonHeaderをbuildし直すためのラッパー。_CommonLayoutState
+// 側で一度だけ生成し、インスタンスを使い回すことで効果を発揮する。
+class _AnimatedCommonHeader extends StatelessWidget
+    implements PreferredSizeWidget {
+  const _AnimatedCommonHeader({this.onModeChanged, this.onProfileTap});
+
+  final ValueChanged<AppMode>? onModeChanged;
+  final VoidCallback? onProfileTap;
+
+  @override
+  Size get preferredSize =>
+      const Size.fromHeight(CommonHeader.preferredHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppModeController.instance,
+      builder: (context, _) => CommonHeader(
+        mode: AppModeController.instance.mode,
+        onModeChanged: onModeChanged,
+        onProfileTap: onProfileTap,
+      ),
+    );
+  }
+}
+
+// _AnimatedCommonHeaderと同じ理由で、CommonFooterをAppModeControllerの
+// 変更時だけbuildし直すためのラッパー。
+class _AnimatedCommonFooter extends StatelessWidget {
+  const _AnimatedCommonFooter({
+    this.onHomeTap,
+    this.onEventCreateTap,
+    this.onForumTap,
+    this.onRankingTap,
+    this.onPlusTap,
+  });
+
+  final VoidCallback? onHomeTap;
+  final VoidCallback? onEventCreateTap;
+  final VoidCallback? onForumTap;
+  final VoidCallback? onRankingTap;
+  final VoidCallback? onPlusTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: AppModeController.instance,
+      builder: (context, _) => CommonFooter(
+        mode: AppModeController.instance.mode,
+        onHomeTap: onHomeTap,
+        onEventCreateTap: onEventCreateTap,
+        onForumTap: onForumTap,
+        onRankingTap: onRankingTap,
+        onPlusTap: onPlusTap,
+      ),
+    );
   }
 }

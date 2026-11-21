@@ -28,8 +28,10 @@ class CommonHeader extends StatelessWidget implements PreferredSizeWidget {
   static const Key adminSwitchKey = Key('common_header_admin_switch');
   static const Key profileButtonKey = Key('common_header_profile_button');
 
+  static const double preferredHeight = 64;
+
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize => const Size.fromHeight(preferredHeight);
 
   @override
   Widget build(BuildContext context) {
