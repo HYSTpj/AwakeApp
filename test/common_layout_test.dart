@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/common_layout.dart';
 import 'package:flutter_application_1/data/repositories/group_repository.dart';
+import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/app_mode_controller.dart';
 import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
 import 'package:flutter_application_1/presentation/views/common/app_mode.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_application_1/presentation/views/event/admin/memberstatu
 import 'package:flutter_application_1/presentation/views/event/schedule/set_time_page.dart';
 import 'package:flutter_application_1/presentation/views/group/group_list_page.dart';
 import 'package:flutter_application_1/presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/helpers/admin_event_test_helpers.dart';
 
 class MockGroupRepository extends Mock implements GroupRepository {}
 
@@ -114,10 +116,21 @@ void main() {
       when(
         () => mockGroupRepository.getGroups(),
       ).thenAnswer((_) async => []);
+      final mockAdminEventRepository = MockAdminEventRepository();
+      when(
+        () => mockAdminEventRepository.getEvents(any()),
+      ).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
-        ChangeNotifierProvider<GroupViewModel>(
-          create: (_) => GroupViewModel(mockGroupRepository),
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<GroupViewModel>(
+              create: (_) => GroupViewModel(mockGroupRepository),
+            ),
+            ChangeNotifierProvider<AdminEventViewModel>(
+              create: (_) => AdminEventViewModel(mockAdminEventRepository),
+            ),
+          ],
           child: buildTestableWidget(
             const CommonLayout(
               body: SizedBox.shrink(),
