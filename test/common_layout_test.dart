@@ -271,4 +271,53 @@ void main() {
       expect(identical(footerBefore, footerAfter), isTrue);
     },
   );
+
+  testWidgets('showFooter: falseのときフッターのボタンは操作できない', (tester) async {
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CommonLayout(body: SizedBox.shrink(), showFooter: false),
+      ),
+    );
+
+    // offstage中はWidgetTesterの既定の検索（skipOffstage: true）では
+    // 見つからない。実在はするが操作不可であることを確認するため、
+    // skipOffstage: falseで明示的に探してタップを試みる。
+    await tester.tap(
+      find.byKey(CommonFooter.homeButtonKey, skipOffstage: false),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+
+    // offstage中はヒットテストが届かないため、Please select group.の
+    // スナックバーは表示されない。
+    expect(find.text('Please select group.'), findsNothing);
+  });
+
+  testWidgets('showFooter: falseからtrueに切り替わってもフッターのインスタンスは維持される', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CommonLayout(body: SizedBox.shrink(), showFooter: false),
+      ),
+    );
+    final footerBefore = tester.widget<CommonFooter>(
+      find.byType(CommonFooter, skipOffstage: false),
+    );
+
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CommonLayout(body: SizedBox.shrink(), showFooter: true),
+      ),
+    );
+    final footerAfter = tester.widget<CommonFooter>(
+      find.byType(CommonFooter),
+    );
+
+    expect(identical(footerBefore, footerAfter), isTrue);
+
+    await tester.tap(find.byKey(CommonFooter.homeButtonKey));
+    await tester.pump();
+    expect(find.text('Please select group.'), findsOneWidget);
+  });
 }

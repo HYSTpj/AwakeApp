@@ -106,9 +106,18 @@ class _CommonLayoutState extends State<CommonLayout> {
       body: _withBodyTransition(widget.body),
       floatingActionButton: widget.floatingActionButton,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: widget.showFooter
-          ? _withBodyTransition(_footer)
-          : null,
+      // showFooterに応じてnull/ウィジェットを切り替えると、再表示のたびに
+      // _footerが都度アンマウント→再マウントされてしまう（ヘッダーには
+      // こうした分岐が無く、常に同一インスタンスを参照している）。
+      // Visibility(maintainState: true)でフッターのElement自体は維持した
+      // まま表示/非表示だけ切り替え、ヘッダーと同じく_footerが
+      // 不要に作り直されないようにする。
+      bottomNavigationBar: Visibility(
+        visible: widget.showFooter,
+        maintainState: true,
+        maintainAnimation: true,
+        child: _withBodyTransition(_footer),
+      ),
     );
   }
 
