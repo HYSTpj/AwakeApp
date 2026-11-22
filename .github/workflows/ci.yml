@@ -15,10 +15,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          # ローカル開発環境と同じバージョンに固定する。
-          # stableチャンネルを無指定にすると、CI実行のたびに最新のstableへ
-          # 自動追従してしまい、Flutter側の変更（非推奨化など）で予期せず
-          # analyze/testが落ちることがあるため。
+          # バージョン引き上げのタイミングまでは3.44のままにする
           flutter-version: '3.44.0'
           cache: true
 
