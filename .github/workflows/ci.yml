@@ -27,9 +27,16 @@ jobs:
 
       - name: Run tests
         run: flutter test
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Build Android APK
         run: flutter build apk --debug
+
 
       # 脆弱性のあるパッケージをチェック
       - name: Security scan with OSV-Scanner
