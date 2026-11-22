@@ -11,6 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      
+      - name: Show Java version
+        run: java -version
+
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -28,12 +38,6 @@ jobs:
       - name: Run tests
         run: flutter test
         
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Build Android APK
         run: flutter build apk --debug
 
