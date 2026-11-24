@@ -140,6 +140,29 @@ class _GroupListPageState extends State<GroupListPage> {
                           letterSpacing: 0.5,
                         ),
                       ),
+                      selectedItemBuilder: (BuildContext context) {
+                        return [
+                          ...groups.map((Group group) {
+                            return Text(
+                              group.groupName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1A1C1C),
+                                letterSpacing: 0.5,
+                              ),
+                            );
+                          }),
+                          const Text(
+                            'CREATE OR ADD OR DELETE',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFFF5C00),
+                            ),
+                          ),
+                        ];
+                      },
                       items: [
                         ...groups.map((Group group) {
                           return DropdownMenuItem<String>(
