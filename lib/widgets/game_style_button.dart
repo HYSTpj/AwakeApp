@@ -44,7 +44,7 @@ class GameStyleButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: radius),
         ),
         child: isLoading
-            ? const CircularProgressIndicator()
+            ? CircularProgressIndicator(color: textColor)
             : Text(
                 label,
                 style: TextStyle(fontSize: 24, color: textColor, fontWeight: FontWeight.bold),
