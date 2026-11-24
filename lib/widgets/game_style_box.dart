@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../presentation/views/login/common_effects.dart';
 
 /// ネオブルータリズム風（角丸＋黒枠線＋黒いハードシャドウ）の共通の箱。
-/// [GameStyleButton] と [ReturnButton] はどちらもこれをベースにしている。
 class GameStyleBox extends StatelessWidget {
   const GameStyleBox({
     super.key,
