@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:flutter/material.dart' show TimeOfDay;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+const _maxReasonLength = 200;
 
 class LateReportViewModel extends ChangeNotifier {
   final String reportId;
@@ -22,6 +25,7 @@ class LateReportViewModel extends ChangeNotifier {
   String locationName = "FETCHING LOCATION...";
   double? latitude;
   double? longitude;
+  TimeOfDay? arrivalEstimate;
 
   // View用のユーザー名取得ゲッター（MVVM移行）
   String get currentUserName {
@@ -119,6 +123,20 @@ class LateReportViewModel extends ChangeNotifier {
     reasonText = text;
   }
 
+  void setArrivalEstimate(TimeOfDay time) {
+    arrivalEstimate = time;
+    notifyListeners();
+  }
+
+  /// 選択中の到着予定時刻(時:分)を、今日の日付のUTC日時として返す。
+  String? _estimatedArrivalIso() {
+    final time = arrivalEstimate;
+    if (time == null) return null;
+    final now = DateTime.now();
+    final local = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return local.toUtc().toIso8601String();
+  }
+
   /// 写真のアップロード処理
   Future<String?> _uploadEvidencePhoto() async {
     if (evidencePhoto == null) return null;
@@ -158,14 +176,19 @@ class LateReportViewModel extends ChangeNotifier {
         photoUrl = await _uploadEvidencePhoto();
       }
 
+      final reason = reasonText.length > _maxReasonLength
+          ? reasonText.substring(0, _maxReasonLength)
+          : reasonText;
+
       await _supabase.rpc(
         'submit_late_report',
         params: {
           'p_event_id': eventId,
-          'p_reason': reasonText,
+          'p_reason': reason,
           'p_photo_url': photoUrl,
           'p_latitude': latitude,
           'p_longitude': longitude,
+          'p_estimated_arrival_time': _estimatedArrivalIso(),
         },
       );
 

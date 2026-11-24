@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common_layout.dart';
+import '../../widgets/time_input_box.dart' show formatTimeOfDay;
 
 class MemberSetTimeViewData {
   final String memberName;
@@ -172,12 +173,6 @@ class _SetTimePageState extends State<SetTimePage> {
     });
   }
 
-  String _timeLabel(TimeOfDay time) {
-    final String hour = time.hour.toString().padLeft(2, '0');
-    final String minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
   Future<void> _handleSave() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
@@ -276,7 +271,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   _ScheduleRow(
                     icon: Icons.alarm,
                     title: 'Wake-up Time',
-                    timeLabel: _timeLabel(selected.wakeUpTime),
+                    timeLabel: formatTimeOfDay(selected.wakeUpTime),
                     onTap: () => _pickTime(
                       field: 'wakeup',
                       current: selected.wakeUpTime,
@@ -286,7 +281,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   _ScheduleRow(
                     icon: Icons.directions_car,
                     title: 'Departure Time',
-                    timeLabel: _timeLabel(selected.leaveHomeTime),
+                    timeLabel: formatTimeOfDay(selected.leaveHomeTime),
                     onTap: () => _pickTime(
                       field: 'leave',
                       current: selected.leaveHomeTime,
@@ -296,7 +291,7 @@ class _SetTimePageState extends State<SetTimePage> {
                   _ScheduleRow(
                     icon: Icons.calendar_month,
                     title: 'Arrival Goal',
-                    timeLabel: _timeLabel(selected.arrivalTime),
+                    timeLabel: formatTimeOfDay(selected.arrivalTime),
                     highlight: true,
                   ),
                 ],

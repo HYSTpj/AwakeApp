@@ -141,6 +141,8 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         builder: (context) => LateReportPage(
           reportId: reportId,
           eventId: widget.eventId,
+          groupName: widget.groupName,
+          eventTitle: widget.eventTitle,
         ),
       ),
     );
@@ -250,47 +252,124 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
 class GroupNameDropdown extends StatelessWidget {
   final String title;
   final VoidCallback? onTap;
+  final double? width;
+  final double height;
+  final double borderWidth;
+  final bool uppercase;
+  final double fontSize;
+  final double letterSpacing;
 
   const GroupNameDropdown({
     super.key,
     required this.title,
     this.onTap,
+    this.width = 362,
+    this.height = 60,
+    this.borderWidth = 4,
+    this.uppercase = false,
+    this.fontSize = 18,
+    this.letterSpacing = 0.5,
   });
 
   @override
   Widget build(BuildContext context) {
     const borderColor = Color(0xFF1A1C1C);
+    final displayTitle = uppercase ? title.toUpperCase() : title;
+    final textStyle = TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w700,
+      color: borderColor,
+      letterSpacing: letterSpacing,
+    );
+    final chevron = Icon(Icons.keyboard_arrow_down, color: borderColor, size: width == null ? 18 : 28);
+
+    final content = width == null
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(displayTitle, style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+              const SizedBox(width: 4),
+              chevron,
+            ],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(displayTitle, style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
+              chevron,
+            ],
+          );
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 362,
-        height: 60,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: borderColor, width: 4),
+          border: Border.all(color: borderColor, width: borderWidth),
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: width == null ? 15 : 20),
+        child: content,
+      ),
+    );
+  }
+}
+
+class EventNameDropdown extends StatelessWidget {
+  final String title;
+  final VoidCallback? onTap;
+  final double height;
+  final double borderWidth;
+  final bool uppercase;
+  final double fontSize;
+  final double letterSpacing;
+
+  const EventNameDropdown({
+    super.key,
+    required this.title,
+    this.onTap,
+    this.height = 50,
+    this.borderWidth = 3,
+    this.uppercase = true,
+    this.fontSize = 12,
+    this.letterSpacing = 0.6,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const borderColor = Color(0xFF1A1C1C);
+    final displayTitle = uppercase ? title.toUpperCase() : title;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: height,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: borderColor, width: borderWidth),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            const Icon(Icons.calendar_month_outlined, color: borderColor, size: 16),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: borderColor,
-                  letterSpacing: 0.5,
-                ),
+                displayTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: borderColor, letterSpacing: letterSpacing),
               ),
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.keyboard_arrow_down, color: borderColor, size: 28),
+            const Icon(Icons.arrow_drop_down, color: borderColor, size: 18),
           ],
         ),
       ),
