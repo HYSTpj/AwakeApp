@@ -45,6 +45,15 @@ void setupTestEnvironment() {
           return true;
         });
 
+    const mapsApiKeyChannel = MethodChannel(
+      'com.example.flutterApplication1/maps_api_key',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          mapsApiKeyChannel,
+          (MethodCall methodCall) async => true,
+        );
+
     try {
       await Supabase.initialize(
         url: 'https://dummy.supabase.co',
