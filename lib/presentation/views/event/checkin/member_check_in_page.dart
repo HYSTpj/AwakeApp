@@ -5,7 +5,6 @@ import '../../../../widgets/statusbutton.dart';
 import 'qr_scanner_page.dart';
 import '../../../viewmodels/member_check_in_viewmodel.dart';
 import 'late_report_page.dart';
-import '../../../../style/app_color.dart';
 
 class MemberCheckInPage extends StatefulWidget {
   final String eventId;
@@ -218,48 +217,41 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
               : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 390),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildGroupDropdown(),
-                            const SizedBox(height: 24),
-                            CurrentStatusPanel(
-                              status: _viewModel.selectedStatus,
-                            ),
-                            const SizedBox(height: 16),
-                            WakeUpButton(
-                              isPressed: _viewModel.isWakeUpPressed,
-                              onTap: _viewModel.isParticipant
-                                  ? _viewModel.toggleWakeUp
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            DepartureButton(
-                              isSelected: _viewModel.isDeparturePressed,
-                              onTap: _viewModel.isParticipant
-                                  ? _viewModel.toggleDeparture
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            CheckInButton(
-                              isPressed: _viewModel.isCheckInPressed,
-                              onTap: _viewModel.isParticipant
-                                  ? _handleCheckIn
-                                  : null,
-                            ),
-                            const SizedBox(height: 16),
-                            ReportLateButton(
-                              onTap: !_viewModel.isParticipant
-                                  ? null
-                                  : _handleReportLate,
-                            ),
-                          ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildGroupDropdown(),
+                        const SizedBox(height: 24),
+                        CurrentStatusPanel(status: _viewModel.selectedStatus),
+                        const SizedBox(height: 16),
+                        WakeUpButton(
+                          isPressed: _viewModel.isWakeUpPressed,
+                          onTap: _viewModel.isParticipant
+                              ? _viewModel.toggleWakeUp
+                              : null,
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        DepartureButton(
+                          isSelected: _viewModel.isDeparturePressed,
+                          onTap: _viewModel.isParticipant
+                              ? _viewModel.toggleDeparture
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        CheckInButton(
+                          isPressed: _viewModel.isCheckInPressed,
+                          onTap: _viewModel.isParticipant
+                              ? _handleCheckIn
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        ReportLateButton(
+                          onTap: !_viewModel.isParticipant
+                              ? null
+                              : _handleReportLate,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -290,7 +282,7 @@ class GroupNameDropdown extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: double.infinity,
+        width: 362,
         height: 60,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -333,7 +325,7 @@ class CurrentStatusPanel extends StatelessWidget {
     const borderColor = Color(0xFF1A1C1C);
 
     return SizedBox(
-      width: 340,
+      width: 362,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFF9F9F9),
@@ -411,7 +403,7 @@ class DepartureButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const buttonWidth = double.infinity;
+    const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     final backgroundColor = isSelected ? const Color(0xFFE5E7EB) : Colors.white;
@@ -419,9 +411,7 @@ class DepartureButton extends StatelessWidget {
         ? Colors.transparent
         : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
-    final rightIcon = isSelected
-        ? Icons.check_rounded
-        : Icons.arrow_forward_rounded;
+    final rightIcon = isSelected ? Icons.check : Icons.arrow_forward;
 
     return SizedBox(
       width: buttonWidth,
@@ -452,8 +442,8 @@ class DepartureButton extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 50.5,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: iconAreaColor,
                         border: Border.all(color: borderColor, width: 2),
@@ -463,7 +453,7 @@ class DepartureButton extends StatelessWidget {
                         child: Icon(
                           Icons.directions_car,
                           color: Colors.black,
-                          size: 32,
+                          size: 24,
                         ),
                       ),
                     ),
@@ -481,14 +471,14 @@ class DepartureButton extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(rightIcon, color: iconColor, size: 36),
+                    child: Icon(rightIcon, color: iconColor, size: 24),
                   ),
                 ),
               ],
@@ -514,14 +504,14 @@ class CheckInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const buttonWidth = double.infinity;
+    const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     final backgroundColor = isPressed
         ? const Color(0xFFE2E2E2)
         : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
-    final rightIcon = isPressed ? Icons.check_rounded : Icons.login_rounded;
+    final rightIcon = isPressed ? Icons.check : Icons.arrow_forward;
 
     return SizedBox(
       width: buttonWidth,
@@ -552,20 +542,18 @@ class CheckInButton extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 48,
+                      height: 53,
                       decoration: BoxDecoration(
-                        color: isPressed
-                            ? const Color(0xFFE2E2E2)
-                            : borderColor,
+                        color: Colors.white,
                         border: Border.all(color: borderColor, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: Icon(
                           Icons.location_on,
-                          color: isPressed ? borderColor : AppColors.orange,
-                          size: 32,
+                          color: iconColor,
+                          size: 28,
                         ),
                       ),
                     ),
@@ -583,14 +571,14 @@ class CheckInButton extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 24.5,
+                  height: 24.5,
                   decoration: BoxDecoration(
-                    color: Colors.transparent,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(rightIcon, color: iconColor, size: 36),
+                    child: Icon(rightIcon, color: iconColor, size: 18),
                   ),
                 ),
               ],
@@ -616,7 +604,7 @@ class WakeUpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const buttonWidth = double.infinity;
+    const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     final backgroundColor = isPressed ? const Color(0xFFE5E7EB) : Colors.white;
@@ -624,9 +612,7 @@ class WakeUpButton extends StatelessWidget {
         ? Colors.transparent
         : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
-    final rightIcon = isPressed
-        ? Icons.check_rounded
-        : Icons.arrow_forward_rounded;
+    final rightIcon = isPressed ? Icons.check : Icons.arrow_forward;
 
     return SizedBox(
       width: buttonWidth,
@@ -657,15 +643,15 @@ class WakeUpButton extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 54.5,
+                      height: 52.6,
                       decoration: BoxDecoration(
                         color: iconAreaColor,
                         border: Border.all(color: borderColor, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
-                        child: Icon(Icons.schedule, color: iconColor, size: 32),
+                        child: Icon(Icons.alarm, color: iconColor, size: 28),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -682,14 +668,14 @@ class WakeUpButton extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Center(
-                    child: Icon(rightIcon, color: iconColor, size: 36),
+                    child: Icon(rightIcon, color: iconColor, size: 24),
                   ),
                 ),
               ],
@@ -709,7 +695,7 @@ class ReportLateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const buttonWidth = double.infinity;
+    const buttonWidth = 362.0;
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     const buttonColor = Color(0xFFFFDAD6);
@@ -745,19 +731,15 @@ class ReportLateButton extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 54.6,
+                      height: 53,
                       decoration: BoxDecoration(
                         color: iconBackgroundColor,
                         border: Border.all(color: borderColor, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Center(
-                        child: Icon(
-                          Icons.access_time_rounded,
-                          color: iconColor,
-                          size: 32,
-                        ),
+                        child: Icon(Icons.alarm, color: iconColor, size: 28),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -765,7 +747,7 @@ class ReportLateButton extends StatelessWidget {
                       label,
                       style: const TextStyle(
                         fontSize: 24,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w300,
                         color: Color(0xFF93000A),
                         letterSpacing: -1.2,
                         height: 1.333,
@@ -776,7 +758,7 @@ class ReportLateButton extends StatelessWidget {
                 const Icon(
                   Icons.warning_amber_rounded,
                   color: Color(0xFF93000A),
-                  size: 40,
+                  size: 28,
                 ),
               ],
             ),
