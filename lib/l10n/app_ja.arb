@@ -3,7 +3,7 @@
   "loginFailed": "ログインに失敗しました",
   "userNameRequired": "ユーザー名を入力してください",
   "notLoggedIn": "ログインしていません",
-  "profileSaveFailed": "プロファイルの保存に失敗しました",
+  "profileSaveFailed": "基本情報の保存に失敗しました",
 
   "createProfile": "プロフィール作成",
   "createProfileDescription": "プロフィール画像とユーザー名を設定します",

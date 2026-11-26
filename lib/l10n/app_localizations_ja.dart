@@ -21,7 +21,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notLoggedIn => 'ログインしていません';
 
   @override
-  String get profileSaveFailed => 'プロファイルの保存に失敗しました';
+  String get profileSaveFailed => '基本情報の保存に失敗しました';
 
   @override
   String get createProfile => 'プロフィール作成';
