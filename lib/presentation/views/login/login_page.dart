@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 // ViewModel
 import '../../viewmodels/auth_view_model.dart';
@@ -50,7 +51,11 @@ class _LoginPageState extends State<LoginPage> {
 
         if (email.isEmpty || password.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('メールアドレスとパスワードを入力してください')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.loginRequiredFields,
+              ),
+            ),
           );
           return;
         }
@@ -71,7 +76,9 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(builder: (context) => const GroupListPage()),
           );
         } else {
-          final errorMsg = authViewModel.state.errorMessage ?? 'ログインに失敗しました';
+          final errorMsg =
+            authViewModel.state.errorMessage ??
+            AppLocalizations.of(context)!.loginFailed;
           debugPrint("ログイン失敗: $errorMsg");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(errorMsg)),

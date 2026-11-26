@@ -1,7 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'login_header.dart'; // ヘッダーを定義したファイルをインポート
-import 'loading_button_label.dart';
 import '../common_effects.dart';
+import 'package:flutter_application_1/l10n/app_localizations.dart';
 
 class SignupBody extends StatelessWidget {
   final TextEditingController emailController;
@@ -36,7 +37,7 @@ class SignupBody extends StatelessWidget {
                                 children: [
                                     // ロゴ
                                     Text(
-                                        'CREATE ACCOUNT',
+                                        AppLocalizations.of(context)!.signupTitle,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -50,7 +51,7 @@ class SignupBody extends StatelessWidget {
 
                                     // キャッチコピー
                                     Text(
-                                        'Join us among the elite who master time.\nLet\'sAWAKE!',
+                                        AppLocalizations.of(context)!.signupCatchCopy,
                                         textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: const Color(0xFF334155),
@@ -73,7 +74,7 @@ class SignupBody extends StatelessWidget {
                                     
                                     // EMAIL ADDRESS
                                     Text(
-                                        'EMAIL ADDRESS',
+                                        AppLocalizations.of(context)!.emailAddress,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -105,7 +106,7 @@ class SignupBody extends StatelessWidget {
 
                                     // PASSWORD
                                     Text(
-                                        'PASSWORD',
+                                        AppLocalizations.of(context)!.password,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                         color: const Color(0xFF0F172A),
@@ -152,10 +153,14 @@ class SignupBody extends StatelessWidget {
                                                 shadowColor: Colors.transparent,     // ボタン自体の影を消す
                                                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero), // 四角いボタンにする
                                                 ),
-                                                child: LoadingButtonLabel(
-                                                isLoading: isLoading,
-                                                label: 'CREATE ACCOUNT',
-                                            ),
+                                                child: Text(
+                                                AppLocalizations.of(context)!.signupTitle, 
+                                                style: TextStyle(
+                                                    color: Colors.white, // 文字色
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                ),
+                                                ),
                                             ),
                                         ),
                                     ),
@@ -177,8 +182,8 @@ class SignupBody extends StatelessWidget {
                                         padding: EdgeInsets.zero,
                                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                                         ),
-                                        child: const Text(
-                                        'RETURN TO LOGIN',
+                                        child: Text(
+                                          AppLocalizations.of(context)!.returnToLogin,
                                         style: TextStyle(
                                             color: Colors.black, // 文字色
                                             fontFamily: 'Noto Sans JP',
