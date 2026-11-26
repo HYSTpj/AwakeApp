@@ -435,7 +435,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 24, bottom: 32),
+                    // bottom: CommonLayoutはextendBody:trueでフッターをbodyの上に
+                    // 重ねて表示するため、フッターの高さ分の余白を確保しないと
+                    // このボタンがフッターの裏に隠れてタップできなくなる
+                    // （ranking_page.dart/event_selection_home_page.dartと同様の対応）。
+                    padding: const EdgeInsets.only(top: 24, bottom: 120),
                     child: InkWell(
                       onTap: _isNavigating ? null : _onNextPressed,
                       child: Container(
