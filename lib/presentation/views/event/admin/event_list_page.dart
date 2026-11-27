@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../../presentation/viewmodels/admin_event_view_model.dart';
 import 'memberstatus_page.dart';
 import 'create_event_page.dart';
+import 'edit_event_view.dart';
 
 class EventListPage extends StatefulWidget {
   final String groupId;
@@ -289,8 +290,29 @@ class _EventListPageState extends State<EventListPage> {
                                       color: Colors.grey,
                                       size: 30,
                                     ),
-                                    onPressed: () {
-                                      debugPrint('イベント設定ページへ移動');
+                                    onPressed: () async {
+                                      // 管理者以外はタップ無効化（widget.myRole を参照）
+                                      if (widget.myRole != 0) return;
+
+                                      final result = await Navigator.push<bool>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => EditEventPage(
+                                            event: event,
+                                            groupId: widget.groupId,
+                                            myRole: widget.myRole,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (!context.mounted) return;
+
+                                      if (result == true) {
+                                        context
+                                            .read<AdminEventViewModel>()
+                                            .loadEvents(widget.groupId);
+                                        debugPrint('${event.title} の更新を検知して一覧をリフレッシュ');
+                                      }
                                     },
                                   ),
                                 ),

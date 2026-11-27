@@ -19,6 +19,17 @@ abstract class AdminEventRepository {
     required DateTime arrivalTime,
     required List<String> participantUserIds,
   });
+  // 既存イベントの参加者ID一覧を取得
+  Future<List<String>> getEventParticipantIds(String eventId);
+
+  // イベント詳細の更新
+  Future<void> updateEventDetails({
+    required String eventId,
+    required String title,
+    required String destinationName,
+    required DateTime arrivalTime,
+    required List<String> participantUserIds,
+  });
 
   /// 対象イベントの参加メンバー一覧と各レポート状況（DTO）を取得
   Future<List<EventMemberStatus>> getEventMemberStatuses(String eventId);
@@ -154,6 +165,34 @@ class SupabaseAdminEventRepository implements AdminEventRepository {
     return (data as List<dynamic>)
         .map((e) => EventMemberStatus.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<List<String>> getEventParticipantIds(String eventId) async {
+    final data = await _client
+        .from('event_reports')
+        .select('user_id')
+        .eq('event_id', eventId);
+    return (data as List<dynamic>)
+        .map((e) => e['user_id'] as String)
+        .toList();
+  }
+
+  @override
+  Future<void> updateEventDetails({
+    required String eventId,
+    required String title,
+    required String destinationName,
+    required DateTime arrivalTime,
+    required List<String> participantUserIds,
+  }) async {
+    await _client.rpc('update_event_with_participants', params: {
+      'p_event_id': eventId,
+      'p_title': title,
+      'p_destination_name': destinationName,
+      'p_arrival_time': arrivalTime.toIso8601String(),
+      'p_participant_ids': participantUserIds,
+    });
   }
 
   @override
