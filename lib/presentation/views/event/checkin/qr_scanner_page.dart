@@ -70,7 +70,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
             const SizedBox(height: 40),
-            
+
             // Scanner View
             Expanded(
               child: Center(
@@ -96,7 +96,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
                               setState(() {
                                 _isScanned = true;
                               });
-                              Navigator.pop(context, {'type': 'qrcode', 'value': code});
+                              Navigator.pop(context, {
+                                'type': 'qrcode',
+                                'value': code,
+                              });
                             }
                           }
                         },
@@ -109,7 +112,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Scan instructions banner
             Container(
               width: double.infinity,
@@ -129,7 +132,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Enter Passcode button
             Container(
               decoration: const BoxDecoration(
@@ -157,16 +160,18 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   // パスコード入力画面を push で開き、結果を受け取る
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PasscodeEntryPage(
-                      groupId: widget.groupId,
-                      eventId: widget.eventId,
-                      eventTitle: widget.eventTitle,
-                      myRole: widget.myRole,
-                    )),
+                    MaterialPageRoute(
+                      builder: (context) => PasscodeEntryPage(
+                        groupId: widget.groupId,
+                        eventId: widget.eventId,
+                        eventTitle: widget.eventTitle,
+                        myRole: widget.myRole,
+                      ),
+                    ),
                   );
-                  
+
                   if (!context.mounted) return;
-                  
+
                   // 受け取った結果(result)を持って、QRScannerPage自体を pop し、呼び出し元の大元（Home）へ返す
                   if (result != null) {
                     Navigator.pop(context, result);
@@ -203,9 +208,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
         children: [
           // Top Left
           Positioned(
-            top: 0, left: 0,
+            top: 0,
+            left: 0,
             child: Container(
-              width: length, height: length,
+              width: length,
+              height: length,
               decoration: const BoxDecoration(
                 border: Border(
                   top: BorderSide(color: cornerColor, width: borderW),
@@ -216,9 +223,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ),
           // Top Right
           Positioned(
-            top: 0, right: 0,
+            top: 0,
+            right: 0,
             child: Container(
-              width: length, height: length,
+              width: length,
+              height: length,
               decoration: const BoxDecoration(
                 border: Border(
                   top: BorderSide(color: cornerColor, width: borderW),
@@ -229,9 +238,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ),
           // Bottom Left
           Positioned(
-            bottom: 0, left: 0,
+            bottom: 0,
+            left: 0,
             child: Container(
-              width: length, height: length,
+              width: length,
+              height: length,
               decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: cornerColor, width: borderW),
@@ -242,9 +253,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ),
           // Bottom Right
           Positioned(
-            bottom: 0, right: 0,
+            bottom: 0,
+            right: 0,
             child: Container(
-              width: length, height: length,
+              width: length,
+              height: length,
               decoration: const BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: cornerColor, width: borderW),
