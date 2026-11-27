@@ -101,7 +101,13 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
       if (isValid) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('チェックインが完了しました！', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            content: Text(
+              'チェックインが完了しました！',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -109,7 +115,13 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
         final errorMsg = type == 'qrcode' ? '無効なQRコードです。' : 'パスコードが間違っています。';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            content: Text(
+              errorMsg,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -138,10 +150,8 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
     final res = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (context) => LateReportPage(
-          reportId: reportId,
-          eventId: widget.eventId,
-        ),
+        builder: (context) =>
+            LateReportPage(reportId: reportId, eventId: widget.eventId),
       ),
     );
 
@@ -179,7 +189,10 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF5C00),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -214,21 +227,29 @@ class _MemberCheckInPageState extends State<MemberCheckInPage> {
                         const SizedBox(height: 16),
                         WakeUpButton(
                           isPressed: _viewModel.isWakeUpPressed,
-                          onTap: _viewModel.isParticipant ? _viewModel.toggleWakeUp : null,
+                          onTap: _viewModel.isParticipant
+                              ? _viewModel.toggleWakeUp
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         DepartureButton(
                           isSelected: _viewModel.isDeparturePressed,
-                          onTap: _viewModel.isParticipant ? _viewModel.toggleDeparture : null,
+                          onTap: _viewModel.isParticipant
+                              ? _viewModel.toggleDeparture
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         CheckInButton(
                           isPressed: _viewModel.isCheckInPressed,
-                          onTap: _viewModel.isParticipant ? _handleCheckIn : null,
+                          onTap: _viewModel.isParticipant
+                              ? _handleCheckIn
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         ReportLateButton(
-                          onTap: !_viewModel.isParticipant ? null : _handleReportLate,
+                          onTap: !_viewModel.isParticipant
+                              ? null
+                              : _handleReportLate,
                         ),
                       ],
                     ),
@@ -251,11 +272,7 @@ class GroupNameDropdown extends StatelessWidget {
   final String title;
   final VoidCallback? onTap;
 
-  const GroupNameDropdown({
-    super.key,
-    required this.title,
-    this.onTap,
-  });
+  const GroupNameDropdown({super.key, required this.title, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -390,7 +407,9 @@ class DepartureButton extends StatelessWidget {
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     final backgroundColor = isSelected ? const Color(0xFFE5E7EB) : Colors.white;
-    final iconAreaColor = isSelected ? Colors.transparent : const Color(0xFFFF5C00);
+    final iconAreaColor = isSelected
+        ? Colors.transparent
+        : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
     final rightIcon = isSelected ? Icons.check : Icons.arrow_forward;
 
@@ -589,7 +608,9 @@ class WakeUpButton extends StatelessWidget {
     const buttonHeight = 90.0;
     const borderColor = Color(0xFF1A1C1C);
     final backgroundColor = isPressed ? const Color(0xFFE5E7EB) : Colors.white;
-    final iconAreaColor = isPressed ? Colors.transparent : const Color(0xFFFF5C00);
+    final iconAreaColor = isPressed
+        ? Colors.transparent
+        : const Color(0xFFFF5C00);
     final iconColor = const Color(0xFF1A1C1C);
     final rightIcon = isPressed ? Icons.check : Icons.arrow_forward;
 
