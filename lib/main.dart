@@ -21,11 +21,13 @@ import 'data/repositories/auth_repository.dart';
 import 'data/repositories/admin_event_repository.dart';
 import 'data/repositories/member_event_repository.dart';
 import 'data/repositories/group_repository.dart';
+import 'data/repositories/ranking_repository.dart';
 
 // ViewModel
 import 'presentation/viewmodels/auth_view_model.dart';
 import 'presentation/viewmodels/admin_event_view_model.dart';
 import 'presentation/viewmodels/group_view_model.dart';
+import 'presentation/viewmodels/ranking_view_model.dart';
 
 void main() async {
   // Flutterを初期化
@@ -50,6 +52,7 @@ void main() async {
   final adminEventRepository = SupabaseAdminEventRepository(client);
   final memberEventRepository = SupabaseMemberEventRepository(client);
   final groupRepository = SupabaseGroupRepository(client);
+  final rankingRepository = SupabaseRankingRepository(client);
 
   runApp(
     MultiProvider(
@@ -62,6 +65,7 @@ void main() async {
         Provider<AdminEventRepository>.value(value: adminEventRepository),
         Provider<MemberEventRepository>.value(value: memberEventRepository),
         Provider<GroupRepository>.value(value: groupRepository),
+        Provider<RankingRepository>.value(value: rankingRepository),
 
         // 共通 ViewModel
         ChangeNotifierProvider<AuthViewModel>(
@@ -72,6 +76,9 @@ void main() async {
         ),
         ChangeNotifierProvider<GroupViewModel>(
           create: (_) => GroupViewModel(groupRepository),
+        ),
+        ChangeNotifierProvider<RankingViewModel>(
+          create: (_) => RankingViewModel(rankingRepository),
         ),
       ],
       child: MyApp(memberEventRepository: memberEventRepository),

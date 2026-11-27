@@ -12,12 +12,16 @@ class EventSelectionHome extends StatefulWidget {
   final String groupId;
   final String groupName;
   final int myRole;
+  // 管理者/メンバー切替時のみ渡される、CommonLayoutのbody/footerスライドイン
+  // アニメーション。詳細はCommonLayoutを参照。
+  final Animation<double>? bodyTransitionAnimation;
 
   const EventSelectionHome({
     super.key,
     required this.groupId,
     required this.groupName,
     required this.myRole,
+    this.bodyTransitionAnimation,
   });
 
   @override
@@ -107,6 +111,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   @override
   Widget build(BuildContext context) {
     return CommonLayout(
+      bodyTransitionAnimation: widget.bodyTransitionAnimation,
       groupId: selectedGroupId,
       groupName: selectedGroupName,
       myRole: myRole,
@@ -122,6 +127,13 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
   }
 
   Widget _buildGroupDropdown() {
+    // _loadGroups()の非同期取得が完了する前（_myGroupsが空の間）にselectedGroupId
+    // が先にセットされるため、現在のitemsに実在しない値をDropdownButtonに渡して
+    // しまうとFlutterのアサーションで落ちる。一覧に実在する場合だけ採用する。
+    final dropdownValue = _myGroups.any((g) => g['group_id'] == selectedGroupId)
+        ? selectedGroupId
+        : null;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -132,7 +144,7 @@ class _EventSelectionHomeState extends State<EventSelectionHome> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: selectedGroupId,
+          value: dropdownValue,
           isExpanded: true,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
