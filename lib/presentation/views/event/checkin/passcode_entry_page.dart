@@ -36,7 +36,10 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('IDを入力してください', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(
+            'IDを入力してください',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -85,7 +88,7 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                 ),
               ),
               const SizedBox(height: 64),
-              
+
               // Lock Icon
               Container(
                 width: 64,
@@ -108,7 +111,7 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              
+
               // Titles
               const Text(
                 'SECURE ENTRY',
@@ -129,7 +132,7 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                 ),
               ),
               const SizedBox(height: 48),
-              
+
               // Input Field
               Container(
                 decoration: BoxDecoration(
@@ -146,7 +149,8 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                     letterSpacing: 2.0,
                     color: borderColor,
                   ),
-                  keyboardType: TextInputType.visiblePassword, // Alphanumeric keyboard
+                  keyboardType:
+                      TextInputType.visiblePassword, // Alphanumeric keyboard
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _onConfirmCheckIn(),
                   decoration: const InputDecoration(
@@ -163,7 +167,7 @@ class _PasscodeEntryPageState extends State<PasscodeEntryPage> {
                 ),
               ),
               const SizedBox(height: 48),
-              
+
               // Confirm Button
               Container(
                 decoration: const BoxDecoration(
