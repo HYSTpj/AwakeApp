@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../config/validation_rules.dart';
 import 'screen/create_account_body.dart';
 import '../../viewmodels/auth_view_model.dart';
 import '../group/group_list_page.dart';
@@ -65,7 +66,6 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
     if (croppedFile == null) return;
 
-    // CodeRabbit指摘箇所
     if (!mounted) return;
 
     setState(() {
@@ -80,8 +80,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     if (authViewModel.state.isLoading) return;
 
     final String name = _userNameController.text.trim();
-    if (name.isEmpty) {
-      _showSnackBar('ユーザー名を入力してください');
+    final validationError = ValidationRules.nickname(name);
+    if (validationError != null) {
+      _showSnackBar(validationError);
       return;
     }
 

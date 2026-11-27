@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'login_header.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:io';
-import '../common_effects.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_application_1/l10n/app_localizations.dart';
+import '../common_effects.dart';
+import 'loading_button_label.dart';
+import 'login_header.dart';
 
 Widget createAccountBody(
   BuildContext context,
@@ -48,9 +49,12 @@ Widget createAccountBody(
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      AppLocalizations.of(context)!.userName,
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
-                    )
+                      'USER NAME',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                   
                   const SizedBox(height: 8),
@@ -65,10 +69,13 @@ Widget createAccountBody(
                     ),
                     child: TextField(
                       controller: userNameController,
-                      decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context)!.enterUserName,
+                      enabled: !isLoading,
+                      maxLength: 30,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter your username',
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        counterText: '',
                       ),
                     ),
                   ),
@@ -77,9 +84,12 @@ Widget createAccountBody(
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      AppLocalizations.of(context)!.profilePicture, 
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)
-                    )
+                      'PROFILE PICTURE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -96,7 +106,8 @@ Widget createAccountBody(
                           ? DecorationImage(
                               image: kIsWeb
                                   ? MemoryImage(pickedImage as Uint8List)
-                                  : FileImage(pickedImage as File),
+                                  : FileImage(pickedImage as File)
+                                        as ImageProvider,
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -110,28 +121,30 @@ Widget createAccountBody(
 
                   // UPLOAD IMAGEボタン
                   Container(
-                      width: double.infinity, // 💡 画面幅に統一
-                      height: 48,
-                      padding: EdgeInsets.zero, 
-                      decoration: hardShadowDecoration(color: Colors.white),
-                      child: ElevatedButton(
-                          onPressed: onUploadImagePressed,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: EdgeInsets.zero,
-                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                          ),
-                          child: Text(
-                              AppLocalizations.of(context)!.uploadImage,
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: 'Noto Sans JP',
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
-                              ),  
-                          ),
+                    width: double.infinity,
+                    height: 48,
+                    padding: EdgeInsets.zero,
+                    decoration: hardShadowDecoration(color: Colors.white),
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : onUploadImagePressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
                       ),
+                      child: const Text(
+                        'UPLOAD IMAGE',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontFamily: 'Noto Sans JP',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ),
                   
                   const SizedBox(height: 24),
@@ -150,9 +163,10 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: Text(
-                        AppLocalizations.of(context)!.createAccount, 
-                        style: TextStyle(fontWeight: FontWeight.w900)
+                      child: LoadingButtonLabel(
+                        isLoading: isLoading,
+                        label: AppLocalizations.of(context)!.createAccount,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -165,21 +179,25 @@ Widget createAccountBody(
                     height: 48,
                     decoration: hardShadowDecoration(color: Colors.white),
                     child: ElevatedButton(
-                        onPressed: onReturnToLoginPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      onPressed: isLoading
+                          ? null
+                          : onReturnToLoginPressed, // 処理中は戻る操作を無効化
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
                         ),
-                        child: Text(
-                          AppLocalizations.of(context)!.returnToLogin,
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontFamily: 'Noto Sans JP',
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                          ),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.returnToLogin,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontFamily: 'Noto Sans JP',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
                         ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 40),
