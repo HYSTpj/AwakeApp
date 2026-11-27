@@ -12,7 +12,9 @@ import 'screen/login_body.dart'; // ログイン画面のUIを定義したファ
 
 // ログイン機能
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final String? message;
+
+  const LoginPage({super.key, this.message});
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -20,6 +22,17 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || widget.message == null) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(widget.message!)));
+    });
+  }
 
   @override
   void dispose() {
@@ -80,9 +93,9 @@ class _LoginPageState extends State<LoginPage> {
             authViewModel.state.errorMessage ??
             AppLocalizations.of(context)!.loginFailed;
           debugPrint("ログイン失敗: $errorMsg");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMsg)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(errorMsg)));
         }
       },
       onCreateAccountPressed: () {
