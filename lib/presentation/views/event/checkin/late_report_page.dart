@@ -135,14 +135,16 @@ class _GroupEventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        GroupNameDropdown(
-          title: groupName ?? 'GROUP NAME',
-          width: null,
-          height: 50,
-          borderWidth: 3,
-          uppercase: true,
-          fontSize: 12,
-          letterSpacing: 0.7,
+        Flexible(
+          child: GroupNameDropdown(
+            title: groupName ?? 'GROUP NAME',
+            width: null,
+            height: 50,
+            borderWidth: 3,
+            uppercase: true,
+            fontSize: 12,
+            letterSpacing: 0.7,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(

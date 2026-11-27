@@ -310,7 +310,9 @@ class GroupNameDropdown extends StatelessWidget {
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(displayTitle, style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Flexible(
+                child: Text(displayTitle, style: textStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
               const SizedBox(width: 4),
               chevron,
             ],
