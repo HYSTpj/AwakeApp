@@ -8,7 +8,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_application_1/common_layout.dart';
 import 'package:flutter_application_1/data/repositories/group_repository.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/app_mode_controller.dart';
 import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
+import 'package:flutter_application_1/presentation/views/common/app_mode.dart';
+import 'package:flutter_application_1/presentation/views/common/common_header.dart';
 import 'package:flutter_application_1/presentation/views/common/common_footer.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/memberstatus_page.dart';
 import 'package:flutter_application_1/presentation/views/event/schedule/set_time_page.dart';
@@ -37,6 +40,10 @@ void main() {
         publishableKey: 'dummy-anon-key-for-widget-testing',
       );
     } catch (_) {}
+  });
+
+  setUp(() {
+    AppModeController.instance.setMode(AppMode.member);
   });
 
   Widget buildTestableWidget(CommonLayout layout) {
@@ -212,6 +219,59 @@ void main() {
     });
   });
 
+  group('ヘッダー: ModeSwitch', () {
+    testWidgets('メンバー権限で管理者側をタップすると権限なしメッセージが表示される', (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(
+          const CommonLayout(
+            body: SizedBox.shrink(),
+            groupId: 'group-1',
+            myRole: 1,
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(CommonHeader.adminSwitchKey));
+      await tester.pump();
+
+      expect(find.text('閲覧権限がありません（管理者のみ利用可能）'), findsOneWidget);
+    });
+  });
+
+  testWidgets(
+    'bodyだけが変わる無関係な再描画ではCommonHeader/CommonFooterが再生成されない',
+    (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(const CommonLayout(body: SizedBox.shrink())),
+      );
+
+      final headerBefore = tester.widget<CommonHeader>(
+        find.byType(CommonHeader),
+      );
+      final footerBefore = tester.widget<CommonFooter>(
+        find.byType(CommonFooter),
+      );
+
+      // モードは変えず、bodyの内容だけを変えてCommonLayoutを作り直す
+      // （親画面の無関係なsetStateを模倣）。
+      await tester.pumpWidget(
+        buildTestableWidget(
+          CommonLayout(body: Container(key: UniqueKey())),
+        ),
+      );
+
+      final headerAfter = tester.widget<CommonHeader>(
+        find.byType(CommonHeader),
+      );
+      final footerAfter = tester.widget<CommonFooter>(
+        find.byType(CommonFooter),
+      );
+
+      expect(identical(headerBefore, headerAfter), isTrue);
+      expect(identical(footerBefore, footerAfter), isTrue);
+    },
+  );
+
   testWidgets('showFooter: falseのときフッターのボタンは操作できない', (tester) async {
     await tester.pumpWidget(
       buildTestableWidget(
@@ -231,5 +291,33 @@ void main() {
     // offstage中はヒットテストが届かないため、Please select group.の
     // スナックバーは表示されない。
     expect(find.text('Please select group.'), findsNothing);
+  });
+
+  testWidgets('showFooter: falseからtrueに切り替わってもフッターのインスタンスは維持される', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CommonLayout(body: SizedBox.shrink(), showFooter: false),
+      ),
+    );
+    final footerBefore = tester.widget<CommonFooter>(
+      find.byType(CommonFooter, skipOffstage: false),
+    );
+
+    await tester.pumpWidget(
+      buildTestableWidget(
+        const CommonLayout(body: SizedBox.shrink(), showFooter: true),
+      ),
+    );
+    final footerAfter = tester.widget<CommonFooter>(
+      find.byType(CommonFooter),
+    );
+
+    expect(identical(footerBefore, footerAfter), isTrue);
+
+    await tester.tap(find.byKey(CommonFooter.homeButtonKey));
+    await tester.pump();
+    expect(find.text('Please select group.'), findsOneWidget);
   });
 }
