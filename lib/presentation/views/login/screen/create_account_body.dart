@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'login_header.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:io';
-import '../common_effects.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_application_1/l10n/app_localizations.dart';
+import '../common_effects.dart';
+import 'loading_button_label.dart';
+import 'login_header.dart';
 
 Widget createAccountBody(
   BuildContext context, {
@@ -164,9 +165,10 @@ Widget createAccountBody(
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),
-                      child: Text(
-                        AppLocalizations.of(context)!.createAccount, 
-                        style: TextStyle(fontWeight: FontWeight.w900)
+                      child: LoadingButtonLabel(
+                        isLoading: isLoading,
+                        label: AppLocalizations.of(context)!.createAccount,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
@@ -189,8 +191,8 @@ Widget createAccountBody(
                           borderRadius: BorderRadius.zero,
                         ),
                       ),
-                      child: const Text(
-                        'RETURN TO LOGIN',
+                      child: Text(
+                        AppLocalizations.of(context)!.returnToLogin,
                         style: TextStyle(
                           color: Colors.black,
                           fontFamily: 'Noto Sans JP',
