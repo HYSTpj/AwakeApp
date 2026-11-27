@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MaxLengthEnforcement;
 import '../../../viewmodels/late_report_viewmodel.dart';
 import '../../../../common_layout.dart';
 import '../../../../widgets/time_input_box.dart';
@@ -352,6 +353,7 @@ class _ReasonInputBox extends StatelessWidget {
               enabled: !viewModel.isUploading,
               maxLines: null,
               maxLength: 200,
+              maxLengthEnforcement: MaxLengthEnforcement.none,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
               buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
