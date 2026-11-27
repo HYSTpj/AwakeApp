@@ -5,4 +5,5 @@ class AppColors {
   static final Color textLabel = Colors.black.withValues(alpha: 0.50);
   static const Color textSub = Color(0xFF6B7280); // サブテキスト
   static const Color textHint = Color(0x66000000);
+  static const Color caution = Color(0xFFFF0000); // 注意
 }

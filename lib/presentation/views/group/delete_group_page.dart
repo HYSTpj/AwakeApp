@@ -8,6 +8,7 @@ import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
 import '../../../widgets/game_style_button.dart';
 import '../login/common_effects.dart';
+import '../../../../style/app_color.dart';
 
 /// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
@@ -167,7 +168,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
         return GameStyleButton(
           label: 'Delete',
-          backgroundColor: kDangerRed,
+          backgroundColor: AppColors.caution,
           textColor: Colors.white,
           height: 80,
           isLoading: isLoading,
