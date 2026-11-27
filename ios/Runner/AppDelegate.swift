@@ -13,9 +13,12 @@ import UserNotifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
-    // API取得
-    if let apiKey = ProcessInfo.processInfo.environment["API_KEY"] {
+    // Google Maps APIキー取得（ios/Flutter/Secrets.xcconfig → Info.plist 経由）
+    if let apiKey = Bundle.main.object(forInfoDictionaryKey: "MapsAPIKey") as? String,
+       !apiKey.isEmpty {
       GMSServices.provideAPIKey(apiKey)
+    } else {
+      print("⚠️ Google Maps API key is not set. See ios/Flutter/Secrets.xcconfig.example")
     }
 
     if #available(iOS 10.0, *) {
