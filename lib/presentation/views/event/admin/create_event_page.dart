@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import '../../../../common_layout.dart';
+import '../../group/group_list_page.dart';
 import 'select_participants_page.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -94,11 +95,13 @@ class _PickerButton extends StatelessWidget {
 
 class CreateEventPage extends StatefulWidget {
   final String groupId;
+  final String groupName;
   final int myRole;
 
   const CreateEventPage({
     super.key,
     required this.groupId,
+    required this.groupName,
     required this.myRole,
   });
 
@@ -276,7 +279,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
       if (!mounted) return;
       if (result == true) {
-        Navigator.pop(context, true);
+        // CreateEventPageはpushReplacementで遷移してきているため、戻り先の
+        // GroupListPageは既に破棄されている。groupIdを明示的に渡して
+        // 同じグループを選択した状態で作り直し、グループ再選択を不要にする。
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GroupListPage(initialGroupId: widget.groupId),
+          ),
+        );
       }
     } finally {
       // 画面から戻ってきた場合に再度タップできるようにフラグを解除
@@ -306,33 +317,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 14, top: 9),
-              child: InkWell(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: ShapeDecoration(
-                    color: Colors.white,
-                    shape: const RoundedRectangleBorder(side: _kBorderSide),
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 0,
-                        offset: const Offset(4, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black,
-                    size: 24,
-                  ),
-                ),
-              ),
-            ),
             const Padding(
               padding: EdgeInsets.only(top: 8, bottom: 16),
               child: Center(
@@ -354,6 +338,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const _LabelText('GROUP'),
+                  const SizedBox(height: 4),
+                  _InputBox(
+                    child: Text(widget.groupName, style: _kValueStyle),
+                  ),
                   const _LabelText('EVENT NAME'),
                   const SizedBox(height: 4),
                   _InputBox(
@@ -446,7 +435,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 24, bottom: 32),
+                    // bottom: CommonLayoutはextendBody:trueでフッターをbodyの上に
+                    // 重ねて表示するため、フッターの高さ分の余白を確保しないと
+                    // このボタンがフッターの裏に隠れてタップできなくなる
+                    // （ranking_page.dart/event_selection_home_page.dartと同様の対応）。
+                    padding: const EdgeInsets.only(top: 24, bottom: 120),
                     child: InkWell(
                       onTap: _isNavigating ? null : _onNextPressed,
                       child: Container(
