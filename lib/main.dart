@@ -12,11 +12,9 @@ import 'package:flutter_application_1/l10n/app_localizations.dart';
 // Supabaseを利用するためのパッケージ
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'data/database/database.dart';
 import 'config/env_config.dart';
 
 // リポジトリ
-import 'data/repositories/room_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/admin_event_repository.dart';
 import 'data/repositories/member_event_repository.dart';
@@ -41,10 +39,6 @@ void main() async {
 
   final client = Supabase.instance.client;
 
-  // Drift DB
-  final database = AwakeDatabase(openConnection());
-  final roomRepository = RoomRepository(database);
-
   // Supabase Repositories
   final authRepository = SupabaseAuthRepository(client);
   final adminEventRepository = SupabaseAdminEventRepository(client);
@@ -54,9 +48,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        Provider<AwakeDatabase>.value(value: database),
-        Provider<RoomRepository>.value(value: roomRepository),
-
         // 各種リポジトリ
         Provider<AuthRepository>.value(value: authRepository),
         Provider<AdminEventRepository>.value(value: adminEventRepository),
@@ -223,9 +214,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _startGradualVibration(int alarmId) {
     final existing = _vibrationControllers.remove(alarmId);
     if (existing != null) {
-      unawaited(
-        existing.stop(cancelVibration: _vibrationControllers.isEmpty),
-      );
+      unawaited(existing.stop(cancelVibration: _vibrationControllers.isEmpty));
     }
 
     final controller = GradualVibrationController(
@@ -264,27 +253,19 @@ class _MyAppState extends State<MyApp> {
       title: 'Awake App',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
 
-      localizationsDelegates:
-          AppLocalizations.localizationsDelegates,
-      supportedLocales:
-          AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
 
-      localeResolutionCallback: (
-        locale,
-        supportedLocales,
-      ) {
+      localeResolutionCallback: (locale, supportedLocales) {
         if (locale == null) {
           return const Locale('ja');
         }
 
         for (final supportedLocale in supportedLocales) {
-          if (supportedLocale.languageCode ==
-              locale.languageCode) {
+          if (supportedLocale.languageCode == locale.languageCode) {
             return supportedLocale;
           }
         }
