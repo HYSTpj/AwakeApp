@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common_layout.dart';
-import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../../widgets/game_style_button.dart';
 import '../login/common_effects.dart';
