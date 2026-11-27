@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:characters/characters.dart';
 import 'package:flutter/material.dart' show TimeOfDay;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -176,8 +177,9 @@ class LateReportViewModel extends ChangeNotifier {
         photoUrl = await _uploadEvidencePhoto();
       }
 
-      final reason = reasonText.length > _maxReasonLength
-          ? reasonText.substring(0, _maxReasonLength)
+      final reasonCharacters = reasonText.characters;
+      final reason = reasonCharacters.length > _maxReasonLength
+          ? reasonCharacters.take(_maxReasonLength).toString()
           : reasonText;
 
       await _supabase.rpc(

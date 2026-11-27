@@ -109,6 +109,7 @@ class _LateReportPageState extends State<LateReportPage> {
                   _TimelineRow(
                     arrivalEstimate: _viewModel.arrivalEstimate,
                     onArrivalEstimateChanged: _viewModel.setArrivalEstimate,
+                    enabled: !_viewModel.isUploading,
                   ),
                   const SizedBox(height: 18),
                   _PostButton(
@@ -374,7 +375,7 @@ class _ReasonInputBox extends StatelessWidget {
             builder: (context, _) => Align(
               alignment: Alignment.centerRight,
               child: Text(
-                '${controller.text.length} / 200',
+                '${controller.text.characters.length} / 200',
                 style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _subLabelColor),
               ),
             ),
@@ -438,8 +439,13 @@ class _LocationBox extends StatelessWidget {
 class _TimelineRow extends StatelessWidget {
   final TimeOfDay? arrivalEstimate;
   final ValueChanged<TimeOfDay> onArrivalEstimateChanged;
+  final bool enabled;
 
-  const _TimelineRow({required this.arrivalEstimate, required this.onArrivalEstimateChanged});
+  const _TimelineRow({
+    required this.arrivalEstimate,
+    required this.onArrivalEstimateChanged,
+    required this.enabled,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -452,6 +458,7 @@ class _TimelineRow extends StatelessWidget {
           label: '到着予定',
           value: arrivalEstimate,
           onChanged: onArrivalEstimateChanged,
+          enabled: enabled,
         ),
         const _TimelineItem(label: '到着実績', value: '--:--'),
       ],
@@ -494,8 +501,14 @@ class _TimelineEditableItem extends StatelessWidget {
   final String label;
   final TimeOfDay? value;
   final ValueChanged<TimeOfDay> onChanged;
+  final bool enabled;
 
-  const _TimelineEditableItem({required this.label, required this.value, required this.onChanged});
+  const _TimelineEditableItem({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    required this.enabled,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -515,6 +528,7 @@ class _TimelineEditableItem extends StatelessWidget {
             backgroundColor: const Color(0xFFE2E2E2),
             borderColor: _borderColor,
             borderWidth: 3,
+            enabled: enabled,
           ),
         ],
       ),

@@ -27,6 +27,7 @@ class TimeInputBox extends StatelessWidget {
   final String placeholder;
   final String pickerLabel;
   final String pickerTitle;
+  final bool enabled;
 
   const TimeInputBox({
     super.key,
@@ -41,6 +42,7 @@ class TimeInputBox extends StatelessWidget {
     this.height = 40,
     this.borderRadius = const BorderRadius.all(Radius.circular(8)),
     this.placeholder = '--:--',
+    this.enabled = true,
   });
 
   Future<void> _onTap(BuildContext context) async {
@@ -58,7 +60,7 @@ class TimeInputBox extends StatelessWidget {
     final text = value == null ? placeholder : formatTimeOfDay(value!);
 
     return GestureDetector(
-      onTap: () => _onTap(context),
+      onTap: enabled ? () => _onTap(context) : null,
       child: Container(
         height: height,
         alignment: Alignment.center,
