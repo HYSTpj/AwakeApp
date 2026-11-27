@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/views/event/admin/create_event_page.dart';
+import 'package:flutter_application_1/services/maps_api_key_service.dart';
 import '../helpers/admin_event_test_helpers.dart';
+
+class _FakeMapsApiKeyService implements MapsApiKeyService {
+  _FakeMapsApiKeyService(this.configured);
+  final bool configured;
+
+  @override
+  Future<bool> isConfigured() async => configured;
+}
 
 void main() {
   setupTestEnvironment();
@@ -17,6 +27,40 @@ void main() {
   });
 
   group('CreateEventPage Widget Tests', () {
+    testWidgets('Google Maps APIキーが未設定の場合、地図ではなく代替表示になること', (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(
+          viewModel: viewModel,
+          child: CreateEventPage(
+            groupId: 'test-group',
+            myRole: 0,
+            mapsApiKeyService: _FakeMapsApiKeyService(false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('地図を利用できません'), findsOneWidget);
+      expect(find.byType(GoogleMap), findsNothing);
+    });
+
+    testWidgets('Google Maps APIキーが設定済みの場合、地図が表示されること', (tester) async {
+      await tester.pumpWidget(
+        buildTestableWidget(
+          viewModel: viewModel,
+          child: CreateEventPage(
+            groupId: 'test-group',
+            myRole: 0,
+            mapsApiKeyService: _FakeMapsApiKeyService(true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GoogleMap), findsOneWidget);
+      expect(find.text('地図を利用できません'), findsNothing);
+    });
+
     testWidgets('場所検索の非同期応答待ち時に入力が変更された場合、古い座標で確定されないこと', (tester) async {
       await tester.pumpWidget(
         buildTestableWidget(

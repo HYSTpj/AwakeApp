@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import '../../../../common_layout.dart';
+import '../../../../services/maps_api_key_service.dart';
 import 'select_participants_page.dart';
 
 const _kBorderSide = BorderSide(width: 3, color: Color(0xFF475569));
@@ -95,11 +96,13 @@ class _PickerButton extends StatelessWidget {
 class CreateEventPage extends StatefulWidget {
   final String groupId;
   final int myRole;
+  final MapsApiKeyService mapsApiKeyService;
 
   const CreateEventPage({
     super.key,
     required this.groupId,
     required this.myRole,
+    this.mapsApiKeyService = const RealMapsApiKeyService(),
   });
 
   @override
@@ -119,6 +122,18 @@ class _CreateEventPageState extends State<CreateEventPage> {
   int _searchGeneration = 0;
 
   bool _isNavigating = false;
+
+  // null: 確認中, true: 利用可能, false: 利用不可（代替表示）
+  bool? _isMapsAvailable;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.mapsApiKeyService.isConfigured().then((configured) {
+      if (!mounted) return;
+      setState(() => _isMapsAvailable = configured);
+    });
+  }
 
   String get _timeLabel {
     final h = _scheduledTime.hour % 12 == 0 ? 12 : _scheduledTime.hour % 12;
@@ -427,23 +442,28 @@ class _CreateEventPageState extends State<CreateEventPage> {
                       color: Colors.white,
                       shape: RoundedRectangleBorder(side: _kBorderSide),
                     ),
-                    child: GoogleMap(
-                      // null の場合はフォールバック座標を使用
-                      initialCameraPosition: CameraPosition(
-                        target: _selectedLocation ?? _kDefaultMapCenter,
-                        zoom: 15,
-                      ),
-                      onMapCreated: (controller) => _mapController = controller,
-                      markers: _markers,
-                      rotateGesturesEnabled: false,
-                      tiltGesturesEnabled: false,
-                      myLocationButtonEnabled: false,
-                      gestureRecognizers: {
-                        Factory<OneSequenceGestureRecognizer>(
-                          () => EagerGestureRecognizer(),
-                        ),
-                      },
-                    ),
+                    child: _isMapsAvailable == false
+                        ? const Center(child: Text('地図を利用できません'))
+                        : _isMapsAvailable == null
+                        ? const Center(child: CircularProgressIndicator())
+                        : GoogleMap(
+                            // null の場合はフォールバック座標を使用
+                            initialCameraPosition: CameraPosition(
+                              target: _selectedLocation ?? _kDefaultMapCenter,
+                              zoom: 15,
+                            ),
+                            onMapCreated: (controller) =>
+                                _mapController = controller,
+                            markers: _markers,
+                            rotateGesturesEnabled: false,
+                            tiltGesturesEnabled: false,
+                            myLocationButtonEnabled: false,
+                            gestureRecognizers: {
+                              Factory<OneSequenceGestureRecognizer>(
+                                () => EagerGestureRecognizer(),
+                              ),
+                            },
+                          ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 24, bottom: 32),
