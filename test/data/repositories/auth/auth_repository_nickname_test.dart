@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_application_1/data/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth_repository_test_mocks.dart';
 
@@ -46,13 +47,15 @@ void main() {
   });
 
   group('SupabaseAuthRepository.updateNickname', () {
-    test('未ログイン時: Exception が投げられること', () async {
+    test('未ログイン時: AuthException が投げられること', () async {
       when(() => mockGoTrueClient.currentUser).thenReturn(null);
 
       expect(
         () => repository.updateNickname('ValidName'),
         throwsA(
-          predicate<Exception>((e) => e.toString().contains('ユーザーが認証されていません')),
+          predicate<AuthException>(
+            (e) => e.message == 'ユーザーが認証されていません',
+          ),
         ),
       );
     });

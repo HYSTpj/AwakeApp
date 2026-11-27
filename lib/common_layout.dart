@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'presentation/viewmodels/auth_view_model.dart';
+import 'presentation/views/group/group_list_page.dart';
 import 'presentation/views/event/admin/create_event_page.dart';
 import 'presentation/views/event/checkin/member_check_in_page.dart';
-import 'presentation/views/event/event_selection_home_page.dart';
-import 'presentation/views/group/group_list_page.dart';
-import 'presentation/views/profile/profile_page.dart';
 import 'presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/profile/profile_page.dart';
+import 'presentation/viewmodels/auth_view_model.dart';
 
 class CommonLayout extends StatefulWidget {
-  final Widget body;
-  final Widget? floatingActionButton;
+  final Widget body; // 各画面の代入する中身
+  final Widget? floatingActionButton; // それぞれのページで使うボタン
   final String? groupId;
   final String? groupName;
   final String? eventId;
@@ -28,6 +27,7 @@ class CommonLayout extends StatefulWidget {
     this.eventTitle,
     this.myRole,
   });
+
 
   @override
   State<CommonLayout> createState() => _CommonLayoutState();
@@ -82,14 +82,17 @@ class _CommonLayoutState extends State<CommonLayout> {
         preferredSize: const Size.fromHeight(kToolbarHeight + 4.0),
         child: Container(
           decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: _borderColor, width: 4)),
+            border: Border(
+              bottom: BorderSide(color: _borderColor, width: 4),
+            ),
           ),
           child: _buildAppBar(context),
         ),
       ),
       body: widget.body,
       floatingActionButton: widget.floatingActionButton,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
@@ -98,7 +101,10 @@ class _CommonLayoutState extends State<CommonLayout> {
     return AppBar(
       leadingWidth: 100,
       leading: _buildLeftIcons(context),
-      title: const Text('AWAKE', style: TextStyle(fontWeight: FontWeight.bold)),
+      title: const Text(
+        'AWAKE',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       centerTitle: true,
       actions: _buildRightIcons(context),
       backgroundColor: _themeColor,
@@ -106,17 +112,20 @@ class _CommonLayoutState extends State<CommonLayout> {
       elevation: 0,
     );
   }
-
   Widget _buildLeftIcons(BuildContext context) {
     return Row(
       children: [
         IconButton(
           icon: const Icon(Icons.flag, color: Colors.black),
-          onPressed: () => _onLeaderPressed(context),
+          onPressed: () {
+            _onLeaderPressed(context);
+          },
         ),
         IconButton(
           icon: const Icon(Icons.schedule, color: Colors.black),
-          onPressed: () => _onMemberPressed(context),
+          onPressed: () {
+            _onMemberPressed(context);
+          },
         ),
       ],
     );
@@ -202,6 +211,7 @@ class _CommonLayoutState extends State<CommonLayout> {
     );
   }
 
+
   Widget _buildBottomNavigationBar(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -230,9 +240,9 @@ class _CommonLayoutState extends State<CommonLayout> {
   void _onNavigationTap(BuildContext context, int index) {
     if (index != 0) {
       if (widget.groupId == null || widget.myRole == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select group.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select group.')),
+        );
         return;
       }
     }
@@ -242,10 +252,11 @@ class _CommonLayoutState extends State<CommonLayout> {
         nextPage = GroupListPage(initialGroupId: widget.groupId);
         break;
       case 1:
+
         if (widget.myRole == 0) {
-          nextPage = CreateEventPage(
-            groupId: widget.groupId!,
-            myRole: widget.myRole!,
+            nextPage = CreateEventPage(
+              groupId: widget.groupId!,
+              myRole: widget.myRole!
           );
         } else {
           // 利用者の時
@@ -253,7 +264,7 @@ class _CommonLayoutState extends State<CommonLayout> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please select event.')),
             );
-          } else {
+          }else {
             nextPage = MemberCheckInPage(
               eventId: widget.eventId!,
               eventTitle: widget.eventTitle ?? '',
@@ -279,9 +290,9 @@ class _CommonLayoutState extends State<CommonLayout> {
   void _onLeaderPressed(BuildContext context) {
     // グループが選ばれていないとき
     if (widget.myRole == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select group.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select group.')),
+      );
       return;
     }
 
@@ -289,22 +300,20 @@ class _CommonLayoutState extends State<CommonLayout> {
     if (widget.myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => GroupListPage(initialGroupId: widget.groupId),
-        ),
+        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: widget.groupId)),
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('閲覧権限がありません（管理者のみ利用可能）')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('閲覧権限がありません（管理者のみ利用可能）')),
+      );
     }
   }
 
   void _onMemberPressed(BuildContext context) {
     if (widget.groupId == null || widget.myRole == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select group.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select group.')),
+      );
       return;
     }
 
@@ -324,7 +333,9 @@ class _CommonLayoutState extends State<CommonLayout> {
   void _onProfilePressed(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ProfilePage()),
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
     );
 
     debugPrint('プロフィールページへ遷移');

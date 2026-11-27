@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../../../config/validation_rules.dart';
 import 'screen/create_account_body.dart';
 import '../../viewmodels/auth_view_model.dart';
 import '../group/group_list_page.dart';
@@ -44,9 +45,7 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
 
   // スナックバー表示の処理
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // 画像選択の処理
@@ -54,14 +53,12 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
     );
+    
     if (pickedFile == null) return;
 
     final CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile.path,
-      aspectRatio: const CropAspectRatio(
-        ratioX: 1,
-        ratioY: 1,
-      ),
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
     );
 
     if (croppedFile == null) return;
@@ -80,13 +77,9 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     if (authViewModel.state.isLoading) return;
 
     final String name = _userNameController.text.trim();
-    if (name.isEmpty) {
-      _showSnackBar('ユーザー名を入力してください');
-      return;
-    }
-
-    if (name.length > 30) {
-      _showSnackBar('ユーザー名は30文字以内で入力してください');
+    final validationError = ValidationRules.nickname(name);
+    if (validationError != null) {
+      _showSnackBar(validationError);
       return;
     }
 

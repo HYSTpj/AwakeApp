@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../config/validation_constants.dart';
+import '../../config/validation_rules.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../models/profile.dart';
 
@@ -216,17 +216,9 @@ class AuthViewModel extends ChangeNotifier {
   /// 有効な場合はトリム済み文字列を返し、無効な場合は null を返してエラー状態を設定する
   String? _validateAndTrimNickname(String nickname) {
     final trimmed = nickname.trim();
-    if (trimmed.isEmpty) {
-      _state = _state.copyWith(outcome: const AuthFailed('ユーザー名を入力してください'));
-      notifyListeners();
-      return null;
-    }
-    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
-      _state = _state.copyWith(
-        outcome: const AuthFailed(
-          'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
-        ),
-      );
+    final validationError = ValidationRules.nickname(trimmed);
+    if (validationError != null) {
+      _state = _state.copyWith(outcome: AuthFailed(validationError));
       notifyListeners();
       return null;
     }
@@ -324,38 +316,31 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (currentPassword.isEmpty) {
-      _state = _state.copyWith(outcome: const AuthFailed('現在のパスワードを入力してください'));
+    final currentPasswordError = ValidationRules.currentPassword(
+      currentPassword,
+    );
+    if (currentPasswordError != null) {
+      _state = _state.copyWith(outcome: AuthFailed(currentPasswordError));
       notifyListeners();
       return false;
     }
 
-    if (newPassword.isEmpty) {
-      _state = _state.copyWith(outcome: const AuthFailed('新しいパスワードを入力してください'));
+    final newPasswordError = ValidationRules.newPassword(
+      newPassword,
+      currentPassword: currentPassword,
+    );
+    if (newPasswordError != null) {
+      _state = _state.copyWith(outcome: AuthFailed(newPasswordError));
       notifyListeners();
       return false;
     }
 
-    if (newPassword.length < ValidationConstants.passwordMinLength) {
-      _state = _state.copyWith(
-        outcome: const AuthFailed(
-          '新しいパスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください',
-        ),
-      );
-      notifyListeners();
-      return false;
-    }
-
-    if (newPassword == currentPassword) {
-      _state = _state.copyWith(
-        outcome: const AuthFailed('新しいパスワードは現在のパスワードと異なるものを設定してください'),
-      );
-      notifyListeners();
-      return false;
-    }
-
-    if (newPassword != confirmPassword) {
-      _state = _state.copyWith(outcome: const AuthFailed('確認用パスワードが一致しません'));
+    final confirmationError = ValidationRules.passwordConfirmation(
+      confirmPassword,
+      newPassword,
+    );
+    if (confirmationError != null) {
+      _state = _state.copyWith(outcome: AuthFailed(confirmationError));
       notifyListeners();
       return false;
     }

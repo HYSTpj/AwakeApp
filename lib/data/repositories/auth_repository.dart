@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../config/validation_constants.dart';
+import '../../config/validation_rules.dart';
 import '../../models/profile.dart';
 
 // サインアップ後、メール確認が完了するまでセッションが発行されない状態を示す例外
@@ -177,15 +177,11 @@ class SupabaseAuthRepository implements AuthRepository {
       throw const AuthException('ログインしていません');
     }
 
-    // updateProfile 側も 30 文字ガードとトリムを適用して統一
+    // Repository でも共通の入力ルールを適用する
     final trimmed = nickname.trim();
-    if (trimmed.isEmpty) {
-      throw ArgumentError('ユーザー名を入力してください');
-    }
-    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
-      throw ArgumentError(
-        'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
-      );
+    final nicknameError = ValidationRules.nickname(trimmed);
+    if (nicknameError != null) {
+      throw ArgumentError(nicknameError);
     }
 
     String? avatarUrl;
@@ -259,18 +255,14 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<Profile> updateNickname(String newNickname) async {
     final userId = currentUserId;
     if (userId == null) {
-      throw Exception('ユーザーが認証されていません');
+      throw const AuthException('ユーザーが認証されていません');
     }
 
     // 入力値をトリムし、空欄と文字数を検証
     final trimmed = newNickname.trim();
-    if (trimmed.isEmpty) {
-      throw ArgumentError('ユーザー名を入力してください');
-    }
-    if (trimmed.length > ValidationConstants.nicknameMaxLength) {
-      throw ArgumentError(
-        'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください',
-      );
+    final nicknameError = ValidationRules.nickname(trimmed);
+    if (nicknameError != null) {
+      throw ArgumentError(nicknameError);
     }
 
     final response = await _client
@@ -387,19 +379,18 @@ class SupabaseAuthRepository implements AuthRepository {
     required String currentPassword,
     required String newPassword,
   }) async {
-    if (currentPassword.isEmpty) {
-      throw ArgumentError('現在のパスワードを入力してください');
+    final currentPasswordError = ValidationRules.currentPassword(
+      currentPassword,
+    );
+    if (currentPasswordError != null) {
+      throw ArgumentError(currentPasswordError);
     }
-    if (newPassword.isEmpty) {
-      throw ArgumentError('新しいパスワードを入力してください');
-    }
-    if (newPassword.length < ValidationConstants.passwordMinLength) {
-      throw ArgumentError(
-        'パスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください',
-      );
-    }
-    if (newPassword == currentPassword) {
-      throw ArgumentError('新しいパスワードは現在のパスワードと異なるものを設定してください');
+    final newPasswordError = ValidationRules.newPassword(
+      newPassword,
+      currentPassword: currentPassword,
+    );
+    if (newPasswordError != null) {
+      throw ArgumentError(newPasswordError);
     }
 
     final user = _client.auth.currentUser;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../../config/validation_constants.dart';
+import '../../../config/validation_rules.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -131,12 +131,7 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
                     );
                   },
                   onChanged: (_) => _formKey.currentState?.validate(),
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return '現在のパスワードを入力してください';
-                    }
-                    return null;
-                  },
+                  validator: ValidationRules.currentPassword,
                   enabled: !isLoading,
                 ),
 
@@ -159,18 +154,10 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
                   onToggleVisibility: () {
                     setState(() => _obscureNewPassword = !_obscureNewPassword);
                   },
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return '新しいパスワードを入力してください';
-                    }
-                    if (val.length < ValidationConstants.passwordMinLength) {
-                      return 'パスワードは${ValidationConstants.passwordMinLength}文字以上で入力してください';
-                    }
-                    if (val == _currentPasswordController.text) {
-                      return '現在のパスワードとは異なるパスワードを入力してください';
-                    }
-                    return null;
-                  },
+                  validator: (val) => ValidationRules.newPassword(
+                    val,
+                    currentPassword: _currentPasswordController.text,
+                  ),
                   enabled: !isLoading,
                 ),
 
@@ -195,15 +182,10 @@ class _EditPasswordPageState extends State<EditPasswordPage> {
                       () => _obscureConfirmPassword = !_obscureConfirmPassword,
                     );
                   },
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return '確認用パスワードを入力してください';
-                    }
-                    if (val != _newPasswordController.text) {
-                      return '新しいパスワードと一致しません';
-                    }
-                    return null;
-                  },
+                  validator: (val) => ValidationRules.passwordConfirmation(
+                    val,
+                    _newPasswordController.text,
+                  ),
                   enabled: !isLoading,
                 ),
 

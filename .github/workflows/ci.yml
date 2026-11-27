@@ -3,7 +3,6 @@ name: Flutter CI
 on:
   push:
   pull_request:
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,7 +15,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      
+
       - name: Show Java version
         run: java -version
 
@@ -45,4 +44,3 @@ jobs:
         uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
         with:
           scan-args: ./pubspec.lock
-          

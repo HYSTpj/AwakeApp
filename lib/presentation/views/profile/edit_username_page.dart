@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../config/validation_constants.dart';
+import '../../../config/validation_rules.dart';
 import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../viewmodels/auth_view_model.dart';
@@ -143,16 +144,7 @@ class _EditUsernamePageState extends State<EditUsernamePage> {
                     borderSide: const BorderSide(color: Colors.red, width: 2),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'ユーザー名を入力してください';
-                  }
-                  if (value.trim().length >
-                      ValidationConstants.nicknameMaxLength) {
-                    return 'ユーザー名は${ValidationConstants.nicknameMaxLength}文字以内で入力してください';
-                  }
-                  return null;
-                },
+                validator: ValidationRules.nickname,
               ),
               const SizedBox(height: 32),
 
