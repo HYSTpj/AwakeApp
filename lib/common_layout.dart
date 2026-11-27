@@ -212,9 +212,16 @@ class _CommonLayoutState extends State<CommonLayout> {
   }
 
   void _onRankingTap(BuildContext context) {
+    if (widget.groupId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select group.')));
+      return;
+    }
+
     Navigator.pushReplacement(
       context,
-      _instantRoute((context) => const RankingPreview()),
+      _instantRoute((context) => RankingPage(groupId: widget.groupId!)),
     );
   }
 

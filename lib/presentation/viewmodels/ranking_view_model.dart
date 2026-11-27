@@ -4,16 +4,14 @@ import '../../data/repositories/ranking_repository.dart';
 import '../../models/ranking_user.dart';
 
 class RankingState {
-  final List<RankingUser> lateRankings;
-  final List<RankingUser> oversleptRankings;
+  final List<RankingUser> rankings;
   final String eventStatus;
   final bool isCompleted;
   final bool isLoading;
   final String? errorMessage;
 
   const RankingState({
-    this.lateRankings = const [],
-    this.oversleptRankings = const [],
+    this.rankings = const [],
     this.eventStatus = 'active',
     this.isCompleted = false,
     this.isLoading = false,
@@ -21,8 +19,7 @@ class RankingState {
   });
 
   RankingState copyWith({
-    List<RankingUser>? lateRankings,
-    List<RankingUser>? oversleptRankings,
+    List<RankingUser>? rankings,
     String? eventStatus,
     bool? isCompleted,
     bool? isLoading,
@@ -30,8 +27,7 @@ class RankingState {
     bool clearError = false,
   }) {
     return RankingState(
-      lateRankings: lateRankings ?? this.lateRankings,
-      oversleptRankings: oversleptRankings ?? this.oversleptRankings,
+      rankings: rankings ?? this.rankings,
       eventStatus: eventStatus ?? this.eventStatus,
       isCompleted: isCompleted ?? this.isCompleted,
       isLoading: isLoading ?? this.isLoading,
@@ -43,6 +39,7 @@ class RankingState {
 class RankingViewModel extends ChangeNotifier {
   final RankingRepository _repository;
   StreamSubscription<String>? _statusSubscription;
+  int _rankingRequestGeneration = 0;
 
   RankingState _state = const RankingState();
 
@@ -84,22 +81,25 @@ class RankingViewModel extends ChangeNotifier {
     }
   }
 
-  /// グループ内の遅刻・寝坊ランキングデータを取得
+  /// グループ内イベントのランキングデータを取得
   Future<void> loadRankings(String groupId) async {
-    _state = _state.copyWith(isLoading: true, clearError: true);
+    final requestGeneration = ++_rankingRequestGeneration;
+    _state = _state.copyWith(
+      rankings: const [],
+      isLoading: true,
+      clearError: true,
+    );
     notifyListeners();
 
     try {
-      final lateList = await _repository.getLateRankings(groupId);
-      final oversleptList = await _repository.getOversleptRankings(groupId);
+      final rankings = await _repository.getGroupRankings(groupId);
+      if (requestGeneration != _rankingRequestGeneration) return;
 
-      _state = _state.copyWith(
-        lateRankings: lateList,
-        oversleptRankings: oversleptList,
-        isLoading: false,
-      );
+      _state = _state.copyWith(rankings: rankings, isLoading: false);
       notifyListeners();
     } catch (e) {
+      if (requestGeneration != _rankingRequestGeneration) return;
+
       _state = _state.copyWith(isLoading: false, errorMessage: e.toString());
       notifyListeners();
     }

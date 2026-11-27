@@ -15,15 +15,17 @@ void main() {
   final user1 = RankingUser(
     id: 'user-001',
     nickname: 'LateKing',
-    sleepPastCount: 1,
-    lateCount: 5,
+    streak: 1,
+    totalDelayMinutes: 120,
+    avgDelayMinutes: 60,
   );
 
   final user2 = RankingUser(
     id: 'user-002',
     nickname: 'SleepKing',
-    sleepPastCount: 8,
-    lateCount: 2,
+    streak: 8,
+    totalDelayMinutes: 30,
+    avgDelayMinutes: 15,
   );
 
   setUp(() {
@@ -79,17 +81,62 @@ void main() {
   });
 
   group('RankingViewModel - ランキング取得テスト', () {
-    test('loadRankings 成功時: 遅刻順・寝坊順のランキングが格納されること', () async {
-      when(() => mockRepository.getLateRankings('group-001'))
-          .thenAnswer((_) async => [user1, user2]);
-      when(() => mockRepository.getOversleptRankings('group-001'))
-          .thenAnswer((_) async => [user2, user1]);
+    test('loadRankings 成功時: グループランキングが格納されること', () async {
+      when(
+        () => mockRepository.getGroupRankings('group-001'),
+      ).thenAnswer((_) async => [user2, user1]);
 
       await viewModel.loadRankings('group-001');
 
-      expect(viewModel.state.lateRankings.first.nickname, equals('LateKing'));
-      expect(viewModel.state.oversleptRankings.first.nickname, equals('SleepKing'));
+      expect(viewModel.state.rankings.first.nickname, equals('SleepKing'));
+      expect(viewModel.state.rankings, hasLength(2));
       expect(viewModel.state.isLoading, isFalse);
+    });
+
+    test('新しいグループの結果後に古い取得が完了してもランキングを上書きしないこと', () async {
+      final oldRequest = Completer<List<RankingUser>>();
+      final newRequest = Completer<List<RankingUser>>();
+      when(
+        () => mockRepository.getGroupRankings('group-old'),
+      ).thenAnswer((_) => oldRequest.future);
+      when(
+        () => mockRepository.getGroupRankings('group-new'),
+      ).thenAnswer((_) => newRequest.future);
+
+      final oldLoad = viewModel.loadRankings('group-old');
+      final newLoad = viewModel.loadRankings('group-new');
+
+      newRequest.complete([user2]);
+      await newLoad;
+      oldRequest.complete([user1]);
+      await oldLoad;
+
+      expect(viewModel.state.rankings.map((user) => user.id), ['user-002']);
+      expect(viewModel.state.isLoading, isFalse);
+      expect(viewModel.state.errorMessage, isNull);
+    });
+
+    test('古いグループの取得エラーが新しい結果を上書きしないこと', () async {
+      final oldRequest = Completer<List<RankingUser>>();
+      final newRequest = Completer<List<RankingUser>>();
+      when(
+        () => mockRepository.getGroupRankings('group-old'),
+      ).thenAnswer((_) => oldRequest.future);
+      when(
+        () => mockRepository.getGroupRankings('group-new'),
+      ).thenAnswer((_) => newRequest.future);
+
+      final oldLoad = viewModel.loadRankings('group-old');
+      final newLoad = viewModel.loadRankings('group-new');
+
+      newRequest.complete([user2]);
+      await newLoad;
+      oldRequest.completeError(Exception('stale request error'));
+      await oldLoad;
+
+      expect(viewModel.state.rankings.map((user) => user.id), ['user-002']);
+      expect(viewModel.state.isLoading, isFalse);
+      expect(viewModel.state.errorMessage, isNull);
     });
   });
 }

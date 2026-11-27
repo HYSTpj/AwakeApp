@@ -7,9 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_application_1/common_layout.dart';
 import 'package:flutter_application_1/data/repositories/group_repository.dart';
+import 'package:flutter_application_1/data/repositories/ranking_repository.dart';
 import 'package:flutter_application_1/presentation/viewmodels/admin_event_view_model.dart';
 import 'package:flutter_application_1/presentation/viewmodels/app_mode_controller.dart';
 import 'package:flutter_application_1/presentation/viewmodels/group_view_model.dart';
+import 'package:flutter_application_1/presentation/viewmodels/ranking_view_model.dart';
 import 'package:flutter_application_1/presentation/views/common/app_mode.dart';
 import 'package:flutter_application_1/presentation/views/common/common_header.dart';
 import 'package:flutter_application_1/presentation/views/common/common_footer.dart';
@@ -20,6 +22,8 @@ import 'package:flutter_application_1/presentation/views/ranking/ranking_page.da
 import 'presentation/views/event/helpers/admin_event_test_helpers.dart';
 
 class MockGroupRepository extends Mock implements GroupRepository {}
+
+class MockRankingRepository extends Mock implements RankingRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -185,15 +189,26 @@ void main() {
     });
   });
 
-  testWidgets('フッター: Rankingタップで RankingPreview に遷移する', (tester) async {
+  testWidgets('フッター: Rankingタップで選択中グループのランキング画面に遷移する', (tester) async {
+    final rankingRepository = MockRankingRepository();
+    when(
+      () => rankingRepository.getGroupRankings('group-1'),
+    ).thenAnswer((_) async => []);
+
     await tester.pumpWidget(
-      buildTestableWidget(const CommonLayout(body: SizedBox.shrink())),
+      ChangeNotifierProvider<RankingViewModel>(
+        create: (_) => RankingViewModel(rankingRepository),
+        child: buildTestableWidget(
+          const CommonLayout(body: SizedBox.shrink(), groupId: 'group-1'),
+        ),
+      ),
     );
 
     await tester.tap(find.byKey(CommonFooter.rankingButtonKey));
     await pumpNavigationFrame(tester);
 
-    expect(find.byType(RankingPreview), findsOneWidget);
+    expect(find.byType(RankingPage), findsOneWidget);
+    verify(() => rankingRepository.getGroupRankings('group-1')).called(1);
   });
 
   testWidgets('フッター: Forumタップで Coming soon.が表示される', (tester) async {

@@ -4,8 +4,7 @@ import '../../models/ranking_user.dart';
 abstract class RankingRepository {
   Future<void> completeEvent(String eventId);
   Stream<String> watchEventStatus(String eventId);
-  Future<List<RankingUser>> getLateRankings(String groupId);
-  Future<List<RankingUser>> getOversleptRankings(String groupId);
+  Future<List<RankingUser>> getGroupRankings(String groupId);
 }
 
 class SupabaseRankingRepository implements RankingRepository {
@@ -15,11 +14,18 @@ class SupabaseRankingRepository implements RankingRepository {
 
   @override
   Future<void> completeEvent(String eventId) async {
-    // スキーマ列名に合わせて updated_at に修正
-    await _client.from('events').update({
-      'status': 'completed',
-      'updated_at': DateTime.now().toIso8601String(),
-    }).eq('id', eventId);
+    final updatedRows = await _client
+        .from('events')
+        .update({
+          'status': 'completed',
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', eventId)
+        .select('id');
+
+    if (updatedRows.isEmpty) {
+      throw StateError('Event not found or permission denied: $eventId');
+    }
   }
 
   @override
@@ -36,39 +42,29 @@ class SupabaseRankingRepository implements RankingRepository {
   }
 
   @override
-  Future<List<RankingUser>> getLateRankings(String groupId) async {
-    // グループ所属メンバーの profile を結合取得
-    final data = await _client
-        .from('groups_memberships')
-        .select('profiles ( id, nickname, avatar_url, sleep_past_count, late_count )')
-        .eq('group_id', groupId);
+  Future<List<RankingUser>> getGroupRankings(String groupId) async {
+    final data = await _client.rpc(
+      'get_group_rankings',
+      params: {'p_group_id': groupId},
+    );
 
-    final users = _mapProfiles(data);
-    // JOIN 先テーブルに対する order() の制約を避けるため、クライアント側で降順ソート
-    users.sort((a, b) => b.lateCount.compareTo(a.lateCount));
-    return users;
-  }
-
-  @override
-  Future<List<RankingUser>> getOversleptRankings(String groupId) async {
-    final data = await _client
-        .from('groups_memberships')
-        .select('profiles ( id, nickname, avatar_url, sleep_past_count, late_count )')
-        .eq('group_id', groupId);
-
-    final users = _mapProfiles(data);
-    users.sort((a, b) => b.sleepPastCount.compareTo(a.sleepPastCount));
-    return users;
-  }
-
-  List<RankingUser> _mapProfiles(List<dynamic> data) {
-    final list = <RankingUser>[];
-    for (final item in data) {
-      final p = item['profiles'] as Map<String, dynamic>?;
-      if (p != null) {
-        list.add(RankingUser.fromJson(p));
-      }
+    if (data is! List) {
+      throw const FormatException('Invalid group ranking response');
     }
-    return list;
+
+    final users = data.map((row) {
+      if (row is! Map) {
+        throw const FormatException('Invalid group ranking row');
+      }
+      return RankingUser.fromJson(Map<String, dynamic>.from(row));
+    }).toList();
+
+    users.sort((a, b) {
+      final delayOrder = b.totalDelayMinutes.compareTo(a.totalDelayMinutes);
+      return delayOrder != 0
+          ? delayOrder
+          : a.nickname.toLowerCase().compareTo(b.nickname.toLowerCase());
+    });
+    return users;
   }
 }
