@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/presentation/views/login/common_effects.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,7 +8,6 @@ import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
 import '../../../widgets/game_style_button.dart';
-import '../../../../style/app_color.dart';
 
 /// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
@@ -167,7 +167,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
 
         return GameStyleButton(
           label: 'Delete',
-          backgroundColor: AppColors.caution,
+          backgroundColor: kDangerRed,
           textColor: Colors.white,
           height: 80,
           isLoading: isLoading,

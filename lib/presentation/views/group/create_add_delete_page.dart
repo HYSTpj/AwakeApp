@@ -101,7 +101,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
   Widget _deleteButton(BuildContext context) {
     return GameStyleButton(
       label: 'Delete group',
-      backgroundColor: AppColors.caution,
+      backgroundColor: kDangerRed,
       textColor: Colors.white,
       onPressed: () async {
         final result = await Navigator.push<bool>(
