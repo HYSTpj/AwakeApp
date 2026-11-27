@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'data/profiles_repository.dart';
-import 'group/view/group_list_view.dart';
-import 'create_event_page.dart';
-import 'member_check_in.dart';
-import 'ranking/ranking_screen.dart';
-import 'event_selection_home.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'presentation/views/group/group_list_page.dart';
+import 'presentation/views/event/admin/create_event_page.dart';
+import 'presentation/views/event/checkin/member_check_in_page.dart';
+import 'presentation/views/ranking/ranking_page.dart';
+import 'presentation/views/event/event_selection_home_page.dart';
+import 'presentation/views/profile/profile_page.dart';
 
-class CommonLayout extends StatelessWidget {
-  final Widget body;  // 各画面の代入する中身
-  final Widget? floatingActionButton;  // それぞれのページで使うボタン
+class CommonLayout extends StatefulWidget {
+  final Widget body; // 各画面の代入する中身
+  final Widget? floatingActionButton; // それぞれのページで使うボタン
   final String? groupId;
+  final String? groupName;
   final String? eventId;
   final String? eventTitle;
   final int? myRole;
@@ -20,12 +21,18 @@ class CommonLayout extends StatelessWidget {
     required this.body,
     this.floatingActionButton,
     this.groupId,
+    this.groupName,
     this.eventId,
     this.eventTitle,
     this.myRole,
   });
 
-  // ボトムナビゲーション
+
+  @override
+  State<CommonLayout> createState() => _CommonLayoutState();
+}
+
+class _CommonLayoutState extends State<CommonLayout> {
   static const _bottomNavigationItems = <BottomNavigationBarItem>[
     BottomNavigationBarItem(
       icon: Padding(
@@ -46,17 +53,12 @@ class CommonLayout extends StatelessWidget {
         padding: EdgeInsets.only(top: 25),
         child: Icon(Icons.qr_code),
       ),
-      label: 'ranking',
+      label: 'check-in',
     ),
   ];
 
-  // アプリのテーマカラー
   static const Color _themeColor = Colors.deepOrangeAccent;
-
-  // 背景色
   static const Color _backgroundColor = Color(0xFFF8F6F6);
-
-  // 境界線カラー
   static const Color _borderColor = Color(0xFF1A1C1C);
 
   @override
@@ -64,24 +66,24 @@ class CommonLayout extends StatelessWidget {
     return Scaffold(
       backgroundColor: _backgroundColor,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight + 4.0), // 高さを調整
+        preferredSize: const Size.fromHeight(kToolbarHeight + 4.0),
         child: Container(
           decoration: const BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: _borderColor, width: 4), // 境界線
+              bottom: BorderSide(color: _borderColor, width: 4),
             ),
           ),
           child: _buildAppBar(context),
         ),
       ),
-      body: body,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: widget.body,
+      floatingActionButton: widget.floatingActionButton,
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
-  // AppBar
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       leadingWidth: 100,
@@ -91,14 +93,12 @@ class CommonLayout extends StatelessWidget {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: _buildRightIcons(),
+      actions: _buildRightIcons(context),
       backgroundColor: _themeColor,
       foregroundColor: Colors.black,
       elevation: 0,
     );
   }
-
-  // AppBarの左側
   Widget _buildLeftIcons(BuildContext context) {
     return Row(
       children: [
@@ -106,14 +106,12 @@ class CommonLayout extends StatelessWidget {
           icon: const Icon(Icons.flag, color: Colors.black),
           onPressed: () {
             _onLeaderPressed(context);
-            debugPrint("管理者ボタン");
           },
         ),
         IconButton(
           icon: const Icon(Icons.schedule, color: Colors.black),
           onPressed: () {
             _onMemberPressed(context);
-            debugPrint("利用者ボタン");
           },
         ),
       ],
@@ -121,8 +119,9 @@ class CommonLayout extends StatelessWidget {
   }
 
   ///AppBarの右側
-  List<Widget> _buildRightIcons() {
-    final currentUser = FirebaseAuth.instance.currentUser;
+  List<Widget> _buildRightIcons(BuildContext context) {
+    final client = Supabase.instance.client;
+    final currentUser = client.auth.currentUser;
 
     if (currentUser == null) {
       return [
@@ -139,11 +138,17 @@ class CommonLayout extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: GestureDetector(
-          onTap: _onProfilePressed,
+          onTap: () => _onProfilePressed(context),
           child: FutureBuilder<Map<String, dynamic>?>(
-            future: ProfilesRepository().getProfile(uid: currentUser.uid),
+            future: client
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', currentUser.id)
+                .maybeSingle(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError || !snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.hasError ||
+                  !snapshot.hasData) {
                 return const CircleAvatar(
                   backgroundColor: Colors.grey,
                   child: Icon(Icons.person, color: Colors.white),
@@ -169,7 +174,7 @@ class CommonLayout extends StatelessWidget {
     ];
   }
 
-  /// BottomNavigationBar
+
   Widget _buildBottomNavigationBar(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(20),
@@ -178,8 +183,8 @@ class CommonLayout extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: _borderColor, width: 4),
       ),
-      child: ClipRRect( // 枠線に合わせて中身も丸める
-        borderRadius: BorderRadius.circular(26), 
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
@@ -195,11 +200,9 @@ class CommonLayout extends StatelessWidget {
     );
   }
 
-  // ナビゲーションタップ時の処理
   void _onNavigationTap(BuildContext context, int index) {
-    // グループが選ばれていないとき
     if (index != 0) {
-      if (groupId == null || myRole == null) {
+      if (widget.groupId == null || widget.myRole == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select group.')),
         );
@@ -209,28 +212,30 @@ class CommonLayout extends StatelessWidget {
     Widget? nextPage;
     switch (index) {
       case 0:
-        nextPage = GroupListPage();   // あとからポスト，ランキング画面に変更
+        nextPage = GroupListPage(initialGroupId: widget.groupId);
         break;
       case 1:
-        if (myRole == 0) {
-          // 管理者の時
-          nextPage = CreateEventPage(
-            groupId: groupId!,
-            myRole: myRole!
+
+        if (widget.myRole == 0) {
+            nextPage = CreateEventPage(
+              groupId: widget.groupId!,
+              myRole: widget.myRole!
           );
         } else {
           // 利用者の時
-          if (eventId == null) {
+          if (widget.eventId == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please select event.')),
             );
-            return;
+          }else {
+            nextPage = MemberCheckInPage(
+              eventId: widget.eventId!,
+              eventTitle: widget.eventTitle ?? '',
+              groupId: widget.groupId!,
+              groupName: widget.groupName ?? 'Group',
+              myRole: widget.myRole!,
+            );
           }
-          nextPage = MemberCheckInPage(
-            eventId: eventId!, 
-            eventTitle: eventTitle!, 
-            groupId: groupId!, 
-          );
         }
         break;
       case 2:
@@ -240,59 +245,62 @@ class CommonLayout extends StatelessWidget {
     if (nextPage != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => nextPage!)
+        MaterialPageRoute(builder: (context) => nextPage!),
       );
     }
   }
 
-  // 管理者ボタンが押された時の処理
   void _onLeaderPressed(BuildContext context) {
     // グループが選ばれていないとき
-    if (myRole == null) {
+    if (widget.myRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
-      debugPrint('グループが選択されていません');
       return;
     }
 
     // 管理者のときだけ遷移を許可
-    if (myRole == 0) {
+    if (widget.myRole == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const GroupListPage()),
+        MaterialPageRoute(builder: (context) => GroupListPage(initialGroupId: widget.groupId)),
       );
-      debugPrint('管理者ページへ移動');
     } else {
-      // 利用者のとき
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('閲覧権限がありません（管理者のみ利用可能）')
-        ),
+        const SnackBar(content: Text('閲覧権限がありません（管理者のみ利用可能）')),
       );
-      debugPrint('利用者のため遷移不可');
     }
   }
 
-  // 利用者ボタンが押された時の処理
   void _onMemberPressed(BuildContext context) {
-    if (groupId == null || myRole == null) {
+    if (widget.groupId == null || widget.myRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select group.')),
       );
-      debugPrint('グループが選択されていません');
       return;
     }
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const EventSelectionHome()),
+      MaterialPageRoute(
+        builder: (context) => EventSelectionHome(
+          groupId: widget.groupId!,
+          groupName: widget.groupName ?? 'Group',
+          myRole: widget.myRole!,
+        ),
+      ),
     );
-    debugPrint('利用者ボタンが押されました');
   }
 
   // プロフィールボタンが押された時の処理
-  void _onProfilePressed() {
-    debugPrint('プロフィールボタンが押されました');
+  void _onProfilePressed(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    );
+
+    debugPrint('プロフィールページへ遷移');
   }
 }

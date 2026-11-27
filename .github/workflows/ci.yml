@@ -1,33 +1,44 @@
-name: Flutter CI  # 処理の名前
+name: Flutter CI
 
-on:               # 実行するタイミング
-  push:           # コードがpushされた時
-  pull_request:   # プルリクエスト作成・更新時
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:           # 実行する作業の名前
+  test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      
+      - name: Show Java version
+        run: java -version
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true # キャッシュを有効にすると2回目以降が速くなります
+          channel: stable
+          # バージョン引き上げのタイミングまでは3.47のままにする
+          flutter-version: '3.47.0'
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create firebase_options.dart
-        run: |
-          mkdir -p lib/data
-          cat <<'EOF' > lib/data/firebase_options.dart
-          ${{ secrets.FIREBASE_OPTIONS }}
-          EOF
-
       - name: Static Analysis
         run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: flutter build apk --debug
 
       # 脆弱性のあるパッケージをチェック
       - name: Security scan with OSV-Scanner
