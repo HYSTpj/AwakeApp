@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/presentation/views/login/common_effects.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,6 +7,7 @@ import '../../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import '../../../widgets/game_style_button.dart';
 
 /// グループ脱退ページ
 class DeleteGroupPage extends StatefulWidget {
@@ -150,7 +152,7 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
         decoration: const InputDecoration(
           hintText: 'Enter invitation code to leave',
           border: InputBorder.none,
-          contentPadding: EdgeInsets.only(left: 15, top: 15),
+          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         ),
       ),
     );
@@ -163,26 +165,13 @@ class _DeleteGroupPageState extends State<DeleteGroupPage> {
       builder: (context, _) {
         final isLoading = _viewModel.state.isLoading;
 
-        return SizedBox(
-          width: 400,
+        return GameStyleButton(
+          label: 'Delete',
+          backgroundColor: kDangerRed,
+          textColor: Colors.white,
           height: 80,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _deleteGroup,
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Colors.black, width: 2),
-              ),
-            ),
-            child: isLoading
-                ? const CircularProgressIndicator()
-                : const Text(
-                    'Delete',
-                    style: TextStyle(fontSize: 24),
-                  ),
-          ),
+          isLoading: isLoading,
+          onPressed: isLoading ? null : _deleteGroup,
         );
       },
     );

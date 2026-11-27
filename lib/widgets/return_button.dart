@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'game_style_box.dart';
+
 /// 戻るボタンウィジェット
 class ReturnButton extends StatelessWidget {
   final VoidCallback? onTap;
@@ -11,35 +13,20 @@ class ReturnButton extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap ?? () => Navigator.pop(context),
-      child: Stack( // 影をきれいに見せるためにStackを使用
-        children: [
-          // 背面の黒い影（板）
-          Container(
-            width: 45, // ボタン本体より少し小さく見えるよう調整
-            height: 45,
-            margin: const EdgeInsets.only(left: 4, top: 4), // 影のズレ分
-            decoration: BoxDecoration(
-              color: borderColor,
-              border: Border.all(color: borderColor, width: 2),
-            ),
+      child: GameStyleBox(
+        width: 45,
+        height: 45,
+        color: Colors.white,
+        borderColor: borderColor,
+        borderRadius: BorderRadius.circular(12),
+        shadowOffset: 4,
+        child: const Center(
+          child: Icon(
+            Icons.arrow_back,
+            color: borderColor,
+            size: 24,
           ),
-          // 前面の白いボタン本体
-          Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: borderColor, width: 2),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.arrow_back,
-                color: borderColor,
-                size: 24,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

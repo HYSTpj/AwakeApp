@@ -6,6 +6,7 @@ import '../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import '../../../widgets/game_style_button.dart';
 
 /// グループ参加ページ
 class AddGroupPage extends StatefulWidget {
@@ -130,7 +131,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
         decoration: const InputDecoration(
           hintText: 'Enter invitation code',
           border: InputBorder.none,
-          contentPadding: EdgeInsets.only(left: 15, top: 15),
+          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         ),
       ),
     );
@@ -143,26 +144,13 @@ class _AddGroupPageState extends State<AddGroupPage> {
       builder: (context, _) {
         final isLoading = _viewModel.state.isLoading;
 
-        return SizedBox(
-          width: 400,
+        return GameStyleButton(
+          label: 'Add',
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
           height: 80,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _invitation,
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Colors.black, width: 2),
-              ),
-            ),
-            child: isLoading
-                ? const CircularProgressIndicator()
-                : const Text(
-                    'Add',
-                    style: TextStyle(fontSize: 24),
-                  ),
-          ),
+          isLoading: isLoading,
+          onPressed: isLoading ? null : _invitation,
         );
       },
     );

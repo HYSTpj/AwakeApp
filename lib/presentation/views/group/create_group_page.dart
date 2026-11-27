@@ -6,6 +6,8 @@ import '../../../../data/repositories/group_repository.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../../../common_layout.dart';
 import '../../../widgets/return_button.dart';
+import '../../../widgets/game_style_button.dart';
+import '../login/common_effects.dart';
 
 /// グループ作成ページ
 class CreateGroupPage extends StatefulWidget {
@@ -129,7 +131,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         decoration: const InputDecoration(
           hintText: 'Enter new group name', // うっすら文字
           border: InputBorder.none, // 枠線
-          contentPadding: EdgeInsets.only(left: 15, top: 15), // 余白
+          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15), // 余白
         ),
       ),
     );
@@ -142,26 +144,13 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       builder: (context, _) {
         final isLoading = _viewModel.state.isLoading;
 
-        return SizedBox(
-          width: 400,
+        return GameStyleButton(
+          label: 'Create',
+          backgroundColor: kBrandOrange,
+          textColor: Colors.white,
           height: 80,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _newName, // ローディング中は無効
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(color: Colors.black, width: 2),
-              ),
-            ),
-            child: isLoading
-                ? const CircularProgressIndicator() // ローディングインジケーター
-                : const Text(
-                    'Create',
-                    style: TextStyle(fontSize: 24),
-                  ),
-          ),
+          isLoading: isLoading,
+          onPressed: isLoading ? null : _newName, // ローディング中は無効
         );
       },
     );
