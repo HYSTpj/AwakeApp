@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../common_layout.dart';
+import '../../../style/app_color.dart';
 import '../../../widgets/return_button.dart';
 import '../../../widgets/game_style_button.dart';
 import '../login/common_effects.dart';
@@ -100,7 +101,7 @@ class CreateOrAddOrDeletePage extends StatelessWidget {
   Widget _deleteButton(BuildContext context) {
     return GameStyleButton(
       label: 'Delete group',
-      backgroundColor: kDangerRed,
+      backgroundColor: AppColors.caution,
       textColor: Colors.white,
       onPressed: () async {
         final result = await Navigator.push<bool>(
