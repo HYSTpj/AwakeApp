@@ -7,22 +7,22 @@ import 'loading_button_label.dart';
 import 'login_header.dart';
 
 Widget createAccountBody(
-  BuildContext context, {
-  required VoidCallback onUploadImagePressed,
-  required VoidCallback onCreateAccountPressed,
-  required VoidCallback onReturnToLoginPressed,
-  required TextEditingController userNameController,
-  required dynamic pickedImage,
-  required bool isLoading,
-}) {
+  BuildContext context,
+  {required VoidCallback onUploadImagePressed,
+   required VoidCallback onCreateAccountPressed,
+   required VoidCallback onReturnToLoginPressed,
+   required TextEditingController userNameController,
+   required dynamic pickedImage,
+   required bool isLoading,}
+  ) {
   return Scaffold(
     backgroundColor: const Color(0xFFf8f6f6),
     body: SafeArea(
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.stretch, 
           children: [
-            myHeader(context), // ロゴとタイトルのヘッダー
+            myHeader(context),  // ロゴとタイトルのヘッダー
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -34,7 +34,7 @@ Widget createAccountBody(
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 32,
+                      fontSize: 32, 
                       fontFamily: 'Noto Sans JP',
                       fontWeight: FontWeight.w900,
                     ),
@@ -44,7 +44,7 @@ Widget createAccountBody(
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                   ),
-
+                  
                   const SizedBox(height: 24),
                   Align(
                     alignment: Alignment.centerLeft,
@@ -61,7 +61,7 @@ Widget createAccountBody(
 
                   // ユーザーネーム入力欄
                   Container(
-                    width: double.infinity,
+                    width: double.infinity, // 💡 固定320から画面幅いっぱいに変更
                     height: 48,
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -112,8 +112,8 @@ Widget createAccountBody(
                             )
                           : null,
                     ),
-                    child: pickedImage == null
-                        ? const Icon(Icons.person, size: 64, color: Colors.grey)
+                    child: pickedImage == null 
+                        ? const Icon(Icons.person, size: 64, color: Colors.grey) 
                         : null,
                   ),
 
@@ -146,22 +146,20 @@ Widget createAccountBody(
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 24),
 
                   // CREATE ACCOUNTボタン
                   Container(
                     width: double.infinity,
-                    height: 52,
+                    height: 52, // 💡 少し高さを出して押しやすく
                     decoration: hardShadowDecoration(showBorder: false),
                     child: ElevatedButton(
                       onPressed: isLoading ? null : onCreateAccountPressed,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: kBrandOrange,
                         foregroundColor: Colors.white,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                        ),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                         side: const BorderSide(color: Colors.black, width: 1),
                         elevation: 0,
                       ),

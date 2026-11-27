@@ -13,18 +13,18 @@ sealed class AuthOutcome {
   const AuthOutcome();
 }
 
-/// 通常の失敗（メール/パスワード不正など）
+// 通常の失敗（メール/パスワード不正など）
 class AuthFailed extends AuthOutcome {
   final String message;
   const AuthFailed(this.message);
 }
 
-/// サインアップ後、メール確認待ちであることを示す（失敗ではない）
+// サインアップ後、メール確認待ちであることを示す（失敗ではない）
 class AuthEmailConfirmationPending extends AuthOutcome {
   const AuthEmailConfirmationPending();
 }
 
-/// 認証関連の UI 状態を保持する不変（Immutable）ステートクラス
+// 認証関連の UI 状態を保持する不変（Immutable）ステートクラス
 class AuthState {
   final Profile? user;
 

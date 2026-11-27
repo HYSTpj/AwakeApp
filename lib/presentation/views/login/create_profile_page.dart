@@ -53,12 +53,15 @@ class _CreateAccountProfileState extends State<CreateAccountProfile> {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
     );
-    
+
     if (pickedFile == null) return;
 
     final CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: pickedFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      aspectRatio: const CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ),
     );
 
     if (croppedFile == null) return;

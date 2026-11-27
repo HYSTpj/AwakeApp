@@ -14,10 +14,16 @@ class EmailConfirmationPendingException implements Exception {
 // 認証および認証ユーザープロフィールのデータ操作を抽象化するインターフェース
 abstract class AuthRepository {
   // メールアドレスとパスワードを用いて新規アカウントを登録する
-  Future<Profile> signUp({required String email, required String password});
+  Future<Profile> signUp({
+    required String email,
+    required String password,
+  });
 
   // メールアドレスとパスワードでサインインする
-  Future<Profile> signIn({required String email, required String password});
+  Future<Profile> signIn({
+    required String email,
+    required String password,
+  });
 
   // 現在のセッションからサインアウトする
   Future<void> signOut();

@@ -80,7 +80,6 @@ void main() {
       when(
         () => mockRepository.getEvents('group-1'),
       ).thenAnswer((_) async => [createDummyEvent()]);
-
       await tester.pumpWidget(
         MultiProvider(
           providers: [
