@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../data/repositories/group_repository.dart';
 import '../../../../models/group.dart';
+import '../../../style/app_color.dart';
 import '../../viewmodels/group_view_model.dart';
 import '../../../common_layout.dart';
 import 'create_add_delete_page.dart';
@@ -189,10 +190,10 @@ class _GroupListPageState extends State<GroupListPage> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFFFF5C00),
+                                  color: AppColors.orange,
                                 ),
                               ),
-                              Icon(Icons.add_box, color: Color(0xFFFF5C00)),
+                              Icon(Icons.add_box, color: AppColors.orange),
                             ],
                           ),
                         ),
