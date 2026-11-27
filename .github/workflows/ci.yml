@@ -27,7 +27,6 @@ jobs:
           # バージョン引き上げのタイミングまでは3.47のままにする
           flutter-version: '3.47.0'
           cache: true
-
       - name: Install dependencies
         run: flutter pub get
 
