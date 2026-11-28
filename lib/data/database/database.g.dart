@@ -2704,10 +2704,7 @@ final class $$ProfilesTableReferences
   _groupMembershipsRefsTable(_$AwakeDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.groupMemberships,
-        aliasName: $_aliasNameGenerator(
-          db.profiles.id,
-          db.groupMemberships.userId,
-        ),
+        aliasName: 'profiles__id__group_memberships__user_id',
       );
 
   $$GroupMembershipsTableProcessedTableManager get groupMembershipsRefs {
@@ -2727,7 +2724,7 @@ final class $$ProfilesTableReferences
   static MultiTypedResultKey<$EventReportsTable, List<EventReport>>
   _eventReportsRefsTable(_$AwakeDatabase db) => MultiTypedResultKey.fromTable(
     db.eventReports,
-    aliasName: $_aliasNameGenerator(db.profiles.id, db.eventReports.userId),
+    aliasName: 'profiles__id__event_reports__user_id',
   );
 
   $$EventReportsTableProcessedTableManager get eventReportsRefs {
@@ -3038,7 +3035,7 @@ class $$ProfilesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ProfilesTable, Profile>(table),
                   $$ProfilesTableReferences(db, table, e),
                 ),
               )
@@ -3055,10 +3052,11 @@ class $$ProfilesTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (groupMembershipsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Profile,
                           $ProfilesTable,
-                          GroupMembership
+                          GroupMembership,
+                          $GroupMembershipsTable
                         >(
                           currentTable: table,
                           referencedTable: $$ProfilesTableReferences
@@ -3069,17 +3067,16 @@ class $$ProfilesTableTableManager
                                 table,
                                 p0,
                               ).groupMembershipsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.userId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'user_id',
                           typedResults: items,
                         ),
                       if (eventReportsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Profile,
                           $ProfilesTable,
-                          EventReport
+                          EventReport,
+                          $EventReportsTable
                         >(
                           currentTable: table,
                           referencedTable: $$ProfilesTableReferences
@@ -3090,10 +3087,8 @@ class $$ProfilesTableTableManager
                                 table,
                                 p0,
                               ).eventReportsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.userId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'user_id',
                           typedResults: items,
                         ),
                     ];
@@ -3143,10 +3138,7 @@ final class $$GroupsTableReferences
   _groupMembershipsRefsTable(_$AwakeDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.groupMemberships,
-        aliasName: $_aliasNameGenerator(
-          db.groups.id,
-          db.groupMemberships.groupId,
-        ),
+        aliasName: 'groups__id__group_memberships__group_id',
       );
 
   $$GroupMembershipsTableProcessedTableManager get groupMembershipsRefs {
@@ -3167,7 +3159,7 @@ final class $$GroupsTableReferences
     _$AwakeDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.events,
-    aliasName: $_aliasNameGenerator(db.groups.id, db.events.groupId),
+    aliasName: 'groups__id__events__group_id',
   );
 
   $$EventsTableProcessedTableManager get eventsRefs {
@@ -3423,8 +3415,10 @@ class $$GroupsTableTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $$GroupsTableReferences(db, table, e)),
+                (e) => (
+                  e.readTable<$GroupsTable, Group>(table),
+                  $$GroupsTableReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -3439,10 +3433,11 @@ class $$GroupsTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (groupMembershipsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Group,
                           $GroupsTable,
-                          GroupMembership
+                          GroupMembership,
+                          $GroupMembershipsTable
                         >(
                           currentTable: table,
                           referencedTable: $$GroupsTableReferences
@@ -3453,23 +3448,24 @@ class $$GroupsTableTableManager
                                 table,
                                 p0,
                               ).groupMembershipsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.groupId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'group_id',
                           typedResults: items,
                         ),
                       if (eventsRefs)
-                        await $_getPrefetchedData<Group, $GroupsTable, Event>(
+                        await $_getPrefetchedDataByColumns<
+                          Group,
+                          $GroupsTable,
+                          Event,
+                          $EventsTable
+                        >(
                           currentTable: table,
                           referencedTable: $$GroupsTableReferences
                               ._eventsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $$GroupsTableReferences(db, table, p0).eventsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.groupId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'group_id',
                           typedResults: items,
                         ),
                     ];
@@ -3527,9 +3523,7 @@ final class $$GroupMembershipsTableReferences
   );
 
   static $GroupsTable _groupIdTable(_$AwakeDatabase db) =>
-      db.groups.createAlias(
-        $_aliasNameGenerator(db.groupMemberships.groupId, db.groups.id),
-      );
+      db.groups.createAlias('group_memberships__group_id__groups__id');
 
   $$GroupsTableProcessedTableManager get groupId {
     final $_column = $_itemColumn<String>('group_id')!;
@@ -3546,9 +3540,7 @@ final class $$GroupMembershipsTableReferences
   }
 
   static $ProfilesTable _userIdTable(_$AwakeDatabase db) =>
-      db.profiles.createAlias(
-        $_aliasNameGenerator(db.groupMemberships.userId, db.profiles.id),
-      );
+      db.profiles.createAlias('group_memberships__user_id__profiles__id');
 
   $$ProfilesTableProcessedTableManager get userId {
     final $_column = $_itemColumn<String>('user_id')!;
@@ -3835,7 +3827,7 @@ class $$GroupMembershipsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$GroupMembershipsTable, GroupMembership>(table),
                   $$GroupMembershipsTableReferences(db, table, e),
                 ),
               )
@@ -3953,8 +3945,8 @@ final class $$EventsTableReferences
     extends BaseReferences<_$AwakeDatabase, $EventsTable, Event> {
   $$EventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $GroupsTable _groupIdTable(_$AwakeDatabase db) => db.groups
-      .createAlias($_aliasNameGenerator(db.events.groupId, db.groups.id));
+  static $GroupsTable _groupIdTable(_$AwakeDatabase db) =>
+      db.groups.createAlias('events__group_id__groups__id');
 
   $$GroupsTableProcessedTableManager get groupId {
     final $_column = $_itemColumn<String>('group_id')!;
@@ -3973,7 +3965,7 @@ final class $$EventsTableReferences
   static MultiTypedResultKey<$EventReportsTable, List<EventReport>>
   _eventReportsRefsTable(_$AwakeDatabase db) => MultiTypedResultKey.fromTable(
     db.eventReports,
-    aliasName: $_aliasNameGenerator(db.events.id, db.eventReports.eventId),
+    aliasName: 'events__id__event_reports__event_id',
   );
 
   $$EventReportsTableProcessedTableManager get eventReportsRefs {
@@ -4373,8 +4365,10 @@ class $$EventsTableTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $$EventsTableReferences(db, table, e)),
+                (e) => (
+                  e.readTable<$EventsTable, Event>(table),
+                  $$EventsTableReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback: ({groupId = false, eventReportsRefs = false}) {
@@ -4416,7 +4410,12 @@ class $$EventsTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (eventReportsRefs)
-                    await $_getPrefetchedData<Event, $EventsTable, EventReport>(
+                    await $_getPrefetchedDataByColumns<
+                      Event,
+                      $EventsTable,
+                      EventReport,
+                      $EventReportsTable
+                    >(
                       currentTable: table,
                       referencedTable: $$EventsTableReferences
                           ._eventReportsRefsTable(db),
@@ -4425,8 +4424,8 @@ class $$EventsTableTableManager
                         table,
                         p0,
                       ).eventReportsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.eventId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'event_id',
                       typedResults: items,
                     ),
                 ];
@@ -4490,8 +4489,8 @@ final class $$EventReportsTableReferences
     extends BaseReferences<_$AwakeDatabase, $EventReportsTable, EventReport> {
   $$EventReportsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EventsTable _eventIdTable(_$AwakeDatabase db) => db.events
-      .createAlias($_aliasNameGenerator(db.eventReports.eventId, db.events.id));
+  static $EventsTable _eventIdTable(_$AwakeDatabase db) =>
+      db.events.createAlias('event_reports__event_id__events__id');
 
   $$EventsTableProcessedTableManager get eventId {
     final $_column = $_itemColumn<String>('event_id')!;
@@ -4508,9 +4507,7 @@ final class $$EventReportsTableReferences
   }
 
   static $ProfilesTable _userIdTable(_$AwakeDatabase db) =>
-      db.profiles.createAlias(
-        $_aliasNameGenerator(db.eventReports.userId, db.profiles.id),
-      );
+      db.profiles.createAlias('event_reports__user_id__profiles__id');
 
   $$ProfilesTableProcessedTableManager get userId {
     final $_column = $_itemColumn<String>('user_id')!;
@@ -4941,7 +4938,7 @@ class $$EventReportsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$EventReportsTable, EventReport>(table),
                   $$EventReportsTableReferences(db, table, e),
                 ),
               )
